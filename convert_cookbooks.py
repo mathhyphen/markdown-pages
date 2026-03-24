@@ -13,6 +13,14 @@ SRC_DIR = "D:/apps/markdown-pages/cookbooks"
 HTML_DIR = "D:/apps/markdown-pages/cookbooks"
 PPTX_DIR = "D:/apps/markdown-pages/cookbooks-slides"
 
+def strip_yaml_frontmatter(md_content):
+    """Remove YAML front matter from markdown."""
+    if md_content.startswith('---'):
+        parts = md_content[3:].split('---', 1)
+        if len(parts) > 1:
+            return parts[1].lstrip('\n')
+    return md_content
+
 def markdown_to_html(md_content):
     """Convert markdown to HTML with proper styling."""
     html_template = '''<!DOCTYPE html>
@@ -39,6 +47,8 @@ def markdown_to_html(md_content):
 {content}
 </body>
 </html>'''
+    # Strip YAML front matter
+    md_content = strip_yaml_frontmatter(md_content)
     title = re.search(r'^#\s+(.+)$', md_content, re.MULTILINE)
     title = title.group(1) if title else "Claude Cookbooks"
     html_content = markdown.markdown(md_content, extensions=['tables', 'fenced_code', 'codehilite'])
