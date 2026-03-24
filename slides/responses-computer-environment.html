@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>From model to agent：Responses API 的“计算机环境”为什么是 agent 化的关键一跃｜演示页</title>
+  <meta name="description" content="这篇文章解释的不是“再给模型加一个工具”，而是：为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境，而不是只会吐文本的接口。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="deck-page">
+  
+<header class="deck-header">
+  <div class="left">
+    <a class="btn small ghost" href="../index.html">← 返回首页</a>
+    <span class="badge">OpenAI</span>
+    <span class="badge">2026-03-11</span>
+  </div>
+  <div class="right">
+    <a class="btn small primary" href="../articles/responses-computer-environment.html">阅读全文</a>
+    <span class="badge">上下箭头 / PageUp / PageDown 可翻页</span>
+  </div>
+</header>
+
+  <div class="deck-dots">
+    <button class="deck-dot active" aria-label="第 1 页"></button>
+<button class="deck-dot" aria-label="第 2 页"></button>
+<button class="deck-dot" aria-label="第 3 页"></button>
+<button class="deck-dot" aria-label="第 4 页"></button>
+<button class="deck-dot" aria-label="第 5 页"></button>
+<button class="deck-dot" aria-label="第 6 页"></button>
+  </div>
+  <main class="deck-container">
+    
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">OpenAI · 2026-03-11</div>
+    <h1>From model to agent：Responses API 的“计算机环境”为什么是 agent 化的关键一跃</h1>
+    <p>这篇文章解释的不是“再给模型加一个工具”，而是：为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境，而不是只会吐文本的接口。</p>
+    <div class="pill-row" style="margin-top:22px;">
+      <span class="badge">Responses API / hosted container / shell / network policy / skills</span>
+      <span class="badge">原题：From model to agent: Equipping the Responses API with a computer environment</span>
+    </div>
+    <div class="slide-cta">
+      <a class="btn primary" href="../articles/responses-computer-environment.html">点击阅读全文</a>
+      <a class="btn" href="https://openai.com/index/equip-responses-api-computer-environment/" target="_blank" rel="noopener">打开原文 ↗</a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 1 页</div>
+    <h2>核心变化：从“会答题”到“会工作”</h2>
+    <p>Responses API 被配上了 shell、文件系统、数据库与受控网络，模型开始拥有持续工作的环境。</p>
+    <div class="bullets"><div class="bullet">真正的 agent 需要工作区，而不只是工具列表。</div><div class="bullet">shell、文件系统和数据库是 agent 的外部记忆系统。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 2 页</div>
+    <h2>为什么 shell 重要</h2>
+    <p>真实任务不仅是算数，还包括构建、测试、抓日志、转格式、管理文件和运行脚本。</p>
+    <div class="bullets"><div class="bullet">真正的 agent 需要工作区，而不只是工具列表。</div><div class="bullet">shell、文件系统和数据库是 agent 的外部记忆系统。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 3 页</div>
+    <h2>状态应该留在环境里</h2>
+    <p>长输出落盘、中间结果留文件，模型只在需要时读取，这比把一切塞进上下文稳得多。</p>
+    <div class="bullets"><div class="bullet">shell、文件系统和数据库是 agent 的外部记忆系统。</div><div class="bullet">权限与策略设计是 agent 平台的核心组成，不是附加安全条款。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 4 页</div>
+    <h2>长任务靠 compaction，不靠上下文无限膨胀</h2>
+    <p>系统会持续重写工作记忆，让 agent 带着更干净的状态继续前进。</p>
+    <div class="bullets"><div class="bullet">权限与策略设计是 agent 平台的核心组成，不是附加安全条款。</div><div class="bullet">compaction 不是锦上添花，而是长任务生存条件。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 5 页</div>
+    <h2>我的结论</h2>
+    <p>agent 平台正在越来越像一台受控的计算机，而不只是一个聊天接口。</p>
+    <div class="bullets"><div class="bullet">compaction 不是锦上添花，而是长任务生存条件。</div><div class="bullet">skills 让可复用经验第一次拥有了接近软件包的形态。</div></div>
+  </div>
+</section>
+
+  </main>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

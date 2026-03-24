@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Unrolling the Codex agent loop：把 agent 回路拆开后，你会发现哪些地方真正决定了可靠性｜演示页</title>
+  <meta name="description" content="这篇文章把 Codex 的 agent loop 摊开给你看：从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率和稳定性的往往是这些运行时细节。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="deck-page">
+  
+<header class="deck-header">
+  <div class="left">
+    <a class="btn small ghost" href="../index.html">← 返回首页</a>
+    <span class="badge">OpenAI</span>
+    <span class="badge">2026-01-23</span>
+  </div>
+  <div class="right">
+    <a class="btn small primary" href="../articles/unrolling-codex-agent-loop.html">阅读全文</a>
+    <span class="badge">上下箭头 / PageUp / PageDown 可翻页</span>
+  </div>
+</header>
+
+  <div class="deck-dots">
+    <button class="deck-dot active" aria-label="第 1 页"></button>
+<button class="deck-dot" aria-label="第 2 页"></button>
+<button class="deck-dot" aria-label="第 3 页"></button>
+<button class="deck-dot" aria-label="第 4 页"></button>
+<button class="deck-dot" aria-label="第 5 页"></button>
+<button class="deck-dot" aria-label="第 6 页"></button>
+  </div>
+  <main class="deck-container">
+    
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">OpenAI · 2026-01-23</div>
+    <h1>Unrolling the Codex agent loop：把 agent 回路拆开后，你会发现哪些地方真正决定了可靠性</h1>
+    <p>这篇文章把 Codex 的 agent loop 摊开给你看：从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率和稳定性的往往是这些运行时细节。</p>
+    <div class="pill-row" style="margin-top:22px;">
+      <span class="badge">agent loop / prompt growth / caching / compaction / tool orchestration</span>
+      <span class="badge">原题：Unrolling the Codex agent loop</span>
+    </div>
+    <div class="slide-cta">
+      <a class="btn primary" href="../articles/unrolling-codex-agent-loop.html">点击阅读全文</a>
+      <a class="btn" href="https://openai.com/index/unrolling-the-codex-agent-loop/" target="_blank" rel="noopener">打开原文 ↗</a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 1 页</div>
+    <h2>agent loop 不只是 while-loop</h2>
+    <p>它是一个不断构建前缀、注入工具、管理历史与压缩记忆的系统。</p>
+    <div class="bullets"><div class="bullet">agent loop 的实现细节会直接决定成本、时延和稳定性。</div><div class="bullet">稳定的前缀比花哨的 prompt 更有复利。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 2 页</div>
+    <h2>稳定前缀 = 更高缓存命中</h2>
+    <p>工具描述、顺序和环境说明越稳定，系统越能在高吞吐下保持低成本和低时延。</p>
+    <div class="bullets"><div class="bullet">agent loop 的实现细节会直接决定成本、时延和稳定性。</div><div class="bullet">稳定的前缀比花哨的 prompt 更有复利。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 3 页</div>
+    <h2>长任务的敌人是上下文污染</h2>
+    <p>不是每条历史都该继续携带，很多内容应该被 compact 成更干净的工作记忆。</p>
+    <div class="bullets"><div class="bullet">稳定的前缀比花哨的 prompt 更有复利。</div><div class="bullet">compaction 是长任务设计的标配，不是应急方案。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 4 页</div>
+    <h2>细节看似琐碎，实则决定可靠性</h2>
+    <p>缓存、工具顺序、输出管理这些 runtime 设计，会直接影响 agent 是否越跑越乱。</p>
+    <div class="bullets"><div class="bullet">compaction 是长任务设计的标配，不是应急方案。</div><div class="bullet">工具描述和顺序管理，实质上也是上下文工程。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 5 页</div>
+    <h2>我的结论</h2>
+    <p>要把 agent 做稳，必须把 loop 当成一等工程对象。</p>
+    <div class="bullets"><div class="bullet">工具描述和顺序管理，实质上也是上下文工程。</div><div class="bullet">别把 loop 当 plumbing，它本身就是核心产品能力。</div></div>
+  </div>
+</section>
+
+  </main>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

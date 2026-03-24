@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Azure SRE Agent 的经验：为什么 100+ 工具和 50+ 专家代理，最后不如 5 个宽工具</title>
+  <meta name="description" content="这篇是少见的生产经验复盘：微软在构建 Azure SRE Agent 时发现，复杂系统的很多问题并不是靠加更多专家代理和更多工具解决，反而常常要靠删减、收敛和外化状态来解决。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html">AI Agent 阅读站</a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="../slides/azure-sre-agent-context-engineering.html">查看演示页</a>
+        <a class="btn small primary" href="https://techcommunity.microsoft.com/blog/appsonazureblog/context-engineering-lessons-from-building-azure-sre-agent/4481200" target="_blank" rel="noopener">原文链接 ↗</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="meta-row">
+          <span class="badge">Microsoft</span>
+          <span class="badge">2025-12-26 / 2026-01-11 update</span>
+          <span class="badge">production SRE agent / tool surface reduction / generalists vs specialists / code interpreter</span>
+        </div>
+        <div class="kicker">详细解读</div>
+        <h1>Azure SRE Agent 的经验：为什么 100+ 工具和 50+ 专家代理，最后不如 5 个宽工具</h1>
+        <p class="lead">这篇是少见的生产经验复盘：微软在构建 Azure SRE Agent 时发现，复杂系统的很多问题并不是靠加更多专家代理和更多工具解决，反而常常要靠删减、收敛和外化状态来解决。</p>
+        <div class="quote-box"><p>如果你喜欢看‘踩坑后真正改了什么’，这篇非常值得读。<br>它不是从零讲概念，而是站在一个要处理真实 SRE 场景的 agent 视角，回顾工具设计、代理编排、上下文管理和数值分析为什么会失灵。<br>文章最打动我的地方，是它敢承认：他们一开始走的很多路，看上去很合理，但在生产里并不好用。</p></div>
+      </div>
+    </section>
+
+    <div class="article-layout">
+      <aside class="toc">
+        <h4>目录</h4>
+        <a href="#一-从-100-工具到-5-个核心工具-复杂度有时来自帮助过度">一、从 100+ 工具到 5 个核心工具：复杂度有时来自帮助过度</a>
+<a href="#二-多代理交接为何失败-分工不是越细越好">二、多代理交接为何失败：分工不是越细越好</a>
+<a href="#三-把知识从-prompt-迁到文件-把输出从上下文迁到数据源">三、把知识从 prompt 迁到文件，把输出从上下文迁到数据源</a>
+<a href="#四-code-interpreter-的启示-llm-更像指挥-不像计算器">四、code interpreter 的启示：LLM 更像指挥，不像计算器</a>
+<a href="#五-我的读后感-这是-context-engineering-的-减法哲学">五、我的读后感：这是 context engineering 的‘减法哲学’</a>
+        <a href="#reflections">专业读后感</a>
+        <a href="#examples">Bad / Good examples</a>
+        <a href="#takeaways">重点结论</a>
+        <a href="#source">原文信息</a>
+      </aside>
+
+      <article class="prose">
+        
+<section id="一-从-100-工具到-5-个核心工具-复杂度有时来自帮助过度">
+  <h2>一、从 100+ 工具到 5 个核心工具：复杂度有时来自帮助过度</h2>
+  <p>文章最著名的结论之一，是团队最开始做了 100 多个工具、50 多个专门代理，后来发现这并没有带来预期中的可靠性。</p>
+<p>工具太多导致模型在发现、选择和组合时负担过重；很多工具功能重叠，描述边界又不够清晰，反而让 agent 更容易犹豫、走偏或循环。</p>
+<p>最终他们收敛到更少的宽工具，尤其是像 az 和 kubectl 这样的成熟 CLI。</p>
+<p>这个决定很有启发性：模型往往更擅长驱动少量表达力强的通用接口，而不是在海量窄接口中做精细导航。</p>
+<p>与其把世界切得过碎，不如给它几把好用的大锤，再配合外部状态和良好验证。</p>
+</section>
+
+<section id="二-多代理交接为何失败-分工不是越细越好">
+  <h2>二、多代理交接为何失败：分工不是越细越好</h2>
+  <p>很多人直觉上会觉得，多代理系统只要专业分工足够细，就能像组织一样高效协作。</p>
+<p>微软的经验却显示，交接超过四次后，系统就很容易出现信息丢失、上下文漂移、重复探索甚至循环依赖。</p>
+<p>我很赞同文章的这个判断。代理之间的 handoff 并不是免费的组织设计，它本质上是一种上下文压缩与重建。</p>
+<p>每多一次 handoff，就多一次状态损失和语义变形的机会。</p>
+<p>因此除非子问题真的高度独立，否则过度分工可能比少量 generalist 更糟。</p>
+</section>
+
+<section id="三-把知识从-prompt-迁到文件-把输出从上下文迁到数据源">
+  <h2>三、把知识从 prompt 迁到文件，把输出从上下文迁到数据源</h2>
+  <p>文章另一个非常成熟的点，是强调把知识与状态从 prompt 中迁出来。</p>
+<p>他们逐渐把知识封装进文件、skill 或结构化工件，而不是继续往系统提示里堆细则。</p>
+<p>同时，大量工具输出、指标结果和中间分析也不再直接塞回上下文，而是写入会话文件或由代码解释器进一步处理。</p>
+<p>这一点几乎和 OpenAI、Anthropic 的经验形成了交叉印证。</p>
+<p>一旦任务涉及大量指标、日志和数值计算，让模型直接在上下文里盯着原始数据分析，既贵又不稳。</p>
+<p>更好的做法是让代码解释器做计算，让文件系统保存数据，让模型负责 orchestration 和判断。</p>
+</section>
+
+<section id="四-code-interpreter-的启示-llm-更像指挥-不像计算器">
+  <h2>四、code interpreter 的启示：LLM 更像指挥，不像计算器</h2>
+  <p>文章把 code interpreter 的引入称作一个关键转折点，我非常同意。</p>
+<p>在 SRE 场景里，指标聚合、时间序列比较、表格变换、分布统计，本来就不该靠模型在 token 里‘心算’。</p>
+<p>当这些工作下沉到代码执行环境后，模型终于可以回到自己更擅长的位置：制定下一步调查策略、解释结果、选择工具链。</p>
+<p>这个判断其实很普适。很多 agent 失败，并不是因为规划错了，而是因为系统把不该由模型直接承担的机械计算也强行塞给它。</p>
+<p>一旦你把计算外包给解释器，把状态外包给文件，把调用外包给宽工具，模型就更容易表现出真正的推理价值。</p>
+</section>
+
+<section id="五-我的读后感-这是-context-engineering-的-减法哲学">
+  <h2>五、我的读后感：这是 context engineering 的‘减法哲学’</h2>
+  <p>我觉得微软这篇最宝贵的地方，在于它没有迷信“更多组件 = 更强系统”。</p>
+<p>无论是专家代理、窄工具、长 prompt，还是过度嵌套的 orchestrator，最后都在提醒我们：系统复杂度本身就是可靠性的敌人。</p>
+<p>这篇文章和 Anthropic 的 context engineering 文章放在一起看，几乎形成一条清晰主线：</p>
+<p>能少给就少给，能外化就外化，能用宽工具就别拆碎，能让代码解释器算就别让模型算。</p>
+<p>这不是保守，而是对模型认知特性的尊重。</p>
+<p>对真正做生产 agent 的团队来说，这篇文章提供的不是口号，而是一种极其实用的纠偏视角：</p>
+<p>当系统变得越来越复杂时，先试着删东西。</p>
+</section>
+
+
+        <section id="reflections">
+          <h2>专业读后感</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>读后感 1</strong><p>这篇文章最打动我的是‘删减后的系统反而更可靠’这个结论。</p></div>
+<div class="list-card"><strong>读后感 2</strong><p>多代理交接失败并不令人意外，但很少有文章像它这样把代价讲得这么清楚。</p></div>
+<div class="list-card"><strong>读后感 3</strong><p>把 LLM 视作 orchestrator 而不是 calculator，是非常成熟的系统定位。</p></div>
+<div class="list-card"><strong>读后感 4</strong><p>它与 OpenAI、Anthropic 的经验高度共振，说明很多 agent 工程规律正在跨公司收敛。</p></div>
+          </div>
+        </section>
+
+        <section id="examples">
+          <h2>更多 bad example / good example</h2>
+          
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">为了覆盖面设计上百个窄工具。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">收敛到少量宽工具，让模型复用已有 CLI 先验。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">把复杂任务拆给几十个专家代理层层接力。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">优先用少量 generalist，仅在必要时才做明确的子任务分解。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">把知识和状态都堆进系统 prompt。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">把知识迁到文件和 skills，把状态迁到外部工件。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">让模型直接在上下文里做复杂数值分析。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">用 code interpreter 处理计算，模型负责解释和决策。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">系统一复杂就继续加组件。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">优先做减法，检查是否存在工具冗余、代理冗余和上下文冗余。</div>
+  </div>
+</div>
+
+        </section>
+
+        <section id="takeaways">
+          <h2>重点结论</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>结论 1</strong><p>少量宽工具往往比大量窄工具更适合 agent。</p></div>
+<div class="list-card"><strong>结论 2</strong><p>多代理 handoff 有很高的语义损耗成本。</p></div>
+<div class="list-card"><strong>结论 3</strong><p>LLM 更适合编排和解释，不适合承担大量机械计算。</p></div>
+<div class="list-card"><strong>结论 4</strong><p>知识与状态应该尽量外化到文件、skills 和数据工件。</p></div>
+<div class="list-card"><strong>结论 5</strong><p>生产可靠性常常来自减法，而不是加法。</p></div>
+          </div>
+        </section>
+
+        <section id="source">
+          <h2>原文信息与阅读建议</h2>
+          <div class="source-box">
+            <p><strong>英文原题：</strong>Context Engineering for Reliable AI Agents: Lessons from Building Azure SRE Agent</p>
+            <p><strong>发布方：</strong>Microsoft</p>
+            <p><strong>发布日期：</strong>2025-12-26 / 2026-01-11 update</p>
+            <p><strong>原文链接：</strong><a href="https://techcommunity.microsoft.com/blog/appsonazureblog/context-engineering-lessons-from-building-azure-sre-agent/4481200" target="_blank" rel="noopener">https://techcommunity.microsoft.com/blog/appsonazureblog/context-engineering-lessons-from-building-azure-sre-agent/4481200</a></p>
+            <p style="margin-top:10px;">这页内容是面向中文读者的详细解读与专业评论，重点在于帮助你理解文章的结构、方法论和工程含义，而不是逐字直译。</p>
+          </div>
+          <div class="article-nav">
+            <a class="btn primary" href="../slides/azure-sre-agent-context-engineering.html">返回演示页</a>
+            <a class="btn" href="anthropic-context-engineering.html">← 上一篇</a>
+            <a class="btn" href="plans-md-multi-hour-problem-solving.html">下一篇 →</a>
+            <a class="btn" href="../index.html">回到首页</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+  
+<footer class="footer">
+  <p>本网站内容为对原文的中文详细解读与读后感，不是逐字转载。原文版权归各自作者与发布方所有。</p>
+  <p>站点生成时间：2026-03-24。部署方式：静态 HTML + GitHub Pages。</p>
+</footer>
+
+</body>
+</html>

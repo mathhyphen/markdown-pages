@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Effective harnesses for long-running agents：长时间运行的 agent，不能只靠“继续想”</title>
+  <meta name="description" content="Anthropic 这篇文章非常务实：长任务失败往往不是因为模型短期不会做，而是因为它无法在多轮、多窗口、多小时的执行中保持稳定状态和节奏。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html">AI Agent 阅读站</a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="../slides/anthropic-long-running-harnesses.html">查看演示页</a>
+        <a class="btn small primary" href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank" rel="noopener">原文链接 ↗</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="meta-row">
+          <span class="badge">Anthropic</span>
+          <span class="badge">2025-11-26</span>
+          <span class="badge">long-running agents / initializer / progress file / git checkpoints / browser testing</span>
+        </div>
+        <div class="kicker">详细解读</div>
+        <h1>Effective harnesses for long-running agents：长时间运行的 agent，不能只靠“继续想”</h1>
+        <p class="lead">Anthropic 这篇文章非常务实：长任务失败往往不是因为模型短期不会做，而是因为它无法在多轮、多窗口、多小时的执行中保持稳定状态和节奏。</p>
+        <div class="quote-box"><p>如果 OpenAI 更强调 agent-first 团队与运行时平台，这篇文章更像一线操盘手写的 runbook。<br>它专门处理一个难题：任务跨很多上下文窗口、跑很多小时之后，agent 为什么会跑偏、假装完成、或者把自己困在坏状态里。<br>Anthropic 给出的答案不是“让模型更努力”，而是给它设计一种能接力、能落地、能持续自校正的 harness。</p></div>
+      </div>
+    </section>
+
+    <div class="article-layout">
+      <aside class="toc">
+        <h4>目录</h4>
+        <a href="#一-为什么长任务会失败-失败并不神秘-只是状态管理出了问题">一、为什么长任务会失败：失败并不神秘，只是状态管理出了问题</a>
+<a href="#二-initializer-agent-先把工地搭起来-再让-coding-agent-开工">二、initializer agent：先把工地搭起来，再让 coding agent 开工</a>
+<a href="#三-增量推进与-git-checkpoint-让每一轮都能被下一轮可靠接住">三、增量推进与 git checkpoint：让每一轮都能被下一轮可靠接住</a>
+<a href="#四-浏览器测试与真实验证-没有-e2e-长任务几乎一定会自我感觉良好">四、浏览器测试与真实验证：没有 E2E，长任务几乎一定会自我感觉良好</a>
+<a href="#五-我对这篇文章的专业读后感">五、我对这篇文章的专业读后感</a>
+        <a href="#reflections">专业读后感</a>
+        <a href="#examples">Bad / Good examples</a>
+        <a href="#takeaways">重点结论</a>
+        <a href="#source">原文信息</a>
+      </aside>
+
+      <article class="prose">
+        
+<section id="一-为什么长任务会失败-失败并不神秘-只是状态管理出了问题">
+  <h2>一、为什么长任务会失败：失败并不神秘，只是状态管理出了问题</h2>
+  <p>文章开门见山地指出，长时间运行的 coding agent 有两个常见失败模式：一种是 one-shotting，即它不肯逐步构建和验证，</p>
+<p>而是一下子试图把整个应用写完；另一种是 premature completion，也就是明明还有缺口，却因为局部看起来像样就宣布完成。</p>
+<p>这两个问题表面上像“模型判断失误”，本质上却都跟 harness 设计有关。</p>
+<p>如果系统没有把任务拆成可追踪的增量目标，没有让 agent 持续记录进度、验证结果、留下接班信息，</p>
+<p>模型就很容易把当前最顺手的局部成果误当成整体完成。</p>
+</section>
+
+<section id="二-initializer-agent-先把工地搭起来-再让-coding-agent-开工">
+  <h2>二、initializer agent：先把工地搭起来，再让 coding agent 开工</h2>
+  <p>Anthropic 的核心创新之一，是把长任务分成两个阶段。第一个阶段不是立即编码，而是让一个 initializer 先完成环境与任务结构初始化。</p>
+<p>它会生成 init.sh、建立 claude-progress.txt、做初始 git commit、输出 feature list JSON，并给每个 feature 带上验证标记字段。</p>
+<p>这个设计非常聪明，因为它把“如何开始”这件事模板化了。</p>
+<p>长任务常常在最初十分钟就埋下后续混乱的种子：目录没梳理、依赖没装清楚、验收项不明确、进度文件不存在、没有可回退基线。</p>
+<p>initializer 其实是在用固定仪式为后续多个 context window 建立共同地面。</p>
+</section>
+
+<section id="三-增量推进与-git-checkpoint-让每一轮都能被下一轮可靠接住">
+  <h2>三、增量推进与 git checkpoint：让每一轮都能被下一轮可靠接住</h2>
+  <p>文章反复强调一次只推进一个 feature，并在阶段性完成后写进 progress file、打上 git commit。</p>
+<p>这看起来很“保守”，但对于长任务来说，保守就是效率。</p>
+<p>因为任何一次上下文切换、超时、中断或错误回滚，都需要一个可以可靠恢复的锚点。</p>
+<p>我很喜欢文章里那种接力赛的隐喻：不是要求一个 agent 一口气跑完全程，而是让每一棒都留下清晰证据给下一棒。</p>
+<p>在这种结构下，progress file 不再是日志，而是运行时的外部记忆；git commit 不再只是版本管理，而是恢复和审计节点。</p>
+<p>这对团队也很重要。哪怕最后不是 agent 接着干，而是换成人类工程师，也能沿着这些外部工件迅速接手。</p>
+</section>
+
+<section id="四-浏览器测试与真实验证-没有-e2e-长任务几乎一定会自我感觉良好">
+  <h2>四、浏览器测试与真实验证：没有 E2E，长任务几乎一定会自我感觉良好</h2>
+  <p>Anthropic 特别强调 browser automation。我非常认同这一点。</p>
+<p>长时间任务最危险的不是报错，而是“看起来差不多能用”，然后 agent 因为缺乏真实交互验证而误判成功。</p>
+<p>如果目标产物是应用、页面或多步流程，只靠读代码和跑局部脚本远远不够。</p>
+<p>文章建议把启动例程做得像一个固定 checklist：读当前目录、看 progress、看 feature list、看 git log、执行 init.sh，然后再决定下一步。</p>
+<p>这种 routine 化的启动动作看似机械，却能极大减少“新一轮 agent 不知道自己身处何处”的风险。</p>
+<p>在我看来，这是 harness engineering 最朴素也最有效的一条原则：能流程化的，就不要靠临场记忆。</p>
+</section>
+
+<section id="五-我对这篇文章的专业读后感">
+  <h2>五、我对这篇文章的专业读后感</h2>
+  <p>这篇文章的气质和很多炫目的 agent 演示相反。它没有强调模型有多神，而是非常冷静地讨论长时间工作中最普通、也最致命的问题：</p>
+<p>如何保持步调，如何不装作完成，如何留下交接线索，如何在下一次上下文重启时迅速恢复现场。</p>
+<p>我觉得它最大的贡献，是把“长任务”从模型能力问题重新框定成“状态与接力工程”。</p>
+<p>一旦这样看，很多解决方案就不再玄学：progress file、feature checklist、git checkpoint、initializer、E2E 验证，全都顺理成章。</p>
+<p>如果你的团队准备让 agent 承担多小时乃至跨天任务，这篇比很多纯理论文章都更值得先读。</p>
+<p>因为它讨论的是 agent 真正会在生产里摔倒的地方。</p>
+</section>
+
+
+        <section id="reflections">
+          <h2>专业读后感</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>读后感 1</strong><p>我特别认同 initializer 这一步，它本质上是在给长任务建立统一启动语义。</p></div>
+<div class="list-card"><strong>读后感 2</strong><p>progress file 和 git checkpoint 的价值，远远不止记录；它们其实是跨上下文接力的接口。</p></div>
+<div class="list-card"><strong>读后感 3</strong><p>browser automation 在这里不是锦上添花，而是防止 agent 自我欺骗的关键手段。</p></div>
+<div class="list-card"><strong>读后感 4</strong><p>这篇文章再次证明：长任务稳定性主要来自工件管理和节奏管理，而不是让模型“多想一会儿”。</p></div>
+          </div>
+        </section>
+
+        <section id="examples">
+          <h2>更多 bad example / good example</h2>
+          
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">一上来就让 agent 把整个系统一口气写完。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">先用 initializer 搭好工作地基，再按 feature 增量推进。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">任务中断后靠模型重新回忆进度。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">把进度写入外部文件，并用 git commit 固定阶段状态。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">只看代码通过就宣布完成。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">引入浏览器自动化和端到端验证，迫使 agent 面对真实行为。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">每轮启动都从头猜现在该做什么。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">用固定启动 routine 读取目录、进度、feature list、git log 和初始化脚本。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">把长任务失败归因于模型不够聪明。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">先检查任务拆分、状态锚点和交接机制是否存在。</div>
+  </div>
+</div>
+
+        </section>
+
+        <section id="takeaways">
+          <h2>重点结论</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>结论 1</strong><p>长任务要先设计接力机制，再谈模型质量。</p></div>
+<div class="list-card"><strong>结论 2</strong><p>initializer、progress file、feature list 和 git checkpoint 是长任务的基础设施。</p></div>
+<div class="list-card"><strong>结论 3</strong><p>E2E 验证能显著减少“假完成”。</p></div>
+<div class="list-card"><strong>结论 4</strong><p>流程化启动比临场记忆更可靠。</p></div>
+<div class="list-card"><strong>结论 5</strong><p>多小时任务最怕状态漂移，因此必须外化关键记忆。</p></div>
+          </div>
+        </section>
+
+        <section id="source">
+          <h2>原文信息与阅读建议</h2>
+          <div class="source-box">
+            <p><strong>英文原题：</strong>Effective harnesses for long-running agents</p>
+            <p><strong>发布方：</strong>Anthropic</p>
+            <p><strong>发布日期：</strong>2025-11-26</p>
+            <p><strong>原文链接：</strong><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank" rel="noopener">https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents</a></p>
+            <p style="margin-top:10px;">这页内容是面向中文读者的详细解读与专业评论，重点在于帮助你理解文章的结构、方法论和工程含义，而不是逐字直译。</p>
+          </div>
+          <div class="article-nav">
+            <a class="btn primary" href="../slides/anthropic-long-running-harnesses.html">返回演示页</a>
+            <a class="btn" href="unrolling-codex-agent-loop.html">← 上一篇</a>
+            <a class="btn" href="anthropic-context-engineering.html">下一篇 →</a>
+            <a class="btn" href="../index.html">回到首页</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+  
+<footer class="footer">
+  <p>本网站内容为对原文的中文详细解读与读后感，不是逐字转载。原文版权归各自作者与发布方所有。</p>
+  <p>站点生成时间：2026-03-24。部署方式：静态 HTML + GitHub Pages。</p>
+</footer>
+
+</body>
+</html>

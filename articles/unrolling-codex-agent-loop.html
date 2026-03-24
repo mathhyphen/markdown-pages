@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Unrolling the Codex agent loop：把 agent 回路拆开后，你会发现哪些地方真正决定了可靠性</title>
+  <meta name="description" content="这篇文章把 Codex 的 agent loop 摊开给你看：从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率和稳定性的往往是这些运行时细节。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html">AI Agent 阅读站</a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="../slides/unrolling-codex-agent-loop.html">查看演示页</a>
+        <a class="btn small primary" href="https://openai.com/index/unrolling-the-codex-agent-loop/" target="_blank" rel="noopener">原文链接 ↗</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="meta-row">
+          <span class="badge">OpenAI</span>
+          <span class="badge">2026-01-23</span>
+          <span class="badge">agent loop / prompt growth / caching / compaction / tool orchestration</span>
+        </div>
+        <div class="kicker">详细解读</div>
+        <h1>Unrolling the Codex agent loop：把 agent 回路拆开后，你会发现哪些地方真正决定了可靠性</h1>
+        <p class="lead">这篇文章把 Codex 的 agent loop 摊开给你看：从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率和稳定性的往往是这些运行时细节。</p>
+        <div class="quote-box"><p>很多人对 agent loop 的理解停在“模型说要用工具，系统执行，再把结果喂回去”。<br>这篇文章有价值的地方，是它把 Codex 实际怎么跑讲得非常工程化。<br>读完你会意识到：性能、稳定性、可恢复性和成本控制，往往不是由某个神秘 prompt 决定，而是由 loop 本身的设计决定。</p></div>
+      </div>
+    </section>
+
+    <div class="article-layout">
+      <aside class="toc">
+        <h4>目录</h4>
+        <a href="#一-文章的重点不是-循环存在-而是-循环怎样长大">一、文章的重点不是“循环存在”，而是“循环怎样长大”</a>
+<a href="#二-初始前缀与工具注入-你给模型的不是-prompt-而是一台带说明书的机器">二、初始前缀与工具注入：你给模型的不是 prompt，而是一台带说明书的机器</a>
+<a href="#三-为什么-prompt-caching-很重要-高吞吐-agent-不可能每轮都从零理解历史">三、为什么 prompt caching 很重要：高吞吐 agent 不可能每轮都从零理解历史</a>
+<a href="#四-compaction-不是删历史-而是把历史改写成可继续行动的工作记忆">四、compaction：不是删历史，而是把历史改写成可继续行动的工作记忆</a>
+<a href="#五-我对这篇文章的总判断">五、我对这篇文章的总判断</a>
+        <a href="#reflections">专业读后感</a>
+        <a href="#examples">Bad / Good examples</a>
+        <a href="#takeaways">重点结论</a>
+        <a href="#source">原文信息</a>
+      </aside>
+
+      <article class="prose">
+        
+<section id="一-文章的重点不是-循环存在-而是-循环怎样长大">
+  <h2>一、文章的重点不是“循环存在”，而是“循环怎样长大”</h2>
+  <p>文章一开始就表明，Codex 的每一轮并不是在真空里发生的。</p>
+<p>模型收到的不是单一用户问题，而是一整段由 system、developer、user、assistant 历史、环境描述、工具清单、输出模式等组成的前缀。</p>
+<p>所以所谓 agent loop，并不是一个抽象 while-loop，而是一个不断向前缀追加内容、不断重写工作上下文的动态过程。</p>
+<p>这一点很关键，因为很多部署失败都不是输在模型不会，而是输在 loop 越跑越脏。</p>
+<p>工具输出越来越长、计划越来越旧、上下文里混入过时指令，最后让模型在巨大的历史噪声里做局部决策。</p>
+<p>文章真正要解决的，正是这种“随着轮次增加而退化”的现实问题。</p>
+</section>
+
+<section id="二-初始前缀与工具注入-你给模型的不是-prompt-而是一台带说明书的机器">
+  <h2>二、初始前缀与工具注入：你给模型的不是 prompt，而是一台带说明书的机器</h2>
+  <p>文章详细描述了初始请求里有哪些层次：system 负责全局行为边界，developer 指定 Codex 自身的工作方式，user 给出任务，</p>
+<p>同时还会注入当前工作目录、shell 环境、可用工具以及输出约束。</p>
+<p>从这个角度看，agent loop 的起点更像一次工作环境初始化，而不是单轮问答。</p>
+<p>我特别想强调工具排序和工具描述的影响。文章提到 prompt caching 对稳定前缀非常敏感，连 MCP 工具顺序变化都可能导致缓存命中率下降。</p>
+<p>这说明 tools 不是一个抽象列表，而是前缀的一部分；只要你频繁改动工具集、描述文本或注入顺序，就等于让系统每轮都重新热启动。</p>
+<p>这也是为什么好的 harness 会努力让工具描述简洁、稳定、少变。</p>
+<p>对模型来说，工具不是“越多越强”，而是“越稳定越容易形成可复用策略”。</p>
+</section>
+
+<section id="三-为什么-prompt-caching-很重要-高吞吐-agent-不可能每轮都从零理解历史">
+  <h2>三、为什么 prompt caching 很重要：高吞吐 agent 不可能每轮都从零理解历史</h2>
+  <p>文章专门讲了 prompt caching，我认为这是一大亮点。随着 agent loop 进行，前缀会变得越来越长，但其中大量内容其实是稳定不变的：</p>
+<p>基础指令、工具描述、环境说明、部分历史结构等。如果每轮都完全重新编码，成本和时延都会迅速攀升。</p>
+<p>因此 Codex 的设计会尽量让前缀以可复用的方式增长：能保持 exact prefix 的地方就尽量不动，让服务端缓存前面的大块内容。</p>
+<p>这在实践里很像系统工程中的 locality optimization：不是让模型更聪明，而是减少它每次都要重新理解的固定背景。</p>
+<p>文章还解释了为什么 Codex 当前不依赖 previous_response_id。这一选择与保持请求无状态、支持某些数据隔离模式有关。</p>
+<p>从架构上看，这意味着系统更依赖显式前缀构造和缓存策略，而不是把连续性完全托付给服务端黑箱状态。</p>
+</section>
+
+<section id="四-compaction-不是删历史-而是把历史改写成可继续行动的工作记忆">
+  <h2>四、compaction：不是删历史，而是把历史改写成可继续行动的工作记忆</h2>
+  <p>当 loop 走得足够长，哪怕有缓存也会碰到上下文膨胀问题。文章于是引入了 compaction：把已有对话压缩成一种专门为继续工作服务的中间表示。</p>
+<p>系统并不是简单做摘要，而是生成一个 type=compaction 的历史段落，让模型带着新的、较短但高保真的状态继续工作。</p>
+<p>我非常认同这种设计，因为长任务真正需要的不是“原样保留每句话”，而是保留当前还会影响决策的事实、计划、未完成项和关键证据。</p>
+<p>compaction 的质量，实际上会直接决定 agent 是否会忘记自己已经验证过什么、踩过哪些坑、哪些分支已经放弃。</p>
+<p>从更大的视角看，compaction 是 agent runtime 对 transformer 记忆局限的一种工程补偿。</p>
+<p>它承认模型不是天然的长期状态机，于是用系统层的重写机制帮它维持一种可工作的连续性。</p>
+</section>
+
+<section id="五-我对这篇文章的总判断">
+  <h2>五、我对这篇文章的总判断</h2>
+  <p>这篇文章看似在讲实现细节，实际上是在教育读者：agent 的质量很大程度上来自 loop 工程，而不是来自单点模型能力。</p>
+<p>工具集如何注入、前缀如何稳定、缓存如何命中、上下文何时 compact、事件如何组织，这些细节共同决定了一次长任务是越跑越顺，还是越跑越乱。</p>
+<p>它也给了团队一个非常实际的提醒：别把所有问题都归结为“模型变笨了”。</p>
+<p>很多时候是你的 loop 设计让模型背着越来越脏的历史前进，或者让缓存频繁失效、工具面不断抖动。</p>
+<p>如果不把 loop 当成一等工程对象来调优，再强的模型也会被拖累。</p>
+<p>我会把这篇归类为“agent 平台工程的内功篇”。它不像案例文章那么振奋人心，但对真正要落地系统的人，价值反而更高。</p>
+</section>
+
+
+        <section id="reflections">
+          <h2>专业读后感</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>读后感 1</strong><p>这篇文章最有启发性的地方，是把“上下文增长”视作一等问题，而不是不可避免的副作用。</p></div>
+<div class="list-card"><strong>读后感 2</strong><p>prompt caching 在这里几乎像编译器优化：它看起来不起眼，但决定了系统是否能高吞吐地运行。</p></div>
+<div class="list-card"><strong>读后感 3</strong><p>我很赞同显式 compaction 的做法，因为它让长任务的记忆管理从模型隐式能力变成了可调、可观测的系统机制。</p></div>
+<div class="list-card"><strong>读后感 4</strong><p>这篇也提醒我：agent loop 设计的好坏，常常体现在工具注入和状态压缩这些不那么炫目的细节里。</p></div>
+          </div>
+        </section>
+
+        <section id="examples">
+          <h2>更多 bad example / good example</h2>
+          
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">每一轮都随意重排工具、变更描述，导致缓存频繁失效。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">让工具清单和描述保持稳定，使 prompt caching 最大化发挥作用。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">把历史对话原封不动越积越长。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">在合适时机做 compaction，把历史重写成可行动的工作记忆。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">把 agent loop 理解成简单 while 循环。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">把它视作前缀构建、工具编排、缓存与记忆管理的综合系统。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">一旦任务变慢，就先怪模型。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">先检查前缀是否抖动、缓存是否失效、历史是否已经污染了当前决策。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">工具输出全部回注上下文。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">让重要结论进上下文，原始大输出留在外部状态里按需读取。</div>
+  </div>
+</div>
+
+        </section>
+
+        <section id="takeaways">
+          <h2>重点结论</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>结论 1</strong><p>agent loop 的实现细节会直接决定成本、时延和稳定性。</p></div>
+<div class="list-card"><strong>结论 2</strong><p>稳定的前缀比花哨的 prompt 更有复利。</p></div>
+<div class="list-card"><strong>结论 3</strong><p>compaction 是长任务设计的标配，不是应急方案。</p></div>
+<div class="list-card"><strong>结论 4</strong><p>工具描述和顺序管理，实质上也是上下文工程。</p></div>
+<div class="list-card"><strong>结论 5</strong><p>别把 loop 当 plumbing，它本身就是核心产品能力。</p></div>
+          </div>
+        </section>
+
+        <section id="source">
+          <h2>原文信息与阅读建议</h2>
+          <div class="source-box">
+            <p><strong>英文原题：</strong>Unrolling the Codex agent loop</p>
+            <p><strong>发布方：</strong>OpenAI</p>
+            <p><strong>发布日期：</strong>2026-01-23</p>
+            <p><strong>原文链接：</strong><a href="https://openai.com/index/unrolling-the-codex-agent-loop/" target="_blank" rel="noopener">https://openai.com/index/unrolling-the-codex-agent-loop/</a></p>
+            <p style="margin-top:10px;">这页内容是面向中文读者的详细解读与专业评论，重点在于帮助你理解文章的结构、方法论和工程含义，而不是逐字直译。</p>
+          </div>
+          <div class="article-nav">
+            <a class="btn primary" href="../slides/unrolling-codex-agent-loop.html">返回演示页</a>
+            <a class="btn" href="responses-computer-environment.html">← 上一篇</a>
+            <a class="btn" href="anthropic-long-running-harnesses.html">下一篇 →</a>
+            <a class="btn" href="../index.html">回到首页</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+  
+<footer class="footer">
+  <p>本网站内容为对原文的中文详细解读与读后感，不是逐字转载。原文版权归各自作者与发布方所有。</p>
+  <p>站点生成时间：2026-03-24。部署方式：静态 HTML + GitHub Pages。</p>
+</footer>
+
+</body>
+</html>

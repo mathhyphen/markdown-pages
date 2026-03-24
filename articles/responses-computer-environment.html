@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>From model to agent：Responses API 的“计算机环境”为什么是 agent 化的关键一跃</title>
+  <meta name="description" content="这篇文章解释的不是“再给模型加一个工具”，而是：为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境，而不是只会吐文本的接口。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html">AI Agent 阅读站</a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="../slides/responses-computer-environment.html">查看演示页</a>
+        <a class="btn small primary" href="https://openai.com/index/equip-responses-api-computer-environment/" target="_blank" rel="noopener">原文链接 ↗</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="meta-row">
+          <span class="badge">OpenAI</span>
+          <span class="badge">2026-03-11</span>
+          <span class="badge">Responses API / hosted container / shell / network policy / skills</span>
+        </div>
+        <div class="kicker">详细解读</div>
+        <h1>From model to agent：Responses API 的“计算机环境”为什么是 agent 化的关键一跃</h1>
+        <p class="lead">这篇文章解释的不是“再给模型加一个工具”，而是：为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境，而不是只会吐文本的接口。</p>
+        <div class="quote-box"><p>如果说 App Server 讲的是 agent runtime 的对外协议，这篇文章讲的就是 runtime 的“操作系统层”。<br>OpenAI 试图把 Responses API 从“会回答”升级成“会工作”，于是给它配上了 shell、文件系统、数据库、网络策略、技能包与会话压缩。<br>读完你会发现，很多所谓 agent 能力，其实不是模型变魔术，而是环境终于像一台真正的电脑了。</p></div>
+      </div>
+    </section>
+
+    <div class="article-layout">
+      <aside class="toc">
+        <h4>目录</h4>
+        <a href="#一-文章真正解决的问题-为什么单纯的工具调用还不够">一、文章真正解决的问题：为什么单纯的工具调用还不够</a>
+<a href="#二-shell-与工作区-把复杂任务留在环境里-而不是塞回上下文">二、shell 与工作区：把复杂任务留在环境里，而不是塞回上下文</a>
+<a href="#三-网络-秘密与数据库-agent-需要的是可治理能力-而不是无限权限">三、网络、秘密与数据库：agent 需要的是可治理能力，而不是无限权限</a>
+<a href="#四-compaction-与-skills-长任务不是靠更长上下文撑住的">四、compaction 与 skills：长任务不是靠更长上下文撑住的</a>
+<a href="#五-这篇文章在更大图景里的位置">五、这篇文章在更大图景里的位置</a>
+        <a href="#reflections">专业读后感</a>
+        <a href="#examples">Bad / Good examples</a>
+        <a href="#takeaways">重点结论</a>
+        <a href="#source">原文信息</a>
+      </aside>
+
+      <article class="prose">
+        
+<section id="一-文章真正解决的问题-为什么单纯的工具调用还不够">
+  <h2>一、文章真正解决的问题：为什么单纯的工具调用还不够</h2>
+  <p>文章的起点非常现实：仅靠函数调用式工具，模型可以查询、也可以触发动作，但它并没有一个持续存在的工作区。</p>
+<p>一旦任务跨多个步骤、需要下载文件、执行脚本、保存中间产物、比较两轮结果、做临时数据整理，</p>
+<p>“工具调用”很快就会退化成大量碎片化、难复用、难恢复的外部操作。</p>
+<p>OpenAI 给出的答案是把模型放进一个 hosted computer environment。</p>
+<p>这意味着 agent 不只是会请求别人帮它做事，而是拥有一个受控的容器、文件系统、shell、轻量数据库和可管理网络。</p>
+<p>从系统设计上看，这一步把模型从“文本决策器”推向了“可在数字环境中持续劳动的执行者”。</p>
+</section>
+
+<section id="二-shell-与工作区-把复杂任务留在环境里-而不是塞回上下文">
+  <h2>二、shell 与工作区：把复杂任务留在环境里，而不是塞回上下文</h2>
+  <p>文章特别强调 shell 的意义。此前很多 AI workflow 把 Python 当成唯一的执行通道，但真实工程任务需要的不仅是数据分析，</p>
+<p>还包括包管理、构建、测试、grep、curl、git、日志过滤、格式转换、脚本串联等大量通用操作。</p>
+<p>把 shell 作为一等工具，等于承认 agent 工作的基本介质不是“消息”，而是“命令 + 文件”。</p>
+<p>更重要的是，OpenAI 让输出可以被限制和管理：命令有并发 session、有边界化的 stdout/stderr、产物直接落盘。</p>
+<p>这改变了 agent 的记忆方式。不是每次都把长输出重新喂回模型，而是让模型把文件视作外部记忆，再按需读取。</p>
+<p>这其实是一种非常经典的计算思想：上下文窗口负责决策，文件系统负责状态和大体量中间结果。</p>
+</section>
+
+<section id="三-网络-秘密与数据库-agent-需要的是可治理能力-而不是无限权限">
+  <h2>三、网络、秘密与数据库：agent 需要的是可治理能力，而不是无限权限</h2>
+  <p>文章没有把“给 agent 一台电脑”浪漫化，而是非常强调治理边界。</p>
+<p>容器环境中的网络访问不是默认全开，而是通过 egress proxy 和策略控制；秘密注入也支持域名范围的约束，</p>
+<p>这意味着只有在访问某些目标域时，对应的凭证才会在工具调用链路中可用。</p>
+<p>这一设计很值得玩味。它说明 agent 平台真正需要的是 capabilities with policy，而不是 capability without brakes。</p>
+<p>如果权限模型过粗，系统迟早会在安全和合规上撞墙；如果权限模型足够细，agent 就能在“够用”与“可控”之间取得工程上的平衡。</p>
+<p>文章还提到 SQLite 一类轻量数据库在环境中的作用。我对这点很赞同。</p>
+<p>很多临时汇总、表格清洗、结果对比，本来就更适合落到数据库或本地结构化文件，而不是变成一大坨 prompt 中的 JSON。</p>
+</section>
+
+<section id="四-compaction-与-skills-长任务不是靠更长上下文撑住的">
+  <h2>四、compaction 与 skills：长任务不是靠更长上下文撑住的</h2>
+  <p>长任务会导致上下文膨胀，这是 agent 系统迟早要碰到的问题。文章的一个核心信息是：OpenAI 没有把答案寄托在“无限长上下文”上，</p>
+<p>而是把 compaction 做成原生能力。系统可以把历史工作总结成更短、更有用的状态描述，再继续执行。</p>
+<p>这背后的思想是：上下文不该只是日志，它应该是当前决策真正需要的工作记忆。</p>
+<p>把所有历史一股脑保留，常常只会增加噪声、拖慢推理，并让模型把注意力浪费在已经完成的枝节上。</p>
+<p>因此 compaction 不是压缩存档，而是一次信息再编排。</p>
+<p>文章里的另一层是 skills。一个 skill 不是单条 prompt，而是一组带有 SKILL.md 和资源文件的能力包。</p>
+<p>这说明 OpenAI 在把“经验”封装成可装载模块：需要时拉取、解包、注入环境；不用时不占上下文。</p>
+<p>从平台设计角度看，skills 让 agent 的可复用知识第一次具备了接近软件包的形态。</p>
+</section>
+
+<section id="五-这篇文章在更大图景里的位置">
+  <h2>五、这篇文章在更大图景里的位置</h2>
+  <p>把这篇和前两篇连起来看，画面就很清楚了：App Server 解决的是多客户端统一会话协议，computer environment 解决的是 agent 实际工作的宿主环境。</p>
+<p>两者叠起来，才构成一个真正能做工程任务的 agent runtime。</p>
+<p>我认为这篇最有价值的地方，是它把 agent 平台从“模型 API 的包装层”提升到了“受控计算环境”。</p>
+<p>也就是说，agent 的进步不只是来自更强的基础模型，还来自更像操作系统的运行时、更像平台工程的权限模型，以及更像软件工程的状态管理。</p>
+<p>如果你要自己搭类似系统，这篇最大的提醒是：别一开始就试图把所有能力都通过 prompt 塞给模型。</p>
+<p>先问问自己：哪些问题应该留给上下文，哪些应该留给文件系统，哪些应该留给 shell，哪些应该留给策略与平台。</p>
+</section>
+
+
+        <section id="reflections">
+          <h2>专业读后感</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>读后感 1</strong><p>这篇文章让我最强烈的感受是：agent 能力的上限，很大程度上受制于环境设计，而不是模型参数量。</p></div>
+<div class="list-card"><strong>读后感 2</strong><p>它把“工具”提升成“工作区”，这是一个范式变化。前者偏离散调用，后者才适合多步骤任务。</p></div>
+<div class="list-card"><strong>读后感 3</strong><p>我尤其认同它对权限与策略的重视。没有受控网络和细粒度 secret 注入，agent 很难真正进入生产场景。</p></div>
+<div class="list-card"><strong>读后感 4</strong><p>skills 的设计也很值得继续观察：它像 prompt engineering、package management 与 runbook engineering 的结合体。</p></div>
+          </div>
+        </section>
+
+        <section id="examples">
+          <h2>更多 bad example / good example</h2>
+          
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">把每一步外部操作都做成独立函数调用，结果中间状态四散、难恢复。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">给 agent 一个持久工作区，让文件、脚本和结果自然沉淀在环境里。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">把长命令输出直接塞回上下文。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">让输出落盘，需要时再 grep、tail、读取或汇总。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">为了“强能力”直接把网络和秘密全开。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">使用 egress 策略和域名范围的 secret 注入，提供够用但可治理的能力。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">遇到长任务就一味追求更长上下文。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">把 compaction 做成原生机制，持续重写工作记忆。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">把经验藏在长 prompt 里。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">把经验打包成 skills，在需要时装载、在环境中执行。</div>
+  </div>
+</div>
+
+        </section>
+
+        <section id="takeaways">
+          <h2>重点结论</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>结论 1</strong><p>真正的 agent 需要工作区，而不只是工具列表。</p></div>
+<div class="list-card"><strong>结论 2</strong><p>shell、文件系统和数据库是 agent 的外部记忆系统。</p></div>
+<div class="list-card"><strong>结论 3</strong><p>权限与策略设计是 agent 平台的核心组成，不是附加安全条款。</p></div>
+<div class="list-card"><strong>结论 4</strong><p>compaction 不是锦上添花，而是长任务生存条件。</p></div>
+<div class="list-card"><strong>结论 5</strong><p>skills 让可复用经验第一次拥有了接近软件包的形态。</p></div>
+          </div>
+        </section>
+
+        <section id="source">
+          <h2>原文信息与阅读建议</h2>
+          <div class="source-box">
+            <p><strong>英文原题：</strong>From model to agent: Equipping the Responses API with a computer environment</p>
+            <p><strong>发布方：</strong>OpenAI</p>
+            <p><strong>发布日期：</strong>2026-03-11</p>
+            <p><strong>原文链接：</strong><a href="https://openai.com/index/equip-responses-api-computer-environment/" target="_blank" rel="noopener">https://openai.com/index/equip-responses-api-computer-environment/</a></p>
+            <p style="margin-top:10px;">这页内容是面向中文读者的详细解读与专业评论，重点在于帮助你理解文章的结构、方法论和工程含义，而不是逐字直译。</p>
+          </div>
+          <div class="article-nav">
+            <a class="btn primary" href="../slides/responses-computer-environment.html">返回演示页</a>
+            <a class="btn" href="unlocking-codex-harness.html">← 上一篇</a>
+            <a class="btn" href="unrolling-codex-agent-loop.html">下一篇 →</a>
+            <a class="btn" href="../index.html">回到首页</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+  
+<footer class="footer">
+  <p>本网站内容为对原文的中文详细解读与读后感，不是逐字转载。原文版权归各自作者与发布方所有。</p>
+  <p>站点生成时间：2026-03-24。部署方式：静态 HTML + GitHub Pages。</p>
+</footer>
+
+</body>
+</html>

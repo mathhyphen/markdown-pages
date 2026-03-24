@@ -1,0 +1,1054 @@
+[
+  {
+    "slug": "harness-engineering",
+    "title": "Harness engineering：在 agent-first 世界里如何把 Codex 变成工程生产力",
+    "original_title": "Harness engineering: leveraging Codex in an agent-first world",
+    "source": "OpenAI",
+    "date": "2026-02-11",
+    "url": "https://openai.com/index/harness-engineering/",
+    "theme": "harness engineering / repo design / agent autonomy",
+    "summary": "这篇文章不是在讲“怎么把提示词写得更像咒语”，而是在讲：当代码主要由 agent 产出时，工程团队真正要建设的是环境、知识、边界、反馈回路与垃圾回收机制。",
+    "hero_blurb": "这是我最推荐先读的一篇，因为它给出了 harness engineering 的“组织级定义”。\nOpenAI 团队用一个极端实验逼自己转型：新产品从空仓库起步，代码、测试、CI、文档、内部工具几乎都由 Codex 生成，\n人类不直接下场写代码，而是把注意力转向“如何让 agent 持续可靠地产出”。文章真正想传达的不是炫技，而是工程角色的重写。",
+    "sections": [
+      {
+        "heading": "一、文章到底在回答什么问题",
+        "body": [
+          "文章的起点很激进：团队在五个月里构建并交付了一个内部 beta 产品，而且坚持“0 行人工手写代码”的约束。\n这样做的目的不是证明模型多聪明，而是强迫团队把一切妨碍 agent 交付的因素暴露出来。\n所以作者真正要回答的问题是：当“写代码”不再是工程师的主要工作，工程学的核心到底迁移到了哪里？",
+          "文章给出的答案是：迁移到了 harness 上。这里的 harness 不是单一脚本，而是一整套“让 agent 能工作、敢工作、工作后还能被维护”的系统。\n它包含仓库结构、知识组织、文档制度、测试工具、可观测性、lint 规则、质量评分、自动化 review 与持续清理流程。\n如果这些东西缺位，agent 并不是简单地“输出差一点”，而是会以机器速度把局部坏模式扩散成系统性熵增。"
+        ]
+      },
+      {
+        "heading": "二、逐节解读：从空仓库到工程角色重写",
+        "body": [
+          "文章开头先用几个数字建立可信度：空仓库起步、约百万行代码、约 1500 个 PR、小团队却维持极高吞吐。\n这部分的意义不在于“数字厉害”，而在于说明一个判断：只要上下文、边界和反馈回路搭好，agent 的交付速度会高到反过来改变组织制度。\n换言之，传统针对“人类代码吞吐”的流程，未必还能直接套在 agent-first 团队上。",
+          "接着作者解释工程师的新角色。以前遇到任务失败，人类会倾向于自己补上那段代码；在这个实验里他们不能这样做，\n所以每次失败都被迫回到更本质的问题：到底缺的是工具、知识、边界、计划模板，还是验证机制？\n这种“永远不手写，而是补系统”的姿态，正是 harness engineering 的方法论核心。"
+        ]
+      },
+      {
+        "heading": "三、让应用与仓库对 agent 可读：可读性从“给人看”升级为“给 agent 看”",
+        "body": [
+          "文中很重要的一层是“application legibility”和“agent legibility”。前者指让应用本身对 agent 可操作、可验证：\n比如每个 worktree 都能独立启动应用，把 Chrome DevTools 接进运行时，让 Codex 能看 DOM、截图、导航、复现 bug；\n还把日志、指标、trace 暴露成 agent 可查询的观测面。这样，agent 不只是“改代码”，而是能自己验证修复是否真的成立。",
+          "后者则更深：仓库里的知识必须以 agent 能发现、能理解、能机械校验的形式存在。\n作者反对把一切塞进一个巨大的 AGENTS.md，因为那会挤占上下文、让重点失焦、并且极易腐烂。\n他们把 AGENTS.md 降级成“目录页”，真正的知识以 docs/、PLANS、QUALITY_SCORE、RELIABILITY 等结构化文档存在，再用 lint 与 CI 维持新鲜度。",
+          "这一段最有启发性的一句话可以概括成：凡是不在仓库里、且 agent 在运行时拿不到的知识，对 agent 来说就等于不存在。\n这其实把很多团队的隐性流程暴露出来了——架构共识还躺在 Slack、Google Docs、口头习惯与资深工程师脑子里时，\n你以为你在训练 agent，实际上你在让它持续缺文档工作。"
+        ]
+      },
+      {
+        "heading": "四、架构、品味与吞吐：为什么 strict boundaries 比“精细规定写法”更重要",
+        "body": [
+          "文章并不主张把 agent 管到每一行，而是强调“把不变量机械化”。具体做法包括：\n固定业务域分层、限制依赖方向、在边界处解析和校验数据、用自定义 lint 强制结构化日志与命名、让错误信息本身就能给 agent 提示修复方向。\n这是一种很强的平台工程思维：中心化地定义边界，局部放开实现自由。",
+          "我认为这一段最值得反复咀嚼。很多团队直觉上会把“AI 工程纪律”理解成更长的 prompt、更细的 code style 指令，\n但作者的做法恰好相反：对具体写法放松，对架构边界收紧。原因很简单，边界是可机械执行的，审美争论却会迅速消耗上下文与评审注意力。\n只要代码正确、可维护、对下一次 agent 运行依然清晰，它就达标；它不需要完美复刻某位资深工程师的行文腔调。",
+          "同时，文章指出高吞吐会倒逼 merge philosophy 改变。PR 周期更短、阻塞门槛更少、flake 往往通过后续运行修复而不是长时间卡住。\n这听起来像“降低标准”，但作者的真实意思是：当 agent 产能远高于人类注意力时，等待的机会成本会陡增，\n所以组织需要把“修正便宜、等待昂贵”的现实吸纳进流程设计。"
+        ]
+      },
+      {
+        "heading": "五、自治不是终点：熵、垃圾回收与黄金原则才是长线战场",
+        "body": [
+          "文章最后几节是全篇最成熟的部分。作者坦率承认：完全自治会复制仓库中已经存在的模式，好的坏的都会复制。\n所以 agent 越能干，越会把局部不良模式迅速放大。团队一开始靠人类每周五花 20% 的时间清理“AI slop”，很快发现完全不可扩展。",
+          "于是他们把“人类品味”编码成 golden principles：优先共享 utility，避免手搓重复 helper；\n不做 YOLO 式数据探测，而是在边界验证结构或使用类型化 SDK；定期运行后台 Codex 任务扫描偏差、更新质量等级、发起定向重构 PR。\n这个机制被作者比喻成垃圾回收。它不是年度治理工程，而是持续的小额偿债。",
+          "这一段让我最有共鸣的地方在于：作者没有把 agent 看作终结技术债的机器，而是把它看作既会制造债、也能自动还债的系统成员。\n真正的关键不是“有没有债”，而是你是否把债务识别、分级、清理和回归验证，变成了日常背景任务。\n这也是 harness engineering 与传统 prompt engineering 最大的分野：前者关注的是系统生命周期，而不是单轮输出的漂亮程度。"
+        ]
+      }
+    ],
+    "reflections": [
+      "这篇文章最重要的贡献，是把工程师的杠杆点从“写得更快”改写成“让 agent 更容易做对”。",
+      "它把仓库文档、架构约束、lint、可观测性、执行计划和重构流程都视作同一套控制系统的一部分，这个视角比单独谈 prompt 高一个层级。",
+      "文章也很诚实：它承认这套方法依赖大量前置投资，且未必能直接迁移到所有团队；尤其长期数年的架构一致性仍是未知数。",
+      "如果说传统工程文化强调 craftsmanship，这篇文章强调的则是 compounding taste：把品味编码一次，然后让系统持续执行。"
+    ],
+    "bad_good_pairs": [
+      {
+        "bad": "把仓库知识塞进一个巨大的 AGENTS.md，指望 agent 全记住。",
+        "good": "让 AGENTS.md 只做目录，把设计、产品、质量、可靠性与执行计划拆进结构化文档，并用 lint/CI 检查新鲜度。"
+      },
+      {
+        "bad": "应用界面对 agent 不可见，只让它看代码，最后靠人类人工 QA 收尾。",
+        "good": "把 UI、日志、指标、trace 都纳入 agent 的可验证回路，让它能自己复现、修复、回归。"
+      },
+      {
+        "bad": "对每一处实现细节过度规定，结果 prompt 冗长、规则互相冲突。",
+        "good": "只把边界、不变量与架构规则机械化，局部实现允许 agent 自主展开。"
+      },
+      {
+        "bad": "发现 AI 残渣后靠人类定期大扫除。",
+        "good": "把黄金原则写进仓库，持续跑后台 cleanup/refactor 任务，像垃圾回收一样小步快跑。"
+      },
+      {
+        "bad": "看到坏模式后只在 code review 里口头抱怨。",
+        "good": "把抱怨升级成规则：文档更新、lint、结构测试、质量分和定向重构 PR。"
+      }
+    ],
+    "takeaways": [
+      "先把仓库变成系统的知识基座，再追求更高自治。",
+      "把应用验证面暴露给 agent，比继续堆 prompt 更能提升可靠性。",
+      "边界和不变量要严，具体写法可以松。",
+      "技术债处理要日常化、自动化，而不是项目化。",
+      "harness engineering 的终极目标不是让 agent “会写”，而是让它“长期写得稳”。"
+    ],
+    "slide_blocks": [
+      {
+        "title": "它讲的不是提示词，而是工程系统",
+        "text": "OpenAI 用“0 行人工手写代码”的实验，把工程重点从写代码迁移到了设计环境、知识与反馈回路。"
+      },
+      {
+        "title": "真正的核心：让 agent 看得见、改得动、验得了",
+        "text": "UI、日志、指标、trace、仓库文档、执行计划、质量分——都要进入 agent 的工作闭环。"
+      },
+      {
+        "title": "架构纪律的形态变了",
+        "text": "不是更细地规定每一行，而是更强地机械化边界、不变量、lint 与结构测试。"
+      },
+      {
+        "title": "熵不会消失，只会更快扩散",
+        "text": "agent 会复制现有模式，所以必须把“人类品味”固化成 golden principles 和持续 cleanup 流程。"
+      },
+      {
+        "title": "我的结论",
+        "text": "harness engineering 的本质，是把工程文化编码成 agent 可以继承、可以校验、可以持续执行的系统。"
+      }
+    ],
+    "prev_slug": null,
+    "next_slug": "unlocking-codex-harness",
+    "toc": [
+      [
+        "一-文章到底在回答什么问题",
+        "一、文章到底在回答什么问题"
+      ],
+      [
+        "二-逐节解读-从空仓库到工程角色重写",
+        "二、逐节解读：从空仓库到工程角色重写"
+      ],
+      [
+        "三-让应用与仓库对-agent-可读-可读性从-给人看-升级为-给-agent-看",
+        "三、让应用与仓库对 agent 可读：可读性从“给人看”升级为“给 agent 看”"
+      ],
+      [
+        "四-架构-品味与吞吐-为什么-strict-boundaries-比-精细规定写法-更重要",
+        "四、架构、品味与吞吐：为什么 strict boundaries 比“精细规定写法”更重要"
+      ],
+      [
+        "五-自治不是终点-熵-垃圾回收与黄金原则才是长线战场",
+        "五、自治不是终点：熵、垃圾回收与黄金原则才是长线战场"
+      ]
+    ]
+  },
+  {
+    "slug": "unlocking-codex-harness",
+    "title": "Unlocking the Codex harness：App Server 如何把同一个 agent 核心接到多种客户端",
+    "original_title": "Unlocking the Codex harness: how we built the App Server",
+    "source": "OpenAI",
+    "date": "2026-02-04",
+    "url": "https://openai.com/index/unlocking-the-codex-harness/",
+    "theme": "app server / JSON-RPC / agent runtime protocol",
+    "summary": "这篇文章把“harness”从组织方法拉回到系统实现层：同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。",
+    "hero_blurb": "如果上一篇告诉你 harness engineering 在团队层面是什么，这一篇就是系统层面的“拆机图”。\n它解释了 Codex 为什么需要一个 App Server，以及为什么 agent 交互不适合被压扁成普通 API 的 request/response 形式。\n从这篇开始，你会真正理解“harness”不仅是提示与工具，更是一套会话、事件和权限流转协议。",
+    "sections": [
+      {
+        "heading": "一、为什么必须有 App Server：同一个 agent 核心，需要跑在很多“壳”里",
+        "body": [
+          "文章开场先把问题摆正：Codex 同时存在于 Web、CLI、IDE 扩展、macOS App 等不同表面。\n如果每个客户端都各自重写一套 agent loop、状态管理和工具调用逻辑，系统很快就会分叉，功能和行为也会不一致。\n所以 OpenAI 选择把“真正的 Codex”收拢到同一套 harness，再通过 App Server 统一暴露给各种前端。",
+          "这里可以把 App Server 理解成“agent 内核的外设总线”。\n客户端负责 UI、交互和宿主环境适配；App Server 负责把线程、回合、工具、认证、配置与状态流稳定地暴露出来。\n这让新表面能重用已有能力，也让协议升级可以集中进行，而不是散落在多个产品代码库里。"
+        ]
+      },
+      {
+        "heading": "二、从 MCP 到 JSON-RPC：不是标准不重要，而是语义要够丰富",
+        "body": [
+          "文章回顾了 App Server 的来源：最早 Codex CLI 是 TUI，后来做 VS Code 扩展时需要复用同一 harness。\n他们一开始试过把 Codex 暴露成 MCP server，但在 IDE 场景下，很多交互并不适合被压缩成单次函数调用语义。\n比如流式进度、差异展示、审批暂停、恢复连接，这些都更接近“长会话事件流”，不是简单工具调用。",
+          "因此 OpenAI 最终选了一个面向客户端的双向 JSON-RPC 变体。文章的重点并不是“JSON-RPC 比 MCP 更高级”，\n而是强调：如果你的客户端想完整承载 agent 会话，协议必须能表达 richer session semantics。\n标准是否通用是一回事，能不能忠实表示 agent 的生命周期是另一回事。"
+        ]
+      },
+      {
+        "heading": "三、harness 的内部构成：agent loop 只是核心，不是全部",
+        "body": [
+          "文中把 Codex harness 内部拆成三类关键能力。第一类是 thread lifecycle 和 persistence：\n线程可以创建、恢复、fork、归档，并保留事件历史，这样客户端断开后还能回来重建时间线。\n第二类是 config 与 auth，例如登录 ChatGPT、读取配置、管理默认值。第三类是 tool execution 和 extensions，\n也就是在一致的策略模型下执行 shell/file 工具、接入 MCP 与 skills。",
+          "这一点很重要，因为很多人把“agent harness”理解成一段 while-loop：模型输出工具调用，系统执行，再把结果喂回去。\n这只是最内核的一层。真正产品化的 harness 还必须处理线程持久化、身份认证、配置演化、审批、协议兼容性和 UI 事件映射。\n一旦这些能力缺失，agent 也许能 demo，但很难成为稳定产品。"
+        ]
+      },
+      {
+        "heading": "四、conversation primitives：为什么要有 item、turn、thread 三层语义",
+        "body": [
+          "文章最值得学习的设计，是把 agent 交互拆成 item、turn、thread 三层。\nitem 是最小原子单元，可以是用户消息、工具执行、审批请求、diff、assistant message 等，并且有 started / delta / completed 生命周期。\nturn 表示由一次用户输入触发的一整轮 agent 工作；thread 则是跨多个 turn 的持久会话容器。",
+          "这个分层解决了两个老问题。第一，UI 可以更忠实地表现 agent 工作过程：什么时候开始，什么时候流式增量，什么时候真正完成。\n第二，系统可以在不同客户端之间迁移和恢复状态，因为 thread 是稳定持久层，turn 是一次任务单元，item 是渲染颗粒度。\n对前端工程师来说，这套语义比“就给我一段最终文本”更麻烦；但对真实 agent 产品来说，它几乎是必需品。",
+          "配合 initialize 握手和 approval 流，这套协议还能让客户端在执行高风险动作前介入。\n换句话说，App Server 不是只负责把消息搬来搬去，它还提供了人类监督和权限控制的天然插口。"
+        ]
+      },
+      {
+        "heading": "五、客户端集成与协议选择：这篇文章的真正结论",
+        "body": [
+          "在集成部分，文章展示了三类客户端形态。桌面与 IDE 场景通常把 App Server 二进制当成长驻子进程来跑；\nWeb 场景则在容器里启动 App Server，再由后端把事件通过 HTTP/SSE 往浏览器推。\n这一设计的关键在于：浏览器标签页是易失的，真正的会话状态不能托付给前端。",
+          "文章随后比较了几种集成方式：MCP 适合把 Codex 作为一个可调用工具嵌入现有 MCP 工作流；\ncross-provider harness 协议适合多供应商抽象，但容易只保留“共同最小能力”；\nApp Server 则适合你真的想要完整 Codex harness，包括事件流、模型发现、配置、认证和审批。\n另外还有更轻的 Codex Exec 与 SDK，分别偏单次自动化与程序内嵌控制。",
+          "我的读法是：这篇文章在替 agent 产品设计者划线。\n如果你只是想“调用一个模型帮我写点代码”，轻量协议就够了；如果你要做的是有持续状态、有审批、有断点续跑、有丰富 UI 的 agent 产品，\n那么你最终一定会发明自己的 item/turn/thread 与状态恢复机制。OpenAI 只是先把这条路走了一遍。"
+        ]
+      }
+    ],
+    "reflections": [
+      "这篇文章把 harness 从抽象口号拉回到了产品工程现实：协议设计本身就是 agent 体验的一部分。",
+      "它提醒我们，真正的 agent 产品不是一个 API 包一层 chat UI，而是一个长期会话系统。",
+      "我很认同 item / turn / thread 的拆分，这个设计兼顾了渲染、恢复、审计与控制，是非常产品化的抽象。",
+      "它也暴露一个现实：越是 rich interaction，越难完全被通用协议吃掉，所以“开放标准”和“产品级语义”之间会长期拉扯。"
+    ],
+    "bad_good_pairs": [
+      {
+        "bad": "每个客户端各自重写 agent loop，导致行为分叉、升级困难。",
+        "good": "把核心 agent runtime 收敛到同一 harness，再通过 App Server 对外暴露。"
+      },
+      {
+        "bad": "把 agent 交互强行压成单次 request/response。",
+        "good": "显式建模 item、turn、thread，以及 started / delta / completed 生命周期。"
+      },
+      {
+        "bad": "把浏览器标签页当成长任务的状态源。",
+        "good": "把线程与进度保存在服务端，让 Web 前端只做事件展示与控制入口。"
+      },
+      {
+        "bad": "为了追求通用性，只保留最小公共子集能力。",
+        "good": "在通用协议之外，为 rich agent 交互保留更完整的产品级语义。"
+      },
+      {
+        "bad": "审批只是 UI 提示，不进入协议模型。",
+        "good": "把审批请求做成协议内的一等事件，让 agent 在等待人类决策时显式暂停。"
+      }
+    ],
+    "takeaways": [
+      "agent harness 的外部接口，最好是事件流，而不是纯函数调用。",
+      "持久线程是长会话 agent 的基础设施，不是附加功能。",
+      "越 rich 的客户端体验，越需要清晰的协议原语。",
+      "Web 客户端应尽量无状态，任务状态留在服务端。",
+      "如果你在做真正的 agent 产品，协议设计与模型能力同样关键。"
+    ],
+    "slide_blocks": [
+      {
+        "title": "这一篇解决“多端一致性”",
+        "text": "同一个 Codex 核心要跑在 Web、CLI、IDE、桌面端，必须有统一的 App Server。"
+      },
+      {
+        "title": "agent 不是普通 API",
+        "text": "它需要流式事件、审批暂停、diff、恢复连接和长期线程，这些都超出了简单 request/response。"
+      },
+      {
+        "title": "三层语义很关键",
+        "text": "item 是原子事件，turn 是一次任务，thread 是持久会话；这让 UI 与状态恢复都变得稳定。"
+      },
+      {
+        "title": "为什么不用更轻的协议",
+        "text": "MCP 或轻量 SDK 适合单点集成；完整产品形态则需要 richer session semantics。"
+      },
+      {
+        "title": "我的结论",
+        "text": "App Server 本质上是在把“agent 产品协议”这件事工程化、标准化。"
+      }
+    ],
+    "prev_slug": "harness-engineering",
+    "next_slug": "responses-computer-environment",
+    "toc": [
+      [
+        "一-为什么必须有-app-server-同一个-agent-核心-需要跑在很多-壳-里",
+        "一、为什么必须有 App Server：同一个 agent 核心，需要跑在很多“壳”里"
+      ],
+      [
+        "二-从-mcp-到-json-rpc-不是标准不重要-而是语义要够丰富",
+        "二、从 MCP 到 JSON-RPC：不是标准不重要，而是语义要够丰富"
+      ],
+      [
+        "三-harness-的内部构成-agent-loop-只是核心-不是全部",
+        "三、harness 的内部构成：agent loop 只是核心，不是全部"
+      ],
+      [
+        "四-conversation-primitives-为什么要有-item-turn-thread-三层语义",
+        "四、conversation primitives：为什么要有 item、turn、thread 三层语义"
+      ],
+      [
+        "五-客户端集成与协议选择-这篇文章的真正结论",
+        "五、客户端集成与协议选择：这篇文章的真正结论"
+      ]
+    ]
+  },
+  {
+    "slug": "responses-computer-environment",
+    "title": "From model to agent：Responses API 的“计算机环境”为什么是 agent 化的关键一跃",
+    "original_title": "From model to agent: Equipping the Responses API with a computer environment",
+    "source": "OpenAI",
+    "date": "2026-03-11",
+    "url": "https://openai.com/index/equip-responses-api-computer-environment/",
+    "theme": "Responses API / hosted container / shell / network policy / skills",
+    "summary": "这篇文章解释的不是“再给模型加一个工具”，而是：为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境，而不是只会吐文本的接口。",
+    "hero_blurb": "如果说 App Server 讲的是 agent runtime 的对外协议，这篇文章讲的就是 runtime 的“操作系统层”。\nOpenAI 试图把 Responses API 从“会回答”升级成“会工作”，于是给它配上了 shell、文件系统、数据库、网络策略、技能包与会话压缩。\n读完你会发现，很多所谓 agent 能力，其实不是模型变魔术，而是环境终于像一台真正的电脑了。",
+    "sections": [
+      {
+        "heading": "一、文章真正解决的问题：为什么单纯的工具调用还不够",
+        "body": [
+          "文章的起点非常现实：仅靠函数调用式工具，模型可以查询、也可以触发动作，但它并没有一个持续存在的工作区。\n一旦任务跨多个步骤、需要下载文件、执行脚本、保存中间产物、比较两轮结果、做临时数据整理，\n“工具调用”很快就会退化成大量碎片化、难复用、难恢复的外部操作。",
+          "OpenAI 给出的答案是把模型放进一个 hosted computer environment。\n这意味着 agent 不只是会请求别人帮它做事，而是拥有一个受控的容器、文件系统、shell、轻量数据库和可管理网络。\n从系统设计上看，这一步把模型从“文本决策器”推向了“可在数字环境中持续劳动的执行者”。"
+        ]
+      },
+      {
+        "heading": "二、shell 与工作区：把复杂任务留在环境里，而不是塞回上下文",
+        "body": [
+          "文章特别强调 shell 的意义。此前很多 AI workflow 把 Python 当成唯一的执行通道，但真实工程任务需要的不仅是数据分析，\n还包括包管理、构建、测试、grep、curl、git、日志过滤、格式转换、脚本串联等大量通用操作。\n把 shell 作为一等工具，等于承认 agent 工作的基本介质不是“消息”，而是“命令 + 文件”。",
+          "更重要的是，OpenAI 让输出可以被限制和管理：命令有并发 session、有边界化的 stdout/stderr、产物直接落盘。\n这改变了 agent 的记忆方式。不是每次都把长输出重新喂回模型，而是让模型把文件视作外部记忆，再按需读取。\n这其实是一种非常经典的计算思想：上下文窗口负责决策，文件系统负责状态和大体量中间结果。"
+        ]
+      },
+      {
+        "heading": "三、网络、秘密与数据库：agent 需要的是可治理能力，而不是无限权限",
+        "body": [
+          "文章没有把“给 agent 一台电脑”浪漫化，而是非常强调治理边界。\n容器环境中的网络访问不是默认全开，而是通过 egress proxy 和策略控制；秘密注入也支持域名范围的约束，\n这意味着只有在访问某些目标域时，对应的凭证才会在工具调用链路中可用。",
+          "这一设计很值得玩味。它说明 agent 平台真正需要的是 capabilities with policy，而不是 capability without brakes。\n如果权限模型过粗，系统迟早会在安全和合规上撞墙；如果权限模型足够细，agent 就能在“够用”与“可控”之间取得工程上的平衡。",
+          "文章还提到 SQLite 一类轻量数据库在环境中的作用。我对这点很赞同。\n很多临时汇总、表格清洗、结果对比，本来就更适合落到数据库或本地结构化文件，而不是变成一大坨 prompt 中的 JSON。"
+        ]
+      },
+      {
+        "heading": "四、compaction 与 skills：长任务不是靠更长上下文撑住的",
+        "body": [
+          "长任务会导致上下文膨胀，这是 agent 系统迟早要碰到的问题。文章的一个核心信息是：OpenAI 没有把答案寄托在“无限长上下文”上，\n而是把 compaction 做成原生能力。系统可以把历史工作总结成更短、更有用的状态描述，再继续执行。",
+          "这背后的思想是：上下文不该只是日志，它应该是当前决策真正需要的工作记忆。\n把所有历史一股脑保留，常常只会增加噪声、拖慢推理，并让模型把注意力浪费在已经完成的枝节上。\n因此 compaction 不是压缩存档，而是一次信息再编排。",
+          "文章里的另一层是 skills。一个 skill 不是单条 prompt，而是一组带有 SKILL.md 和资源文件的能力包。\n这说明 OpenAI 在把“经验”封装成可装载模块：需要时拉取、解包、注入环境；不用时不占上下文。\n从平台设计角度看，skills 让 agent 的可复用知识第一次具备了接近软件包的形态。"
+        ]
+      },
+      {
+        "heading": "五、这篇文章在更大图景里的位置",
+        "body": [
+          "把这篇和前两篇连起来看，画面就很清楚了：App Server 解决的是多客户端统一会话协议，computer environment 解决的是 agent 实际工作的宿主环境。\n两者叠起来，才构成一个真正能做工程任务的 agent runtime。",
+          "我认为这篇最有价值的地方，是它把 agent 平台从“模型 API 的包装层”提升到了“受控计算环境”。\n也就是说，agent 的进步不只是来自更强的基础模型，还来自更像操作系统的运行时、更像平台工程的权限模型，以及更像软件工程的状态管理。",
+          "如果你要自己搭类似系统，这篇最大的提醒是：别一开始就试图把所有能力都通过 prompt 塞给模型。\n先问问自己：哪些问题应该留给上下文，哪些应该留给文件系统，哪些应该留给 shell，哪些应该留给策略与平台。"
+        ]
+      }
+    ],
+    "reflections": [
+      "这篇文章让我最强烈的感受是：agent 能力的上限，很大程度上受制于环境设计，而不是模型参数量。",
+      "它把“工具”提升成“工作区”，这是一个范式变化。前者偏离散调用，后者才适合多步骤任务。",
+      "我尤其认同它对权限与策略的重视。没有受控网络和细粒度 secret 注入，agent 很难真正进入生产场景。",
+      "skills 的设计也很值得继续观察：它像 prompt engineering、package management 与 runbook engineering 的结合体。"
+    ],
+    "bad_good_pairs": [
+      {
+        "bad": "把每一步外部操作都做成独立函数调用，结果中间状态四散、难恢复。",
+        "good": "给 agent 一个持久工作区，让文件、脚本和结果自然沉淀在环境里。"
+      },
+      {
+        "bad": "把长命令输出直接塞回上下文。",
+        "good": "让输出落盘，需要时再 grep、tail、读取或汇总。"
+      },
+      {
+        "bad": "为了“强能力”直接把网络和秘密全开。",
+        "good": "使用 egress 策略和域名范围的 secret 注入，提供够用但可治理的能力。"
+      },
+      {
+        "bad": "遇到长任务就一味追求更长上下文。",
+        "good": "把 compaction 做成原生机制，持续重写工作记忆。"
+      },
+      {
+        "bad": "把经验藏在长 prompt 里。",
+        "good": "把经验打包成 skills，在需要时装载、在环境中执行。"
+      }
+    ],
+    "takeaways": [
+      "真正的 agent 需要工作区，而不只是工具列表。",
+      "shell、文件系统和数据库是 agent 的外部记忆系统。",
+      "权限与策略设计是 agent 平台的核心组成，不是附加安全条款。",
+      "compaction 不是锦上添花，而是长任务生存条件。",
+      "skills 让可复用经验第一次拥有了接近软件包的形态。"
+    ],
+    "slide_blocks": [
+      {
+        "title": "核心变化：从“会答题”到“会工作”",
+        "text": "Responses API 被配上了 shell、文件系统、数据库与受控网络，模型开始拥有持续工作的环境。"
+      },
+      {
+        "title": "为什么 shell 重要",
+        "text": "真实任务不仅是算数，还包括构建、测试、抓日志、转格式、管理文件和运行脚本。"
+      },
+      {
+        "title": "状态应该留在环境里",
+        "text": "长输出落盘、中间结果留文件，模型只在需要时读取，这比把一切塞进上下文稳得多。"
+      },
+      {
+        "title": "长任务靠 compaction，不靠上下文无限膨胀",
+        "text": "系统会持续重写工作记忆，让 agent 带着更干净的状态继续前进。"
+      },
+      {
+        "title": "我的结论",
+        "text": "agent 平台正在越来越像一台受控的计算机，而不只是一个聊天接口。"
+      }
+    ],
+    "prev_slug": "unlocking-codex-harness",
+    "next_slug": "unrolling-codex-agent-loop",
+    "toc": [
+      [
+        "一-文章真正解决的问题-为什么单纯的工具调用还不够",
+        "一、文章真正解决的问题：为什么单纯的工具调用还不够"
+      ],
+      [
+        "二-shell-与工作区-把复杂任务留在环境里-而不是塞回上下文",
+        "二、shell 与工作区：把复杂任务留在环境里，而不是塞回上下文"
+      ],
+      [
+        "三-网络-秘密与数据库-agent-需要的是可治理能力-而不是无限权限",
+        "三、网络、秘密与数据库：agent 需要的是可治理能力，而不是无限权限"
+      ],
+      [
+        "四-compaction-与-skills-长任务不是靠更长上下文撑住的",
+        "四、compaction 与 skills：长任务不是靠更长上下文撑住的"
+      ],
+      [
+        "五-这篇文章在更大图景里的位置",
+        "五、这篇文章在更大图景里的位置"
+      ]
+    ]
+  },
+  {
+    "slug": "unrolling-codex-agent-loop",
+    "title": "Unrolling the Codex agent loop：把 agent 回路拆开后，你会发现哪些地方真正决定了可靠性",
+    "original_title": "Unrolling the Codex agent loop",
+    "source": "OpenAI",
+    "date": "2026-01-23",
+    "url": "https://openai.com/index/unrolling-the-codex-agent-loop/",
+    "theme": "agent loop / prompt growth / caching / compaction / tool orchestration",
+    "summary": "这篇文章把 Codex 的 agent loop 摊开给你看：从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率和稳定性的往往是这些运行时细节。",
+    "hero_blurb": "很多人对 agent loop 的理解停在“模型说要用工具，系统执行，再把结果喂回去”。\n这篇文章有价值的地方，是它把 Codex 实际怎么跑讲得非常工程化。\n读完你会意识到：性能、稳定性、可恢复性和成本控制，往往不是由某个神秘 prompt 决定，而是由 loop 本身的设计决定。",
+    "sections": [
+      {
+        "heading": "一、文章的重点不是“循环存在”，而是“循环怎样长大”",
+        "body": [
+          "文章一开始就表明，Codex 的每一轮并不是在真空里发生的。\n模型收到的不是单一用户问题，而是一整段由 system、developer、user、assistant 历史、环境描述、工具清单、输出模式等组成的前缀。\n所以所谓 agent loop，并不是一个抽象 while-loop，而是一个不断向前缀追加内容、不断重写工作上下文的动态过程。",
+          "这一点很关键，因为很多部署失败都不是输在模型不会，而是输在 loop 越跑越脏。\n工具输出越来越长、计划越来越旧、上下文里混入过时指令，最后让模型在巨大的历史噪声里做局部决策。\n文章真正要解决的，正是这种“随着轮次增加而退化”的现实问题。"
+        ]
+      },
+      {
+        "heading": "二、初始前缀与工具注入：你给模型的不是 prompt，而是一台带说明书的机器",
+        "body": [
+          "文章详细描述了初始请求里有哪些层次：system 负责全局行为边界，developer 指定 Codex 自身的工作方式，user 给出任务，\n同时还会注入当前工作目录、shell 环境、可用工具以及输出约束。\n从这个角度看，agent loop 的起点更像一次工作环境初始化，而不是单轮问答。",
+          "我特别想强调工具排序和工具描述的影响。文章提到 prompt caching 对稳定前缀非常敏感，连 MCP 工具顺序变化都可能导致缓存命中率下降。\n这说明 tools 不是一个抽象列表，而是前缀的一部分；只要你频繁改动工具集、描述文本或注入顺序，就等于让系统每轮都重新热启动。",
+          "这也是为什么好的 harness 会努力让工具描述简洁、稳定、少变。\n对模型来说，工具不是“越多越强”，而是“越稳定越容易形成可复用策略”。"
+        ]
+      },
+      {
+        "heading": "三、为什么 prompt caching 很重要：高吞吐 agent 不可能每轮都从零理解历史",
+        "body": [
+          "文章专门讲了 prompt caching，我认为这是一大亮点。随着 agent loop 进行，前缀会变得越来越长，但其中大量内容其实是稳定不变的：\n基础指令、工具描述、环境说明、部分历史结构等。如果每轮都完全重新编码，成本和时延都会迅速攀升。",
+          "因此 Codex 的设计会尽量让前缀以可复用的方式增长：能保持 exact prefix 的地方就尽量不动，让服务端缓存前面的大块内容。\n这在实践里很像系统工程中的 locality optimization：不是让模型更聪明，而是减少它每次都要重新理解的固定背景。",
+          "文章还解释了为什么 Codex 当前不依赖 previous_response_id。这一选择与保持请求无状态、支持某些数据隔离模式有关。\n从架构上看，这意味着系统更依赖显式前缀构造和缓存策略，而不是把连续性完全托付给服务端黑箱状态。"
+        ]
+      },
+      {
+        "heading": "四、compaction：不是删历史，而是把历史改写成可继续行动的工作记忆",
+        "body": [
+          "当 loop 走得足够长，哪怕有缓存也会碰到上下文膨胀问题。文章于是引入了 compaction：把已有对话压缩成一种专门为继续工作服务的中间表示。\n系统并不是简单做摘要，而是生成一个 type=compaction 的历史段落，让模型带着新的、较短但高保真的状态继续工作。",
+          "我非常认同这种设计，因为长任务真正需要的不是“原样保留每句话”，而是保留当前还会影响决策的事实、计划、未完成项和关键证据。\ncompaction 的质量，实际上会直接决定 agent 是否会忘记自己已经验证过什么、踩过哪些坑、哪些分支已经放弃。",
+          "从更大的视角看，compaction 是 agent runtime 对 transformer 记忆局限的一种工程补偿。\n它承认模型不是天然的长期状态机，于是用系统层的重写机制帮它维持一种可工作的连续性。"
+        ]
+      },
+      {
+        "heading": "五、我对这篇文章的总判断",
+        "body": [
+          "这篇文章看似在讲实现细节，实际上是在教育读者：agent 的质量很大程度上来自 loop 工程，而不是来自单点模型能力。\n工具集如何注入、前缀如何稳定、缓存如何命中、上下文何时 compact、事件如何组织，这些细节共同决定了一次长任务是越跑越顺，还是越跑越乱。",
+          "它也给了团队一个非常实际的提醒：别把所有问题都归结为“模型变笨了”。\n很多时候是你的 loop 设计让模型背着越来越脏的历史前进，或者让缓存频繁失效、工具面不断抖动。\n如果不把 loop 当成一等工程对象来调优，再强的模型也会被拖累。",
+          "我会把这篇归类为“agent 平台工程的内功篇”。它不像案例文章那么振奋人心，但对真正要落地系统的人，价值反而更高。"
+        ]
+      }
+    ],
+    "reflections": [
+      "这篇文章最有启发性的地方，是把“上下文增长”视作一等问题，而不是不可避免的副作用。",
+      "prompt caching 在这里几乎像编译器优化：它看起来不起眼，但决定了系统是否能高吞吐地运行。",
+      "我很赞同显式 compaction 的做法，因为它让长任务的记忆管理从模型隐式能力变成了可调、可观测的系统机制。",
+      "这篇也提醒我：agent loop 设计的好坏，常常体现在工具注入和状态压缩这些不那么炫目的细节里。"
+    ],
+    "bad_good_pairs": [
+      {
+        "bad": "每一轮都随意重排工具、变更描述，导致缓存频繁失效。",
+        "good": "让工具清单和描述保持稳定，使 prompt caching 最大化发挥作用。"
+      },
+      {
+        "bad": "把历史对话原封不动越积越长。",
+        "good": "在合适时机做 compaction，把历史重写成可行动的工作记忆。"
+      },
+      {
+        "bad": "把 agent loop 理解成简单 while 循环。",
+        "good": "把它视作前缀构建、工具编排、缓存与记忆管理的综合系统。"
+      },
+      {
+        "bad": "一旦任务变慢，就先怪模型。",
+        "good": "先检查前缀是否抖动、缓存是否失效、历史是否已经污染了当前决策。"
+      },
+      {
+        "bad": "工具输出全部回注上下文。",
+        "good": "让重要结论进上下文，原始大输出留在外部状态里按需读取。"
+      }
+    ],
+    "takeaways": [
+      "agent loop 的实现细节会直接决定成本、时延和稳定性。",
+      "稳定的前缀比花哨的 prompt 更有复利。",
+      "compaction 是长任务设计的标配，不是应急方案。",
+      "工具描述和顺序管理，实质上也是上下文工程。",
+      "别把 loop 当 plumbing，它本身就是核心产品能力。"
+    ],
+    "slide_blocks": [
+      {
+        "title": "agent loop 不只是 while-loop",
+        "text": "它是一个不断构建前缀、注入工具、管理历史与压缩记忆的系统。"
+      },
+      {
+        "title": "稳定前缀 = 更高缓存命中",
+        "text": "工具描述、顺序和环境说明越稳定，系统越能在高吞吐下保持低成本和低时延。"
+      },
+      {
+        "title": "长任务的敌人是上下文污染",
+        "text": "不是每条历史都该继续携带，很多内容应该被 compact 成更干净的工作记忆。"
+      },
+      {
+        "title": "细节看似琐碎，实则决定可靠性",
+        "text": "缓存、工具顺序、输出管理这些 runtime 设计，会直接影响 agent 是否越跑越乱。"
+      },
+      {
+        "title": "我的结论",
+        "text": "要把 agent 做稳，必须把 loop 当成一等工程对象。"
+      }
+    ],
+    "prev_slug": "responses-computer-environment",
+    "next_slug": "anthropic-long-running-harnesses",
+    "toc": [
+      [
+        "一-文章的重点不是-循环存在-而是-循环怎样长大",
+        "一、文章的重点不是“循环存在”，而是“循环怎样长大”"
+      ],
+      [
+        "二-初始前缀与工具注入-你给模型的不是-prompt-而是一台带说明书的机器",
+        "二、初始前缀与工具注入：你给模型的不是 prompt，而是一台带说明书的机器"
+      ],
+      [
+        "三-为什么-prompt-caching-很重要-高吞吐-agent-不可能每轮都从零理解历史",
+        "三、为什么 prompt caching 很重要：高吞吐 agent 不可能每轮都从零理解历史"
+      ],
+      [
+        "四-compaction-不是删历史-而是把历史改写成可继续行动的工作记忆",
+        "四、compaction：不是删历史，而是把历史改写成可继续行动的工作记忆"
+      ],
+      [
+        "五-我对这篇文章的总判断",
+        "五、我对这篇文章的总判断"
+      ]
+    ]
+  },
+  {
+    "slug": "anthropic-long-running-harnesses",
+    "title": "Effective harnesses for long-running agents：长时间运行的 agent，不能只靠“继续想”",
+    "original_title": "Effective harnesses for long-running agents",
+    "source": "Anthropic",
+    "date": "2025-11-26",
+    "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "theme": "long-running agents / initializer / progress file / git checkpoints / browser testing",
+    "summary": "Anthropic 这篇文章非常务实：长任务失败往往不是因为模型短期不会做，而是因为它无法在多轮、多窗口、多小时的执行中保持稳定状态和节奏。",
+    "hero_blurb": "如果 OpenAI 更强调 agent-first 团队与运行时平台，这篇文章更像一线操盘手写的 runbook。\n它专门处理一个难题：任务跨很多上下文窗口、跑很多小时之后，agent 为什么会跑偏、假装完成、或者把自己困在坏状态里。\nAnthropic 给出的答案不是“让模型更努力”，而是给它设计一种能接力、能落地、能持续自校正的 harness。",
+    "sections": [
+      {
+        "heading": "一、为什么长任务会失败：失败并不神秘，只是状态管理出了问题",
+        "body": [
+          "文章开门见山地指出，长时间运行的 coding agent 有两个常见失败模式：一种是 one-shotting，即它不肯逐步构建和验证，\n而是一下子试图把整个应用写完；另一种是 premature completion，也就是明明还有缺口，却因为局部看起来像样就宣布完成。",
+          "这两个问题表面上像“模型判断失误”，本质上却都跟 harness 设计有关。\n如果系统没有把任务拆成可追踪的增量目标，没有让 agent 持续记录进度、验证结果、留下接班信息，\n模型就很容易把当前最顺手的局部成果误当成整体完成。"
+        ]
+      },
+      {
+        "heading": "二、initializer agent：先把工地搭起来，再让 coding agent 开工",
+        "body": [
+          "Anthropic 的核心创新之一，是把长任务分成两个阶段。第一个阶段不是立即编码，而是让一个 initializer 先完成环境与任务结构初始化。\n它会生成 init.sh、建立 claude-progress.txt、做初始 git commit、输出 feature list JSON，并给每个 feature 带上验证标记字段。",
+          "这个设计非常聪明，因为它把“如何开始”这件事模板化了。\n长任务常常在最初十分钟就埋下后续混乱的种子：目录没梳理、依赖没装清楚、验收项不明确、进度文件不存在、没有可回退基线。\ninitializer 其实是在用固定仪式为后续多个 context window 建立共同地面。"
+        ]
+      },
+      {
+        "heading": "三、增量推进与 git checkpoint：让每一轮都能被下一轮可靠接住",
+        "body": [
+          "文章反复强调一次只推进一个 feature，并在阶段性完成后写进 progress file、打上 git commit。\n这看起来很“保守”，但对于长任务来说，保守就是效率。\n因为任何一次上下文切换、超时、中断或错误回滚，都需要一个可以可靠恢复的锚点。",
+          "我很喜欢文章里那种接力赛的隐喻：不是要求一个 agent 一口气跑完全程，而是让每一棒都留下清晰证据给下一棒。\n在这种结构下，progress file 不再是日志，而是运行时的外部记忆；git commit 不再只是版本管理，而是恢复和审计节点。",
+          "这对团队也很重要。哪怕最后不是 agent 接着干，而是换成人类工程师，也能沿着这些外部工件迅速接手。"
+        ]
+      },
+      {
+        "heading": "四、浏览器测试与真实验证：没有 E2E，长任务几乎一定会自我感觉良好",
+        "body": [
+          "Anthropic 特别强调 browser automation。我非常认同这一点。\n长时间任务最危险的不是报错，而是“看起来差不多能用”，然后 agent 因为缺乏真实交互验证而误判成功。\n如果目标产物是应用、页面或多步流程，只靠读代码和跑局部脚本远远不够。",
+          "文章建议把启动例程做得像一个固定 checklist：读当前目录、看 progress、看 feature list、看 git log、执行 init.sh，然后再决定下一步。\n这种 routine 化的启动动作看似机械，却能极大减少“新一轮 agent 不知道自己身处何处”的风险。\n在我看来，这是 harness engineering 最朴素也最有效的一条原则：能流程化的，就不要靠临场记忆。"
+        ]
+      },
+      {
+        "heading": "五、我对这篇文章的专业读后感",
+        "body": [
+          "这篇文章的气质和很多炫目的 agent 演示相反。它没有强调模型有多神，而是非常冷静地讨论长时间工作中最普通、也最致命的问题：\n如何保持步调，如何不装作完成，如何留下交接线索，如何在下一次上下文重启时迅速恢复现场。",
+          "我觉得它最大的贡献，是把“长任务”从模型能力问题重新框定成“状态与接力工程”。\n一旦这样看，很多解决方案就不再玄学：progress file、feature checklist、git checkpoint、initializer、E2E 验证，全都顺理成章。",
+          "如果你的团队准备让 agent 承担多小时乃至跨天任务，这篇比很多纯理论文章都更值得先读。\n因为它讨论的是 agent 真正会在生产里摔倒的地方。"
+        ]
+      }
+    ],
+    "reflections": [
+      "我特别认同 initializer 这一步，它本质上是在给长任务建立统一启动语义。",
+      "progress file 和 git checkpoint 的价值，远远不止记录；它们其实是跨上下文接力的接口。",
+      "browser automation 在这里不是锦上添花，而是防止 agent 自我欺骗的关键手段。",
+      "这篇文章再次证明：长任务稳定性主要来自工件管理和节奏管理，而不是让模型“多想一会儿”。"
+    ],
+    "bad_good_pairs": [
+      {
+        "bad": "一上来就让 agent 把整个系统一口气写完。",
+        "good": "先用 initializer 搭好工作地基，再按 feature 增量推进。"
+      },
+      {
+        "bad": "任务中断后靠模型重新回忆进度。",
+        "good": "把进度写入外部文件，并用 git commit 固定阶段状态。"
+      },
+      {
+        "bad": "只看代码通过就宣布完成。",
+        "good": "引入浏览器自动化和端到端验证，迫使 agent 面对真实行为。"
+      },
+      {
+        "bad": "每轮启动都从头猜现在该做什么。",
+        "good": "用固定启动 routine 读取目录、进度、feature list、git log 和初始化脚本。"
+      },
+      {
+        "bad": "把长任务失败归因于模型不够聪明。",
+        "good": "先检查任务拆分、状态锚点和交接机制是否存在。"
+      }
+    ],
+    "takeaways": [
+      "长任务要先设计接力机制，再谈模型质量。",
+      "initializer、progress file、feature list 和 git checkpoint 是长任务的基础设施。",
+      "E2E 验证能显著减少“假完成”。",
+      "流程化启动比临场记忆更可靠。",
+      "多小时任务最怕状态漂移，因此必须外化关键记忆。"
+    ],
+    "slide_blocks": [
+      {
+        "title": "长任务为什么会跑偏",
+        "text": "因为模型缺的往往不是能力，而是稳定的状态锚点和接力机制。"
+      },
+      {
+        "title": "先做 initializer，再做 coding",
+        "text": "让一个前置 agent 搭好目录、脚本、进度文件和初始 commit，后面才不会越跑越乱。"
+      },
+      {
+        "title": "一次只推进一个 feature",
+        "text": "每完成一步都写进 progress file，并用 git commit 留下恢复节点。"
+      },
+      {
+        "title": "没有真实验证，就容易假装完成",
+        "text": "浏览器自动化和端到端测试是长任务保持诚实的关键。"
+      },
+      {
+        "title": "我的结论",
+        "text": "长时间 agent 的本质问题是状态与交接工程，而不是“让模型继续思考”。"
+      }
+    ],
+    "prev_slug": "unrolling-codex-agent-loop",
+    "next_slug": "anthropic-context-engineering",
+    "toc": [
+      [
+        "一-为什么长任务会失败-失败并不神秘-只是状态管理出了问题",
+        "一、为什么长任务会失败：失败并不神秘，只是状态管理出了问题"
+      ],
+      [
+        "二-initializer-agent-先把工地搭起来-再让-coding-agent-开工",
+        "二、initializer agent：先把工地搭起来，再让 coding agent 开工"
+      ],
+      [
+        "三-增量推进与-git-checkpoint-让每一轮都能被下一轮可靠接住",
+        "三、增量推进与 git checkpoint：让每一轮都能被下一轮可靠接住"
+      ],
+      [
+        "四-浏览器测试与真实验证-没有-e2e-长任务几乎一定会自我感觉良好",
+        "四、浏览器测试与真实验证：没有 E2E，长任务几乎一定会自我感觉良好"
+      ],
+      [
+        "五-我对这篇文章的专业读后感",
+        "五、我对这篇文章的专业读后感"
+      ]
+    ]
+  },
+  {
+    "slug": "anthropic-context-engineering",
+    "title": "Effective context engineering for AI agents：上下文不是越多越好，而是越“刚好能决策”越好",
+    "original_title": "Effective context engineering for AI agents",
+    "source": "Anthropic",
+    "date": "2025-09-29",
+    "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "theme": "context engineering / attention budget / tool design / retrieval / notes",
+    "summary": "这篇文章把 context engineering 讲得非常清楚：真正的问题从来不是“有没有上下文”，而是“给模型的这些 token 是否在当前时刻最值得占用注意力”。",
+    "hero_blurb": "如果说 harness engineering 是更大的系统观，那么这篇文章几乎就是 context engineering 的教科书。\n它不断提醒读者：上下文窗口不是一个越大越保险的垃圾桶，而是一个昂贵、竞争激烈的注意力空间。\n好的系统不是把一切都塞进去，而是让最相关、最可行动、最少歧义的信息在恰当时刻进入。",
+    "sections": [
+      {
+        "heading": "一、context engineering 与 prompt engineering 的真正区别",
+        "body": [
+          "文章一开始就把概念分开：prompt engineering 更偏向那段直接对模型说的话，而 context engineering 则是持续策划“此刻要给模型看什么”。\n这包括系统提示、工具描述、历史消息、检索到的文档、外部状态摘要、少量高价值示例等。",
+          "我很喜欢这种区分，因为它把问题从“写一段更聪明的话”升级成“设计一个信息供给系统”。\n对于 agent 来说，真正的挑战往往不是单次提示词，而是随着任务推进，哪些信息该进、哪些该出、哪些该被压缩、哪些只该以链接或路径存在。"
+        ]
+      },
+      {
+        "heading": "二、有限注意力预算：不是模型看不见，而是它没必要一直看",
+        "body": [
+          "文章反复强调 finite attention budget。即便上下文窗口很长，注意力也不是免费的。\n更多 token 会带来更高的计算代价，也会稀释模型对真正关键信号的聚焦。\n因此“能塞进去”不代表“应该塞进去”。",
+          "这里我觉得 Anthropic 最值得借鉴的一点，是它要求我们把 token 当作预算来花。\n你应该优先保留那些能改变当前决策的事实、约束和高质量示例；至于大段背景、冗余历史、重复说明、庞大原始数据，\n很多时候更适合以路径、查询、摘要或按需检索的形式存在。"
+        ]
+      },
+      {
+        "heading": "三、工具、示例与检索：好上下文的标准是高信号、低歧义、可按需展开",
+        "body": [
+          "文章对工具设计的建议非常实战：工具要少而清楚，描述要自包含，避免让模型面对过多功能重叠的接口。\n如果工具之间边界模糊，模型不仅难选，还会在上下文里浪费注意力比较它们的差异。",
+          "在 few-shot 示例上，文章也反对“样例越多越保险”。更好的做法是挑少量 canonical、互补且能代表策略的例子。\n一堆近似样例往往只会放大表层模式，反而遮蔽真正的决策原则。",
+          "至于检索，Anthropic 倾向于 just-in-time retrieval 和 progressive disclosure：\n不是把整个知识库搬进 prompt，而是给模型一种在需要时取用正确材料的机制，比如文件路径、结构化索引、存好的查询或链接。"
+        ]
+      },
+      {
+        "heading": "四、长任务中的 context rot：上下文也会腐烂",
+        "body": [
+          "这篇文章里一个非常重要的概念是 context rot。随着任务延长，历史消息里会积累过时计划、已解决问题、错误分支和重复指令。\n如果系统不清理，这些内容就会像旧地图一样继续干扰当前决策。",
+          "Anthropic 的应对方式包括 notes 文件、阶段性总结、compaction 和 sub-agents。\n我尤其认同 notes 的作用：它是一种低成本、可人工检查的外部记忆，把真正重要的发现从庞杂对话中拎出来。\n这样下一轮不必再从所有历史里打捞线索，只需要读 notes 就能重新上手。",
+          "从工程角度看，context rot 是比“上下文不够长”更常见也更隐蔽的问题。\n很多人直觉上以为丢信息才危险，但在实际 agent 系统里，带着太多脏信息继续工作往往更危险。"
+        ]
+      },
+      {
+        "heading": "五、我的总评：这篇文章在教你如何尊重模型的工作记忆",
+        "body": [
+          "我会把这篇看作所有 agent 平台工程师都应该反复回读的基础文档。\n它不是在贩卖某个技巧，而是在训练一种信息卫生观：上下文是一种高价值、低容量、需要持续清扫和编排的资源。",
+          "它也解释了为什么一些团队在有了更大窗口后，系统表现并没有同步变好。\n因为如果你不改变供给方式，只会更容易把更多噪声塞进去。模型不是因为‘没看到’而犯错，而是因为它被无关历史稀释了判断。",
+          "专业上我最认可它的一点，是把 notes、检索、compaction、sub-agent 都放进同一框架里理解。\n这些不是孤立技巧，它们共同服务于一件事：让模型在每个时刻只为真正该做的决策付出注意力。"
+        ]
+      }
+    ],
+    "reflections": [
+      "这篇文章极大地纠正了‘窗口更大就万事大吉’的误解。",
+      "我最喜欢“context rot”这个概念，它把长期任务里最隐蔽的问题命名了出来。",
+      "好的 context engineering 本质上是一种信息节食，而不是信息堆料。",
+      "无论是工具设计、few-shot 选择还是检索策略，目标都应是高信号、低歧义、按需展开。"
+    ],
+    "bad_good_pairs": [
+      {
+        "bad": "把能想到的所有背景都塞进 prompt。",
+        "good": "只保留当前决策需要的信息，其余内容按需检索或外化存储。"
+      },
+      {
+        "bad": "给模型十几个相似工具，靠它自己猜差别。",
+        "good": "压缩工具面，让每个工具边界清晰、描述自包含。"
+      },
+      {
+        "bad": "用一堆相似 few-shot 堆满上下文。",
+        "good": "只选少量 canonical 且互补的示例，传达原则而不是表面样式。"
+      },
+      {
+        "bad": "把旧计划和旧错误分支一直留在历史里。",
+        "good": "通过 notes 和 compaction 定期清扫 context rot。"
+      },
+      {
+        "bad": "一旦模型出错，就继续加更多说明。",
+        "good": "先检查是不是给了过多噪声，削减无关信息往往更有效。"
+      }
+    ],
+    "takeaways": [
+      "上下文是预算，不是垃圾桶。",
+      "高质量上下文的标准是高信号、低歧义、可行动。",
+      "context rot 比上下文不足更常见。",
+      "notes、检索和 compaction 是管理注意力预算的工具。",
+      "context engineering 是持续信息编排，而不是一次性写 prompt。"
+    ],
+    "slide_blocks": [
+      {
+        "title": "上下文不是越多越好",
+        "text": "窗口再大，注意力依旧有限；真正重要的是哪些 token 值得占用它。"
+      },
+      {
+        "title": "好的上下文像一份工作记忆",
+        "text": "它只保留当前决策必需的信息，其余内容用检索、路径或 notes 外化。"
+      },
+      {
+        "title": "工具和示例都要节制",
+        "text": "工具太多、样例太多，都会把真正的决策原则淹没。"
+      },
+      {
+        "title": "警惕 context rot",
+        "text": "旧计划、错分支和重复说明会持续污染后续判断，需要定期清扫和压缩。"
+      },
+      {
+        "title": "我的结论",
+        "text": "context engineering 的目标，是让模型在每一刻都只看最该看的东西。"
+      }
+    ],
+    "prev_slug": "anthropic-long-running-harnesses",
+    "next_slug": "azure-sre-agent-context-engineering",
+    "toc": [
+      [
+        "一-context-engineering-与-prompt-engineering-的真正区别",
+        "一、context engineering 与 prompt engineering 的真正区别"
+      ],
+      [
+        "二-有限注意力预算-不是模型看不见-而是它没必要一直看",
+        "二、有限注意力预算：不是模型看不见，而是它没必要一直看"
+      ],
+      [
+        "三-工具-示例与检索-好上下文的标准是高信号-低歧义-可按需展开",
+        "三、工具、示例与检索：好上下文的标准是高信号、低歧义、可按需展开"
+      ],
+      [
+        "四-长任务中的-context-rot-上下文也会腐烂",
+        "四、长任务中的 context rot：上下文也会腐烂"
+      ],
+      [
+        "五-我的总评-这篇文章在教你如何尊重模型的工作记忆",
+        "五、我的总评：这篇文章在教你如何尊重模型的工作记忆"
+      ]
+    ]
+  },
+  {
+    "slug": "azure-sre-agent-context-engineering",
+    "title": "Azure SRE Agent 的经验：为什么 100+ 工具和 50+ 专家代理，最后不如 5 个宽工具",
+    "original_title": "Context Engineering for Reliable AI Agents: Lessons from Building Azure SRE Agent",
+    "source": "Microsoft",
+    "date": "2025-12-26 / 2026-01-11 update",
+    "url": "https://techcommunity.microsoft.com/blog/appsonazureblog/context-engineering-lessons-from-building-azure-sre-agent/4481200",
+    "theme": "production SRE agent / tool surface reduction / generalists vs specialists / code interpreter",
+    "summary": "这篇是少见的生产经验复盘：微软在构建 Azure SRE Agent 时发现，复杂系统的很多问题并不是靠加更多专家代理和更多工具解决，反而常常要靠删减、收敛和外化状态来解决。",
+    "hero_blurb": "如果你喜欢看‘踩坑后真正改了什么’，这篇非常值得读。\n它不是从零讲概念，而是站在一个要处理真实 SRE 场景的 agent 视角，回顾工具设计、代理编排、上下文管理和数值分析为什么会失灵。\n文章最打动我的地方，是它敢承认：他们一开始走的很多路，看上去很合理，但在生产里并不好用。",
+    "sections": [
+      {
+        "heading": "一、从 100+ 工具到 5 个核心工具：复杂度有时来自帮助过度",
+        "body": [
+          "文章最著名的结论之一，是团队最开始做了 100 多个工具、50 多个专门代理，后来发现这并没有带来预期中的可靠性。\n工具太多导致模型在发现、选择和组合时负担过重；很多工具功能重叠，描述边界又不够清晰，反而让 agent 更容易犹豫、走偏或循环。",
+          "最终他们收敛到更少的宽工具，尤其是像 az 和 kubectl 这样的成熟 CLI。\n这个决定很有启发性：模型往往更擅长驱动少量表达力强的通用接口，而不是在海量窄接口中做精细导航。\n与其把世界切得过碎，不如给它几把好用的大锤，再配合外部状态和良好验证。"
+        ]
+      },
+      {
+        "heading": "二、多代理交接为何失败：分工不是越细越好",
+        "body": [
+          "很多人直觉上会觉得，多代理系统只要专业分工足够细，就能像组织一样高效协作。\n微软的经验却显示，交接超过四次后，系统就很容易出现信息丢失、上下文漂移、重复探索甚至循环依赖。",
+          "我很赞同文章的这个判断。代理之间的 handoff 并不是免费的组织设计，它本质上是一种上下文压缩与重建。\n每多一次 handoff，就多一次状态损失和语义变形的机会。\n因此除非子问题真的高度独立，否则过度分工可能比少量 generalist 更糟。"
+        ]
+      },
+      {
+        "heading": "三、把知识从 prompt 迁到文件，把输出从上下文迁到数据源",
+        "body": [
+          "文章另一个非常成熟的点，是强调把知识与状态从 prompt 中迁出来。\n他们逐渐把知识封装进文件、skill 或结构化工件，而不是继续往系统提示里堆细则。\n同时，大量工具输出、指标结果和中间分析也不再直接塞回上下文，而是写入会话文件或由代码解释器进一步处理。",
+          "这一点几乎和 OpenAI、Anthropic 的经验形成了交叉印证。\n一旦任务涉及大量指标、日志和数值计算，让模型直接在上下文里盯着原始数据分析，既贵又不稳。\n更好的做法是让代码解释器做计算，让文件系统保存数据，让模型负责 orchestration 和判断。"
+        ]
+      },
+      {
+        "heading": "四、code interpreter 的启示：LLM 更像指挥，不像计算器",
+        "body": [
+          "文章把 code interpreter 的引入称作一个关键转折点，我非常同意。\n在 SRE 场景里，指标聚合、时间序列比较、表格变换、分布统计，本来就不该靠模型在 token 里‘心算’。\n当这些工作下沉到代码执行环境后，模型终于可以回到自己更擅长的位置：制定下一步调查策略、解释结果、选择工具链。",
+          "这个判断其实很普适。很多 agent 失败，并不是因为规划错了，而是因为系统把不该由模型直接承担的机械计算也强行塞给它。\n一旦你把计算外包给解释器，把状态外包给文件，把调用外包给宽工具，模型就更容易表现出真正的推理价值。"
+        ]
+      },
+      {
+        "heading": "五、我的读后感：这是 context engineering 的‘减法哲学’",
+        "body": [
+          "我觉得微软这篇最宝贵的地方，在于它没有迷信“更多组件 = 更强系统”。\n无论是专家代理、窄工具、长 prompt，还是过度嵌套的 orchestrator，最后都在提醒我们：系统复杂度本身就是可靠性的敌人。",
+          "这篇文章和 Anthropic 的 context engineering 文章放在一起看，几乎形成一条清晰主线：\n能少给就少给，能外化就外化，能用宽工具就别拆碎，能让代码解释器算就别让模型算。\n这不是保守，而是对模型认知特性的尊重。",
+          "对真正做生产 agent 的团队来说，这篇文章提供的不是口号，而是一种极其实用的纠偏视角：\n当系统变得越来越复杂时，先试着删东西。"
+        ]
+      }
+    ],
+    "reflections": [
+      "这篇文章最打动我的是‘删减后的系统反而更可靠’这个结论。",
+      "多代理交接失败并不令人意外，但很少有文章像它这样把代价讲得这么清楚。",
+      "把 LLM 视作 orchestrator 而不是 calculator，是非常成熟的系统定位。",
+      "它与 OpenAI、Anthropic 的经验高度共振，说明很多 agent 工程规律正在跨公司收敛。"
+    ],
+    "bad_good_pairs": [
+      {
+        "bad": "为了覆盖面设计上百个窄工具。",
+        "good": "收敛到少量宽工具，让模型复用已有 CLI 先验。"
+      },
+      {
+        "bad": "把复杂任务拆给几十个专家代理层层接力。",
+        "good": "优先用少量 generalist，仅在必要时才做明确的子任务分解。"
+      },
+      {
+        "bad": "把知识和状态都堆进系统 prompt。",
+        "good": "把知识迁到文件和 skills，把状态迁到外部工件。"
+      },
+      {
+        "bad": "让模型直接在上下文里做复杂数值分析。",
+        "good": "用 code interpreter 处理计算，模型负责解释和决策。"
+      },
+      {
+        "bad": "系统一复杂就继续加组件。",
+        "good": "优先做减法，检查是否存在工具冗余、代理冗余和上下文冗余。"
+      }
+    ],
+    "takeaways": [
+      "少量宽工具往往比大量窄工具更适合 agent。",
+      "多代理 handoff 有很高的语义损耗成本。",
+      "LLM 更适合编排和解释，不适合承担大量机械计算。",
+      "知识与状态应该尽量外化到文件、skills 和数据工件。",
+      "生产可靠性常常来自减法，而不是加法。"
+    ],
+    "slide_blocks": [
+      {
+        "title": "最反直觉的结论",
+        "text": "100+ 工具和 50+ 代理并没有让系统更稳，最后反而是 5 个核心宽工具更可靠。"
+      },
+      {
+        "title": "多代理交接有成本",
+        "text": "每一次 handoff 都会引入状态损失、语义变形和重复探索。"
+      },
+      {
+        "title": "把知识和状态迁出 prompt",
+        "text": "文件、skills、会话工件和代码解释器，比长 prompt 更适合承载复杂任务。"
+      },
+      {
+        "title": "LLM 应该做什么",
+        "text": "它更像 orchestrator 和解释器，而不是直接做重计算的执行器。"
+      },
+      {
+        "title": "我的结论",
+        "text": "生产级 agent 工程常常靠删减复杂度来赢得可靠性。"
+      }
+    ],
+    "prev_slug": "anthropic-context-engineering",
+    "next_slug": "plans-md-multi-hour-problem-solving",
+    "toc": [
+      [
+        "一-从-100-工具到-5-个核心工具-复杂度有时来自帮助过度",
+        "一、从 100+ 工具到 5 个核心工具：复杂度有时来自帮助过度"
+      ],
+      [
+        "二-多代理交接为何失败-分工不是越细越好",
+        "二、多代理交接为何失败：分工不是越细越好"
+      ],
+      [
+        "三-把知识从-prompt-迁到文件-把输出从上下文迁到数据源",
+        "三、把知识从 prompt 迁到文件，把输出从上下文迁到数据源"
+      ],
+      [
+        "四-code-interpreter-的启示-llm-更像指挥-不像计算器",
+        "四、code interpreter 的启示：LLM 更像指挥，不像计算器"
+      ],
+      [
+        "五-我的读后感-这是-context-engineering-的-减法哲学",
+        "五、我的读后感：这是 context engineering 的‘减法哲学’"
+      ]
+    ]
+  },
+  {
+    "slug": "plans-md-multi-hour-problem-solving",
+    "title": "Using PLANS.md for multi-hour problem solving：为什么一份“活计划”能把单次提示延长成数小时执行",
+    "original_title": "Using PLANS.md for multi-hour problem solving",
+    "source": "OpenAI Cookbook",
+    "date": "2025-10-07",
+    "url": "https://developers.openai.com/cookbook/articles/codex_exec_plans",
+    "theme": "PLANS.md / exec plan / living document / long-horizon execution",
+    "summary": "这篇文章几乎是长任务落地的模板：它把‘计划’从一次性草稿变成贯穿执行全程的活文档，从而支撑 agent 在多小时任务里持续推进、回顾和恢复。",
+    "hero_blurb": "如果你想把上面那些宏观原则真正落到仓库里，这篇是最容易直接拿来用的一篇。\n它不是单纯讲‘要有计划’，而是细化到 PLANS.md 该长什么样、必须包含哪些段落、如何服务执行、验证、恢复和复盘。\n在我看来，它是 long-running harness 的文档化接口设计。",
+    "sections": [
+      {
+        "heading": "一、为什么需要 PLANS.md：不是因为模型不会规划，而是因为任务会遗忘",
+        "body": [
+          "文章开头就很务实：对多小时问题求解来说，仅靠会话历史不够稳。\n随着任务延长，模型会忘记为什么这么做、哪些决策已经拍板、哪些验证还没做、哪些意外情况改变了计划。\n于是 OpenAI 提出用 PLANS.md 作为 repo 内的 living document，持续承接这些关键信息。",
+          "这里最重要的不是‘文档’二字，而是 living。PLANS.md 不是启动时写一次就封存的说明书，\n而是随着执行不断更新的工作记忆。\n它既帮助当前 agent，也帮助下一轮 agent 或人类快速恢复现场。"
+        ]
+      },
+      {
+        "heading": "二、文章给出的硬性标准：自包含、面向新手、关注结果而非口号",
+        "body": [
+          "我很喜欢文章列出的几条非协商要求。PLANS.md 必须自包含，不能依赖作者脑补；必须让新加入的人也看得懂；\n必须关注具体结果、验证与恢复，而不是充满泛泛而谈的愿景语言。",
+          "这几条看似普通，实际上直接决定文档是否真的能服务 agent。\n如果计划依赖太多隐性背景，下一轮就接不上；如果写得像战略宣言而不是操作说明，模型根本无法据此推进任务；\n如果验证标准含糊，任务就会不断出现‘看起来差不多’的假完成。"
+        ]
+      },
+      {
+        "heading": "三、PLANS.md 的结构价值：它把长任务拆成可持续维护的状态面",
+        "body": [
+          "文章建议 PLANS.md 包含多个典型区块，比如 Context and Orientation、Plan of Work、Concrete Steps、Progress、Surprises & Discoveries、\nDecision Log、Validation and Acceptance、Idempotence and Recovery、Artifacts and Notes、Outcomes & Retrospective 等。",
+          "我认为这一结构极其成熟，因为它覆盖了长任务真正需要维护的几类状态：\n起点是什么、打算怎么做、现在做到哪、过程中学到了什么、哪些决策已冻结、怎样算完成、失败后如何恢复、最后学到了什么。\n这几乎就是一份‘长任务运行状态模型’。",
+          "尤其是 Surprise / Decision / Recovery 这三块非常关键。\n很多任务失败不是因为缺计划，而是因为没有显式记录计划何时被现实推翻、什么决定已经不可逆、系统如何在中断后恢复。"
+        ]
+      },
+      {
+        "heading": "四、它和 harness engineering 的关系：PLANS.md 是 repo 里的接力棒",
+        "body": [
+          "把这篇与 Anthropic 的 progress file 经验放在一起看，会发现它们解决的是同一个问题：跨时间、跨上下文、跨执行轮次的接力。\nPLANS.md 更适合作为综合性项目计划与状态总表，progress file 更像简短的运行轨迹；两者并不冲突。",
+          "从 harness engineering 的角度看，PLANS.md 让仓库第一次拥有了一个一等的‘执行记忆界面’。\n它不是给人类 PM 单独看的文档，而是给 agent 和人类共同消费的控制面。\n这样，很多原本散落在聊天记录里的决策就回到仓库中，成为可版本化、可审核、可恢复的对象。"
+        ]
+      },
+      {
+        "heading": "五、我的专业读后感：这是把计划从文档写作变成运行时接口",
+        "body": [
+          "这篇文章看似朴素，实则非常重要。很多团队已经意识到 agent 需要长期状态，却还没意识到文档本身可以成为长期状态接口。\nPLANS.md 正是在做这件事：把‘想法’变成 repo 内一个持续更新、可被执行系统读取和维护的对象。",
+          "我特别欣赏它对 plain language 和 novice-readable 的坚持。\n这并不是为了迁就初学者，而是因为越是长任务，越需要一种低歧义、低上下文门槛的共享表示。\n当文档对新人清楚时，通常也更容易被 agent 正确利用。",
+          "如果你准备真的把 agent 放进日常工程流，我会强烈建议先写好 PLANS.md 模板。\n因为它几乎是最便宜、回报最高的基础设施之一。"
+        ]
+      }
+    ],
+    "reflections": [
+      "PLANS.md 让我意识到，很多所谓‘agent 记忆问题’其实可以通过仓库内文档接口来部分解决。",
+      "它把计划、验证、恢复和复盘整合到同一文件中，非常适合多小时任务。",
+      "我特别认同 plain language 原则，因为低歧义表达对 agent 和跨人协作都更友好。",
+      "这篇文章最大的价值在于可执行性极强，几乎可以直接复制到团队流程里。"
+    ],
+    "bad_good_pairs": [
+      {
+        "bad": "计划只存在于最初那条 prompt 里。",
+        "good": "把计划写进 repo 内的 PLANS.md，并在执行过程中持续更新。"
+      },
+      {
+        "bad": "文档像口号，不像操作接口。",
+        "good": "用 plain language 写清背景、步骤、验证、恢复和决策。"
+      },
+      {
+        "bad": "只记录待办，不记录意外和决策。",
+        "good": "显式维护 Surprises、Decision Log 与 Recovery 信息。"
+      },
+      {
+        "bad": "任务中断后重新靠聊天记录回忆。",
+        "good": "让下一轮先读 PLANS.md，快速恢复上下文。"
+      },
+      {
+        "bad": "完成标准模糊。",
+        "good": "在 Validation and Acceptance 中写明可验证的完成条件。"
+      }
+    ],
+    "takeaways": [
+      "PLANS.md 是长任务的 living document，而不是一次性计划书。",
+      "好计划必须自包含、可恢复、可验证、对新手友好。",
+      "Surprises、Decision Log 和 Recovery 信息是长任务成败关键。",
+      "把执行记忆放回仓库，比依赖聊天历史更稳。",
+      "文档也可以是 harness 的一部分。"
+    ],
+    "slide_blocks": [
+      {
+        "title": "为什么需要 PLANS.md",
+        "text": "因为多小时任务会遗忘，而一份 living document 可以承接计划、进度、决策和恢复。"
+      },
+      {
+        "title": "它不是普通文档",
+        "text": "它必须自包含、低歧义、面向执行，并对新加入的人也清楚。"
+      },
+      {
+        "title": "结构决定价值",
+        "text": "进度、意外、决策、验证、恢复、工件与复盘共同构成长任务的状态面。"
+      },
+      {
+        "title": "它是 repo 里的接力棒",
+        "text": "下一轮 agent 或人类都能通过 PLANS.md 迅速恢复现场并继续推进。"
+      },
+      {
+        "title": "我的结论",
+        "text": "把计划文档化、版本化、活化，是最便宜也最有效的 long-running harness 手段之一。"
+      }
+    ],
+    "prev_slug": "azure-sre-agent-context-engineering",
+    "next_slug": null,
+    "toc": [
+      [
+        "一-为什么需要-plans-md-不是因为模型不会规划-而是因为任务会遗忘",
+        "一、为什么需要 PLANS.md：不是因为模型不会规划，而是因为任务会遗忘"
+      ],
+      [
+        "二-文章给出的硬性标准-自包含-面向新手-关注结果而非口号",
+        "二、文章给出的硬性标准：自包含、面向新手、关注结果而非口号"
+      ],
+      [
+        "三-plans-md-的结构价值-它把长任务拆成可持续维护的状态面",
+        "三、PLANS.md 的结构价值：它把长任务拆成可持续维护的状态面"
+      ],
+      [
+        "四-它和-harness-engineering-的关系-plans-md-是-repo-里的接力棒",
+        "四、它和 harness engineering 的关系：PLANS.md 是 repo 里的接力棒"
+      ],
+      [
+        "五-我的专业读后感-这是把计划从文档写作变成运行时接口",
+        "五、我的专业读后感：这是把计划从文档写作变成运行时接口"
+      ]
+    ]
+  }
+]

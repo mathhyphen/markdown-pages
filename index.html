@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI Agent Harness / Context Engineering 阅读站</title>
+  <meta name="description" content="8 篇 AI agent harness / context engineering 文章的中文详细解读，含 PPT 风格概览页与长文页。">
+  <link rel="stylesheet" href="./assets/style.css">
+</head>
+<body>
+  
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html">AI Agent 阅读站</a>
+    <div class="top-actions">
+      <span class="badge">GitHub Pages 就绪</span>
+      <span class="badge">每篇含演示页 + 长文页</span>
+    </div>
+  </div>
+</header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="kicker">mathhyphen / markdown-pages</div>
+        <h1>AI Agent Harness / Context Engineering 阅读站</h1>
+        <p class="lead">我把 8 篇关键文章整理成了两层阅读体验：先看每篇的“演示页”，迅速把握脉络；再点击“阅读全文”，进入逐节解读、专业读后感与 good / bad example 的长文页。</p>
+        <div class="top-actions" style="margin-top:24px;">
+          <a class="btn primary" href="./slides/harness-engineering.html">从第一篇开始</a>
+          <a class="btn" href="./articles/harness-engineering.html">直接看长文</a>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="num">8</div><div class="label">篇核心文章</div></div>
+        <div class="stat"><div class="num">16</div><div class="label">个页面（演示 + 长文）</div></div>
+        <div class="stat"><div class="num">1</div><div class="label">套 GitHub Pages 工作流</div></div>
+        <div class="stat"><div class="num">∞</div><div class="label">可继续扩展的新文章</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">推荐阅读顺序</h2>
+      <div class="route">
+        <div class="route-step"><div class="n">1</div><div><strong>先读总纲：</strong>OpenAI 的 Harness Engineering，建立“工程师不只是写代码，而是在搭 agent 工作系统”的大框架。</div></div>
+        <div class="route-step"><div class="n">2</div><div><strong>再看运行时：</strong>App Server、Codex agent loop、Responses API computer environment，理解 agent 运行时到底由哪些层拼出来。</div></div>
+        <div class="route-step"><div class="n">3</div><div><strong>补长任务方法：</strong>Anthropic 的 long-running harnesses 与 PLANS.md，学习如何做接力和恢复。</div></div>
+        <div class="route-step"><div class="n">4</div><div><strong>最后做减法：</strong>Anthropic context engineering 与 Microsoft Azure SRE Agent，理解为什么复杂度控制决定生产可靠性。</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">文章总览</h2>
+      <div class="grid cols-2">
+        
+<div class="card">
+  <div class="meta">
+    <span class="badge">OpenAI</span>
+    <span class="badge">2026-02-11</span>
+    <span class="badge">harness engineering / repo design / agent autonomy</span>
+  </div>
+  <h3>Harness engineering：在 agent-first 世界里如何把 Codex 变成工程生产力</h3>
+  <p>这篇文章不是在讲“怎么把提示词写得更像咒语”，而是在讲：当代码主要由 agent 产出时，工程团队真正要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
+  <div class="actions">
+    <a class="btn primary" href="./slides/harness-engineering.html">查看演示页</a>
+    <a class="btn" href="./articles/harness-engineering.html">阅读全文</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="meta">
+    <span class="badge">OpenAI</span>
+    <span class="badge">2026-02-04</span>
+    <span class="badge">app server / JSON-RPC / agent runtime protocol</span>
+  </div>
+  <h3>Unlocking the Codex harness：App Server 如何把同一个 agent 核心接到多种客户端</h3>
+  <p>这篇文章把“harness”从组织方法拉回到系统实现层：同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
+  <div class="actions">
+    <a class="btn primary" href="./slides/unlocking-codex-harness.html">查看演示页</a>
+    <a class="btn" href="./articles/unlocking-codex-harness.html">阅读全文</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="meta">
+    <span class="badge">OpenAI</span>
+    <span class="badge">2026-03-11</span>
+    <span class="badge">Responses API / hosted container / shell / network policy / skills</span>
+  </div>
+  <h3>From model to agent：Responses API 的“计算机环境”为什么是 agent 化的关键一跃</h3>
+  <p>这篇文章解释的不是“再给模型加一个工具”，而是：为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境，而不是只会吐文本的接口。</p>
+  <div class="actions">
+    <a class="btn primary" href="./slides/responses-computer-environment.html">查看演示页</a>
+    <a class="btn" href="./articles/responses-computer-environment.html">阅读全文</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="meta">
+    <span class="badge">OpenAI</span>
+    <span class="badge">2026-01-23</span>
+    <span class="badge">agent loop / prompt growth / caching / compaction / tool orchestration</span>
+  </div>
+  <h3>Unrolling the Codex agent loop：把 agent 回路拆开后，你会发现哪些地方真正决定了可靠性</h3>
+  <p>这篇文章把 Codex 的 agent loop 摊开给你看：从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率和稳定性的往往是这些运行时细节。</p>
+  <div class="actions">
+    <a class="btn primary" href="./slides/unrolling-codex-agent-loop.html">查看演示页</a>
+    <a class="btn" href="./articles/unrolling-codex-agent-loop.html">阅读全文</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="meta">
+    <span class="badge">Anthropic</span>
+    <span class="badge">2025-11-26</span>
+    <span class="badge">long-running agents / initializer / progress file / git checkpoints / browser testing</span>
+  </div>
+  <h3>Effective harnesses for long-running agents：长时间运行的 agent，不能只靠“继续想”</h3>
+  <p>Anthropic 这篇文章非常务实：长任务失败往往不是因为模型短期不会做，而是因为它无法在多轮、多窗口、多小时的执行中保持稳定状态和节奏。</p>
+  <div class="actions">
+    <a class="btn primary" href="./slides/anthropic-long-running-harnesses.html">查看演示页</a>
+    <a class="btn" href="./articles/anthropic-long-running-harnesses.html">阅读全文</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="meta">
+    <span class="badge">Anthropic</span>
+    <span class="badge">2025-09-29</span>
+    <span class="badge">context engineering / attention budget / tool design / retrieval / notes</span>
+  </div>
+  <h3>Effective context engineering for AI agents：上下文不是越多越好，而是越“刚好能决策”越好</h3>
+  <p>这篇文章把 context engineering 讲得非常清楚：真正的问题从来不是“有没有上下文”，而是“给模型的这些 token 是否在当前时刻最值得占用注意力”。</p>
+  <div class="actions">
+    <a class="btn primary" href="./slides/anthropic-context-engineering.html">查看演示页</a>
+    <a class="btn" href="./articles/anthropic-context-engineering.html">阅读全文</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="meta">
+    <span class="badge">Microsoft</span>
+    <span class="badge">2025-12-26 / 2026-01-11 update</span>
+    <span class="badge">production SRE agent / tool surface reduction / generalists vs specialists / code interpreter</span>
+  </div>
+  <h3>Azure SRE Agent 的经验：为什么 100+ 工具和 50+ 专家代理，最后不如 5 个宽工具</h3>
+  <p>这篇是少见的生产经验复盘：微软在构建 Azure SRE Agent 时发现，复杂系统的很多问题并不是靠加更多专家代理和更多工具解决，反而常常要靠删减、收敛和外化状态来解决。</p>
+  <div class="actions">
+    <a class="btn primary" href="./slides/azure-sre-agent-context-engineering.html">查看演示页</a>
+    <a class="btn" href="./articles/azure-sre-agent-context-engineering.html">阅读全文</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="meta">
+    <span class="badge">OpenAI Cookbook</span>
+    <span class="badge">2025-10-07</span>
+    <span class="badge">PLANS.md / exec plan / living document / long-horizon execution</span>
+  </div>
+  <h3>Using PLANS.md for multi-hour problem solving：为什么一份“活计划”能把单次提示延长成数小时执行</h3>
+  <p>这篇文章几乎是长任务落地的模板：它把‘计划’从一次性草稿变成贯穿执行全程的活文档，从而支撑 agent 在多小时任务里持续推进、回顾和恢复。</p>
+  <div class="actions">
+    <a class="btn primary" href="./slides/plans-md-multi-hour-problem-solving.html">查看演示页</a>
+    <a class="btn" href="./articles/plans-md-multi-hour-problem-solving.html">阅读全文</a>
+  </div>
+</div>
+
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">站点说明</h2>
+      <div class="grid cols-3">
+        <div class="card"><h3>演示页</h3><p>每篇都提供 5 页左右的纵向 slide deck，适合快速讲解、投屏或内部分享。</p></div>
+        <div class="card"><h3>详细解读页</h3><p>按“文章在回答什么、逐节解读、专业读后感、bad/good example、takeaways”组织成可深读的 HTML 页面。</p></div>
+        <div class="card"><h3>GitHub Pages 就绪</h3><p>我已经放入 <code>.github/workflows/pages.yml</code> 与 <code>.nojekyll</code>，推送到仓库后即可按 GitHub Pages 的静态站点方式部署。</p></div>
+      </div>
+    </section>
+  </main>
+  
+<footer class="footer">
+  <p>本网站内容为对原文的中文详细解读与读后感，不是逐字转载。原文版权归各自作者与发布方所有。</p>
+  <p>站点生成时间：2026-03-24。部署方式：静态 HTML + GitHub Pages。</p>
+</footer>
+
+</body>
+</html>

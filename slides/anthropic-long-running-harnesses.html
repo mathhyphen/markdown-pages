@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Effective harnesses for long-running agents：长时间运行的 agent，不能只靠“继续想”｜演示页</title>
+  <meta name="description" content="Anthropic 这篇文章非常务实：长任务失败往往不是因为模型短期不会做，而是因为它无法在多轮、多窗口、多小时的执行中保持稳定状态和节奏。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="deck-page">
+  
+<header class="deck-header">
+  <div class="left">
+    <a class="btn small ghost" href="../index.html">← 返回首页</a>
+    <span class="badge">Anthropic</span>
+    <span class="badge">2025-11-26</span>
+  </div>
+  <div class="right">
+    <a class="btn small primary" href="../articles/anthropic-long-running-harnesses.html">阅读全文</a>
+    <span class="badge">上下箭头 / PageUp / PageDown 可翻页</span>
+  </div>
+</header>
+
+  <div class="deck-dots">
+    <button class="deck-dot active" aria-label="第 1 页"></button>
+<button class="deck-dot" aria-label="第 2 页"></button>
+<button class="deck-dot" aria-label="第 3 页"></button>
+<button class="deck-dot" aria-label="第 4 页"></button>
+<button class="deck-dot" aria-label="第 5 页"></button>
+<button class="deck-dot" aria-label="第 6 页"></button>
+  </div>
+  <main class="deck-container">
+    
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Anthropic · 2025-11-26</div>
+    <h1>Effective harnesses for long-running agents：长时间运行的 agent，不能只靠“继续想”</h1>
+    <p>Anthropic 这篇文章非常务实：长任务失败往往不是因为模型短期不会做，而是因为它无法在多轮、多窗口、多小时的执行中保持稳定状态和节奏。</p>
+    <div class="pill-row" style="margin-top:22px;">
+      <span class="badge">long-running agents / initializer / progress file / git checkpoints / browser testing</span>
+      <span class="badge">原题：Effective harnesses for long-running agents</span>
+    </div>
+    <div class="slide-cta">
+      <a class="btn primary" href="../articles/anthropic-long-running-harnesses.html">点击阅读全文</a>
+      <a class="btn" href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank" rel="noopener">打开原文 ↗</a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 1 页</div>
+    <h2>长任务为什么会跑偏</h2>
+    <p>因为模型缺的往往不是能力，而是稳定的状态锚点和接力机制。</p>
+    <div class="bullets"><div class="bullet">长任务要先设计接力机制，再谈模型质量。</div><div class="bullet">initializer、progress file、feature list 和 git checkpoint 是长任务的基础设施。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 2 页</div>
+    <h2>先做 initializer，再做 coding</h2>
+    <p>让一个前置 agent 搭好目录、脚本、进度文件和初始 commit，后面才不会越跑越乱。</p>
+    <div class="bullets"><div class="bullet">长任务要先设计接力机制，再谈模型质量。</div><div class="bullet">initializer、progress file、feature list 和 git checkpoint 是长任务的基础设施。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 3 页</div>
+    <h2>一次只推进一个 feature</h2>
+    <p>每完成一步都写进 progress file，并用 git commit 留下恢复节点。</p>
+    <div class="bullets"><div class="bullet">initializer、progress file、feature list 和 git checkpoint 是长任务的基础设施。</div><div class="bullet">E2E 验证能显著减少“假完成”。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 4 页</div>
+    <h2>没有真实验证，就容易假装完成</h2>
+    <p>浏览器自动化和端到端测试是长任务保持诚实的关键。</p>
+    <div class="bullets"><div class="bullet">E2E 验证能显著减少“假完成”。</div><div class="bullet">流程化启动比临场记忆更可靠。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 5 页</div>
+    <h2>我的结论</h2>
+    <p>长时间 agent 的本质问题是状态与交接工程，而不是“让模型继续思考”。</p>
+    <div class="bullets"><div class="bullet">流程化启动比临场记忆更可靠。</div><div class="bullet">多小时任务最怕状态漂移，因此必须外化关键记忆。</div></div>
+  </div>
+</section>
+
+  </main>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Using PLANS.md for multi-hour problem solving：为什么一份“活计划”能把单次提示延长成数小时执行</title>
+  <meta name="description" content="这篇文章几乎是长任务落地的模板：它把‘计划’从一次性草稿变成贯穿执行全程的活文档，从而支撑 agent 在多小时任务里持续推进、回顾和恢复。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html">AI Agent 阅读站</a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="../slides/plans-md-multi-hour-problem-solving.html">查看演示页</a>
+        <a class="btn small primary" href="https://developers.openai.com/cookbook/articles/codex_exec_plans" target="_blank" rel="noopener">原文链接 ↗</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="meta-row">
+          <span class="badge">OpenAI Cookbook</span>
+          <span class="badge">2025-10-07</span>
+          <span class="badge">PLANS.md / exec plan / living document / long-horizon execution</span>
+        </div>
+        <div class="kicker">详细解读</div>
+        <h1>Using PLANS.md for multi-hour problem solving：为什么一份“活计划”能把单次提示延长成数小时执行</h1>
+        <p class="lead">这篇文章几乎是长任务落地的模板：它把‘计划’从一次性草稿变成贯穿执行全程的活文档，从而支撑 agent 在多小时任务里持续推进、回顾和恢复。</p>
+        <div class="quote-box"><p>如果你想把上面那些宏观原则真正落到仓库里，这篇是最容易直接拿来用的一篇。<br>它不是单纯讲‘要有计划’，而是细化到 PLANS.md 该长什么样、必须包含哪些段落、如何服务执行、验证、恢复和复盘。<br>在我看来，它是 long-running harness 的文档化接口设计。</p></div>
+      </div>
+    </section>
+
+    <div class="article-layout">
+      <aside class="toc">
+        <h4>目录</h4>
+        <a href="#一-为什么需要-plans-md-不是因为模型不会规划-而是因为任务会遗忘">一、为什么需要 PLANS.md：不是因为模型不会规划，而是因为任务会遗忘</a>
+<a href="#二-文章给出的硬性标准-自包含-面向新手-关注结果而非口号">二、文章给出的硬性标准：自包含、面向新手、关注结果而非口号</a>
+<a href="#三-plans-md-的结构价值-它把长任务拆成可持续维护的状态面">三、PLANS.md 的结构价值：它把长任务拆成可持续维护的状态面</a>
+<a href="#四-它和-harness-engineering-的关系-plans-md-是-repo-里的接力棒">四、它和 harness engineering 的关系：PLANS.md 是 repo 里的接力棒</a>
+<a href="#五-我的专业读后感-这是把计划从文档写作变成运行时接口">五、我的专业读后感：这是把计划从文档写作变成运行时接口</a>
+        <a href="#reflections">专业读后感</a>
+        <a href="#examples">Bad / Good examples</a>
+        <a href="#takeaways">重点结论</a>
+        <a href="#source">原文信息</a>
+      </aside>
+
+      <article class="prose">
+        
+<section id="一-为什么需要-plans-md-不是因为模型不会规划-而是因为任务会遗忘">
+  <h2>一、为什么需要 PLANS.md：不是因为模型不会规划，而是因为任务会遗忘</h2>
+  <p>文章开头就很务实：对多小时问题求解来说，仅靠会话历史不够稳。</p>
+<p>随着任务延长，模型会忘记为什么这么做、哪些决策已经拍板、哪些验证还没做、哪些意外情况改变了计划。</p>
+<p>于是 OpenAI 提出用 PLANS.md 作为 repo 内的 living document，持续承接这些关键信息。</p>
+<p>这里最重要的不是‘文档’二字，而是 living。PLANS.md 不是启动时写一次就封存的说明书，</p>
+<p>而是随着执行不断更新的工作记忆。</p>
+<p>它既帮助当前 agent，也帮助下一轮 agent 或人类快速恢复现场。</p>
+</section>
+
+<section id="二-文章给出的硬性标准-自包含-面向新手-关注结果而非口号">
+  <h2>二、文章给出的硬性标准：自包含、面向新手、关注结果而非口号</h2>
+  <p>我很喜欢文章列出的几条非协商要求。PLANS.md 必须自包含，不能依赖作者脑补；必须让新加入的人也看得懂；</p>
+<p>必须关注具体结果、验证与恢复，而不是充满泛泛而谈的愿景语言。</p>
+<p>这几条看似普通，实际上直接决定文档是否真的能服务 agent。</p>
+<p>如果计划依赖太多隐性背景，下一轮就接不上；如果写得像战略宣言而不是操作说明，模型根本无法据此推进任务；</p>
+<p>如果验证标准含糊，任务就会不断出现‘看起来差不多’的假完成。</p>
+</section>
+
+<section id="三-plans-md-的结构价值-它把长任务拆成可持续维护的状态面">
+  <h2>三、PLANS.md 的结构价值：它把长任务拆成可持续维护的状态面</h2>
+  <p>文章建议 PLANS.md 包含多个典型区块，比如 Context and Orientation、Plan of Work、Concrete Steps、Progress、Surprises &amp; Discoveries、</p>
+<p>Decision Log、Validation and Acceptance、Idempotence and Recovery、Artifacts and Notes、Outcomes &amp; Retrospective 等。</p>
+<p>我认为这一结构极其成熟，因为它覆盖了长任务真正需要维护的几类状态：</p>
+<p>起点是什么、打算怎么做、现在做到哪、过程中学到了什么、哪些决策已冻结、怎样算完成、失败后如何恢复、最后学到了什么。</p>
+<p>这几乎就是一份‘长任务运行状态模型’。</p>
+<p>尤其是 Surprise / Decision / Recovery 这三块非常关键。</p>
+<p>很多任务失败不是因为缺计划，而是因为没有显式记录计划何时被现实推翻、什么决定已经不可逆、系统如何在中断后恢复。</p>
+</section>
+
+<section id="四-它和-harness-engineering-的关系-plans-md-是-repo-里的接力棒">
+  <h2>四、它和 harness engineering 的关系：PLANS.md 是 repo 里的接力棒</h2>
+  <p>把这篇与 Anthropic 的 progress file 经验放在一起看，会发现它们解决的是同一个问题：跨时间、跨上下文、跨执行轮次的接力。</p>
+<p>PLANS.md 更适合作为综合性项目计划与状态总表，progress file 更像简短的运行轨迹；两者并不冲突。</p>
+<p>从 harness engineering 的角度看，PLANS.md 让仓库第一次拥有了一个一等的‘执行记忆界面’。</p>
+<p>它不是给人类 PM 单独看的文档，而是给 agent 和人类共同消费的控制面。</p>
+<p>这样，很多原本散落在聊天记录里的决策就回到仓库中，成为可版本化、可审核、可恢复的对象。</p>
+</section>
+
+<section id="五-我的专业读后感-这是把计划从文档写作变成运行时接口">
+  <h2>五、我的专业读后感：这是把计划从文档写作变成运行时接口</h2>
+  <p>这篇文章看似朴素，实则非常重要。很多团队已经意识到 agent 需要长期状态，却还没意识到文档本身可以成为长期状态接口。</p>
+<p>PLANS.md 正是在做这件事：把‘想法’变成 repo 内一个持续更新、可被执行系统读取和维护的对象。</p>
+<p>我特别欣赏它对 plain language 和 novice-readable 的坚持。</p>
+<p>这并不是为了迁就初学者，而是因为越是长任务，越需要一种低歧义、低上下文门槛的共享表示。</p>
+<p>当文档对新人清楚时，通常也更容易被 agent 正确利用。</p>
+<p>如果你准备真的把 agent 放进日常工程流，我会强烈建议先写好 PLANS.md 模板。</p>
+<p>因为它几乎是最便宜、回报最高的基础设施之一。</p>
+</section>
+
+
+        <section id="reflections">
+          <h2>专业读后感</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>读后感 1</strong><p>PLANS.md 让我意识到，很多所谓‘agent 记忆问题’其实可以通过仓库内文档接口来部分解决。</p></div>
+<div class="list-card"><strong>读后感 2</strong><p>它把计划、验证、恢复和复盘整合到同一文件中，非常适合多小时任务。</p></div>
+<div class="list-card"><strong>读后感 3</strong><p>我特别认同 plain language 原则，因为低歧义表达对 agent 和跨人协作都更友好。</p></div>
+<div class="list-card"><strong>读后感 4</strong><p>这篇文章最大的价值在于可执行性极强，几乎可以直接复制到团队流程里。</p></div>
+          </div>
+        </section>
+
+        <section id="examples">
+          <h2>更多 bad example / good example</h2>
+          
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">计划只存在于最初那条 prompt 里。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">把计划写进 repo 内的 PLANS.md，并在执行过程中持续更新。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">文档像口号，不像操作接口。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">用 plain language 写清背景、步骤、验证、恢复和决策。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">只记录待办，不记录意外和决策。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">显式维护 Surprises、Decision Log 与 Recovery 信息。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">任务中断后重新靠聊天记录回忆。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">让下一轮先读 PLANS.md，快速恢复上下文。</div>
+  </div>
+</div>
+
+<div class="pair-grid" style="margin-bottom:16px;">
+  <div class="pair-card bad">
+    <div class="label">Bad example</div>
+    <div class="content">完成标准模糊。</div>
+  </div>
+  <div class="pair-card good">
+    <div class="label">Good example</div>
+    <div class="content">在 Validation and Acceptance 中写明可验证的完成条件。</div>
+  </div>
+</div>
+
+        </section>
+
+        <section id="takeaways">
+          <h2>重点结论</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>结论 1</strong><p>PLANS.md 是长任务的 living document，而不是一次性计划书。</p></div>
+<div class="list-card"><strong>结论 2</strong><p>好计划必须自包含、可恢复、可验证、对新手友好。</p></div>
+<div class="list-card"><strong>结论 3</strong><p>Surprises、Decision Log 和 Recovery 信息是长任务成败关键。</p></div>
+<div class="list-card"><strong>结论 4</strong><p>把执行记忆放回仓库，比依赖聊天历史更稳。</p></div>
+<div class="list-card"><strong>结论 5</strong><p>文档也可以是 harness 的一部分。</p></div>
+          </div>
+        </section>
+
+        <section id="source">
+          <h2>原文信息与阅读建议</h2>
+          <div class="source-box">
+            <p><strong>英文原题：</strong>Using PLANS.md for multi-hour problem solving</p>
+            <p><strong>发布方：</strong>OpenAI Cookbook</p>
+            <p><strong>发布日期：</strong>2025-10-07</p>
+            <p><strong>原文链接：</strong><a href="https://developers.openai.com/cookbook/articles/codex_exec_plans" target="_blank" rel="noopener">https://developers.openai.com/cookbook/articles/codex_exec_plans</a></p>
+            <p style="margin-top:10px;">这页内容是面向中文读者的详细解读与专业评论，重点在于帮助你理解文章的结构、方法论和工程含义，而不是逐字直译。</p>
+          </div>
+          <div class="article-nav">
+            <a class="btn primary" href="../slides/plans-md-multi-hour-problem-solving.html">返回演示页</a>
+            <a class="btn" href="azure-sre-agent-context-engineering.html">← 上一篇</a>
+            
+            <a class="btn" href="../index.html">回到首页</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+  
+<footer class="footer">
+  <p>本网站内容为对原文的中文详细解读与读后感，不是逐字转载。原文版权归各自作者与发布方所有。</p>
+  <p>站点生成时间：2026-03-24。部署方式：静态 HTML + GitHub Pages。</p>
+</footer>
+
+</body>
+</html>

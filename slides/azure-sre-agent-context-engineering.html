@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Azure SRE Agent 的经验：为什么 100+ 工具和 50+ 专家代理，最后不如 5 个宽工具｜演示页</title>
+  <meta name="description" content="这篇是少见的生产经验复盘：微软在构建 Azure SRE Agent 时发现，复杂系统的很多问题并不是靠加更多专家代理和更多工具解决，反而常常要靠删减、收敛和外化状态来解决。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="deck-page">
+  
+<header class="deck-header">
+  <div class="left">
+    <a class="btn small ghost" href="../index.html">← 返回首页</a>
+    <span class="badge">Microsoft</span>
+    <span class="badge">2025-12-26 / 2026-01-11 update</span>
+  </div>
+  <div class="right">
+    <a class="btn small primary" href="../articles/azure-sre-agent-context-engineering.html">阅读全文</a>
+    <span class="badge">上下箭头 / PageUp / PageDown 可翻页</span>
+  </div>
+</header>
+
+  <div class="deck-dots">
+    <button class="deck-dot active" aria-label="第 1 页"></button>
+<button class="deck-dot" aria-label="第 2 页"></button>
+<button class="deck-dot" aria-label="第 3 页"></button>
+<button class="deck-dot" aria-label="第 4 页"></button>
+<button class="deck-dot" aria-label="第 5 页"></button>
+<button class="deck-dot" aria-label="第 6 页"></button>
+  </div>
+  <main class="deck-container">
+    
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Microsoft · 2025-12-26 / 2026-01-11 update</div>
+    <h1>Azure SRE Agent 的经验：为什么 100+ 工具和 50+ 专家代理，最后不如 5 个宽工具</h1>
+    <p>这篇是少见的生产经验复盘：微软在构建 Azure SRE Agent 时发现，复杂系统的很多问题并不是靠加更多专家代理和更多工具解决，反而常常要靠删减、收敛和外化状态来解决。</p>
+    <div class="pill-row" style="margin-top:22px;">
+      <span class="badge">production SRE agent / tool surface reduction / generalists vs specialists / code interpreter</span>
+      <span class="badge">原题：Context Engineering for Reliable AI Agents: Lessons from Building Azure SRE Agent</span>
+    </div>
+    <div class="slide-cta">
+      <a class="btn primary" href="../articles/azure-sre-agent-context-engineering.html">点击阅读全文</a>
+      <a class="btn" href="https://techcommunity.microsoft.com/blog/appsonazureblog/context-engineering-lessons-from-building-azure-sre-agent/4481200" target="_blank" rel="noopener">打开原文 ↗</a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 1 页</div>
+    <h2>最反直觉的结论</h2>
+    <p>100+ 工具和 50+ 代理并没有让系统更稳，最后反而是 5 个核心宽工具更可靠。</p>
+    <div class="bullets"><div class="bullet">少量宽工具往往比大量窄工具更适合 agent。</div><div class="bullet">多代理 handoff 有很高的语义损耗成本。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 2 页</div>
+    <h2>多代理交接有成本</h2>
+    <p>每一次 handoff 都会引入状态损失、语义变形和重复探索。</p>
+    <div class="bullets"><div class="bullet">少量宽工具往往比大量窄工具更适合 agent。</div><div class="bullet">多代理 handoff 有很高的语义损耗成本。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 3 页</div>
+    <h2>把知识和状态迁出 prompt</h2>
+    <p>文件、skills、会话工件和代码解释器，比长 prompt 更适合承载复杂任务。</p>
+    <div class="bullets"><div class="bullet">多代理 handoff 有很高的语义损耗成本。</div><div class="bullet">LLM 更适合编排和解释，不适合承担大量机械计算。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 4 页</div>
+    <h2>LLM 应该做什么</h2>
+    <p>它更像 orchestrator 和解释器，而不是直接做重计算的执行器。</p>
+    <div class="bullets"><div class="bullet">LLM 更适合编排和解释，不适合承担大量机械计算。</div><div class="bullet">知识与状态应该尽量外化到文件、skills 和数据工件。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 5 页</div>
+    <h2>我的结论</h2>
+    <p>生产级 agent 工程常常靠删减复杂度来赢得可靠性。</p>
+    <div class="bullets"><div class="bullet">知识与状态应该尽量外化到文件、skills 和数据工件。</div><div class="bullet">生产可靠性常常来自减法，而不是加法。</div></div>
+  </div>
+</section>
+
+  </main>
+  <script src="../assets/site.js"></script>
+</body>
+</html>
