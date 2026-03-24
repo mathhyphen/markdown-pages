@@ -69,6 +69,10 @@ img { max-width: 100%; display: block; }
   background: rgba(255,255,255,0.04);
   font-size: 14px;
 }
+a.badge:hover { background: rgba(255,255,255,0.10); }
+.badge.source-OpenAI { color: #74aaef; border-color: rgba(116,170,239,0.3); background: rgba(116,170,239,0.1); }
+.badge.source-Anthropic { color: #c9a0f0; border-color: rgba(201,160,240,0.3); background: rgba(201,160,240,0.1); }
+.badge.source-Microsoft { color: #7dd3fc; border-color: rgba(125,211,252,0.3); background: rgba(125,211,252,0.1); }
 .btn {
   display: inline-flex;
   align-items: center;
@@ -161,9 +165,19 @@ img { max-width: 100%; display: block; }
   flex-wrap: wrap;
 }
 .section-title {
-  margin: 44px 0 18px;
+  margin: 0;
   font-size: 28px;
   letter-spacing: -0.02em;
+}
+.section-header {
+  margin: 48px 0 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.section-desc {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 15px;
 }
 .route {
   display: grid;
