@@ -12,302 +12,370 @@
 <header class="topbar">
   <div class="topbar-inner">
     <a class="brand" href="./index.html">AI 技术阅读站</a>
-    <div class="top-actions">
-      <a href="#harness-series" class="badge">Harness Engineering</a>
-      <a href="#cookbooks-series" class="badge">Claude Cookbooks</a>
-    </div>
+    <nav class="top-nav">
+      <a href="#harness-series" class="nav-link">Harness Engineering</a>
+      <a href="#cookbooks-series" class="nav-link">Claude Cookbooks</a>
+    </nav>
   </div>
 </header>
 
-<main class="container">
-  <section class="hero">
-    <div class="hero-card">
-      <div class="kicker">mathhyphen / markdown-pages</div>
-      <h1>AI Agent 技术阅读站</h1>
-      <p class="lead">整理了两套系列文章，帮助你系统学习 AI Agent 开发：<strong>Harness Engineering 系列</strong>深入讲解 agent 运行时与工程化；<strong>Claude Cookbooks 系列</strong>系统导读 Anthropic 官方教程。</p>
-      <div class="stat-grid" style="margin-top:24px;">
-        <div class="stat"><div class="num">19</div><div class="label">篇文章</div></div>
-        <div class="stat"><div class="num">2</div><div class="label">个系列</div></div>
-        <div class="stat"><div class="num">PPT</div><div class="label">+ 详解页</div></div>
-      </div>
+<div class="page-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <h3 class="sidebar-title">Harness Engineering</h3>
+      <ul class="sidebar-list" id="harness-list">
+        <li><a href="#h-1">Harness Engineering 总纲</a></li>
+        <li><a href="#h-2">Unlocking Codex Harness</a></li>
+        <li><a href="#h-3">Responses API</a></li>
+        <li><a href="#h-4">Unrolling Codex Agent Loop</a></li>
+        <li><a href="#h-5">Long Running Agents</a></li>
+        <li><a href="#h-6">Context Engineering</a></li>
+        <li><a href="#h-7">Azure SRE Agent</a></li>
+        <li><a href="#h-8">PLANS.md</a></li>
+      </ul>
     </div>
-  </section>
-
-  <!-- Series 1: Harness Engineering -->
-  <section id="harness-series">
-    <div class="section-header">
-      <h2 class="section-title">系列一：Harness Engineering</h2>
-      <p class="section-desc">来源：OpenAI、Anthropic、Microsoft 技术博客 | 8 篇核心文章</p>
+    <div class="sidebar-section">
+      <h3 class="sidebar-title">Claude Cookbooks</h3>
+      <ul class="sidebar-list" id="cookbooks-list">
+        <li><a href="#c-1">01 仓库总览</a></li>
+        <li><a href="#c-2">02 基础能力篇</a></li>
+        <li><a href="#c-3">03 工具调用篇</a></li>
+        <li><a href="#c-4">04 多模态篇</a></li>
+        <li><a href="#c-5">05 Agent 模式篇</a></li>
+        <li><a href="#c-6">06 Claude Agent SDK</a></li>
+        <li><a href="#c-7">07 响应工程篇</a></li>
+        <li><a href="#c-8">08 生态集成篇</a></li>
+        <li><a href="#c-9">09 Skills 与微调</a></li>
+        <li><a href="#c-10">10 完整索引</a></li>
+        <li><a href="#c-11">11 GitHub Pages 发布</a></li>
+      </ul>
     </div>
-    <div class="grid cols-2">
+  </aside>
 
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-OpenAI">OpenAI</span>
-          <span class="badge">2026-02-11</span>
-        </div>
-        <h3>Harness Engineering：Agent First 世界里的工程生产力</h3>
-        <p>当代码主要由 agent 产出时，工程团队真正要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/harness-engineering.html">演示页</a>
-          <a class="btn" href="./articles/harness-engineering.html">阅读全文</a>
+  <main class="main-content">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="kicker">mathhyphen / markdown-pages</div>
+        <h1>AI Agent 技术阅读站</h1>
+        <p class="lead">整理了两套系列文章，帮助你系统学习 AI Agent 开发：<strong>Harness Engineering 系列</strong>深入讲解 agent 运行时与工程化；<strong>Claude Cookbooks 系列</strong>系统导读 Anthropic 官方教程。</p>
+        <div class="stat-grid" style="margin-top:24px;">
+          <div class="stat"><div class="num">19</div><div class="label">篇文章</div></div>
+          <div class="stat"><div class="num">2</div><div class="label">个系列</div></div>
+          <div class="stat"><div class="num">PPT</div><div class="label">+ 详解页</div></div>
         </div>
       </div>
+    </section>
 
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-OpenAI">OpenAI</span>
-          <span class="badge">2026-02-04</span>
-        </div>
-        <h3>Unlocking the Codex Harness：App Server 多客户端架构</h3>
-        <p>同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/unlocking-codex-harness.html">演示页</a>
-          <a class="btn" href="./articles/unlocking-codex-harness.html">阅读全文</a>
-        </div>
+    <!-- Series 1: Harness Engineering -->
+    <section id="harness-series" class="series-section">
+      <div class="section-header">
+        <h2 class="section-title">系列一：Harness Engineering</h2>
+        <p class="section-desc">来源：OpenAI、Anthropic、Microsoft 技术博客 | 8 篇核心文章</p>
       </div>
+      <div class="grid cols-2">
 
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-OpenAI">OpenAI</span>
-          <span class="badge">2026-03-11</span>
+        <div class="card" id="h-1">
+          <div class="meta">
+            <span class="badge source-OpenAI">OpenAI</span>
+            <span class="badge">2026-02-11</span>
+          </div>
+          <h3>Harness Engineering：Agent First 世界里的工程生产力</h3>
+          <p>当代码主要由 agent 产出时，工程团队真正要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
+          <div class="actions">
+            <a class="btn primary" href="./slides/harness-engineering.html">演示页</a>
+            <a class="btn" href="./articles/harness-engineering.html">阅读全文</a>
+          </div>
         </div>
-        <h3>Responses API：Agent 化的关键一跃</h3>
-        <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/responses-computer-environment.html">演示页</a>
-          <a class="btn" href="./articles/responses-computer-environment.html">阅读全文</a>
+
+        <div class="card" id="h-2">
+          <div class="meta">
+            <span class="badge source-OpenAI">OpenAI</span>
+            <span class="badge">2026-02-04</span>
+          </div>
+          <h3>Unlocking the Codex Harness：App Server 多客户端架构</h3>
+          <p>同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
+          <div class="actions">
+            <a class="btn primary" href="./slides/unlocking-codex-harness.html">演示页</a>
+            <a class="btn" href="./articles/unlocking-codex-harness.html">阅读全文</a>
+          </div>
         </div>
+
+        <div class="card" id="h-3">
+          <div class="meta">
+            <span class="badge source-OpenAI">OpenAI</span>
+            <span class="badge">2026-03-11</span>
+          </div>
+          <h3>Responses API：Agent 化的关键一跃</h3>
+          <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
+          <div class="actions">
+            <a class="btn primary" href="./slides/responses-computer-environment.html">演示页</a>
+            <a class="btn" href="./articles/responses-computer-environment.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="h-4">
+          <div class="meta">
+            <span class="badge source-OpenAI">OpenAI</span>
+            <span class="badge">2026-01-23</span>
+          </div>
+          <h3>Unrolling the Codex Agent Loop：可靠性细节</h3>
+          <p>从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率的运行时细节。</p>
+          <div class="actions">
+            <a class="btn primary" href="./slides/unrolling-codex-agent-loop.html">演示页</a>
+            <a class="btn" href="./articles/unrolling-codex-agent-loop.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="h-5">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">2025-11-26</span>
+          </div>
+          <h3>Long Running Agents：长时间运行的 agent</h3>
+          <p>长任务失败往往不是因为模型短期不会做，而是无法在多轮、多小时执行中保持稳定状态。</p>
+          <div class="actions">
+            <a class="btn primary" href="./slides/anthropic-long-running-harnesses.html">演示页</a>
+            <a class="btn" href="./articles/anthropic-long-running-harnesses.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="h-6">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">2025-09-29</span>
+          </div>
+          <h3>Context Engineering：上下文不是越多越好</h3>
+          <p>真正的问题从来不是"有没有上下文"，而是"给模型的 token 是否在当前时刻最值得占用注意力"。</p>
+          <div class="actions">
+            <a class="btn primary" href="./slides/anthropic-context-engineering.html">演示页</a>
+            <a class="btn" href="./articles/anthropic-context-engineering.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="h-7">
+          <div class="meta">
+            <span class="badge source-Microsoft">Microsoft</span>
+            <span class="badge">2025-12-26</span>
+          </div>
+          <h3>Azure SRE Agent：工具收敛的生产经验</h3>
+          <p>微软在构建 Azure SRE Agent 时发现，复杂问题常常要靠删减、收敛和外化状态来解决。</p>
+          <div class="actions">
+            <a class="btn primary" href="./slides/azure-sre-agent-context-engineering.html">演示页</a>
+            <a class="btn" href="./articles/azure-sre-agent-context-engineering.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="h-8">
+          <div class="meta">
+            <span class="badge source-OpenAI">OpenAI Cookbook</span>
+            <span class="badge">2025-10-07</span>
+          </div>
+          <h3>PLANS.md：活计划支撑数小时执行</h3>
+          <p>把"计划"从一次性草稿变成贯穿执行全程的活文档，支撑 agent 在多小时任务里持续推进。</p>
+          <div class="actions">
+            <a class="btn primary" href="./slides/plans-md-multi-hour-problem-solving.html">演示页</a>
+            <a class="btn" href="./articles/plans-md-multi-hour-problem-solving.html">阅读全文</a>
+          </div>
+        </div>
+
       </div>
+    </section>
 
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-OpenAI">OpenAI</span>
-          <span class="badge">2026-01-23</span>
-        </div>
-        <h3>Unrolling the Codex Agent Loop：可靠性细节</h3>
-        <p>从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率的运行时细节。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/unrolling-codex-agent-loop.html">演示页</a>
-          <a class="btn" href="./articles/unrolling-codex-agent-loop.html">阅读全文</a>
-        </div>
+    <!-- Series 2: Claude Cookbooks -->
+    <section id="cookbooks-series" class="series-section">
+      <div class="section-header">
+        <h2 class="section-title">系列二：Claude Cookbooks 中文导读</h2>
+        <p class="section-desc">来源：anthropics/claude-cookbooks | 11 篇系统性导读</p>
       </div>
+      <div class="grid cols-3">
 
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">2025-11-26</span>
+        <div class="card" id="c-1">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">01</span>
+          </div>
+          <h3>仓库总览：Cookbooks 到底在教什么</h3>
+          <p>建立对整个仓库的认知地图，理解 66 个 recipes 的分类与重点。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/01-repo-overview.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/01-repo-overview.html">阅读全文</a>
+          </div>
         </div>
-        <h3>Long Running Agents：长时间运行的 agent</h3>
-        <p>长任务失败往往不是因为模型短期不会做，而是无法在多轮、多小时执行中保持稳定状态。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/anthropic-long-running-harnesses.html">演示页</a>
-          <a class="btn" href="./articles/anthropic-long-running-harnesses.html">阅读全文</a>
+
+        <div class="card" id="c-2">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">02</span>
+          </div>
+          <h3>基础能力篇：分类、RAG、摘要、Text-to-SQL</h3>
+          <p>Claude 在知识库问答场景下的原子能力详解。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/02-capabilities.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/02-capabilities.html">阅读全文</a>
+          </div>
         </div>
+
+        <div class="card" id="c-3">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">03</span>
+          </div>
+          <h3>工具调用篇：函数调用与工具生态</h3>
+          <p>从基础函数调用到完整工具生态系统的实现路径。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/03-tool-use.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/03-tool-use.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="c-4">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">04</span>
+          </div>
+          <h3>多模态篇：视觉、文档、图表理解</h3>
+          <p>图像、PDF、表单处理等多模态场景实践。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/04-multimodal.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/04-multimodal.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="c-5">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">05</span>
+          </div>
+          <h3>Agent 模式篇：链式、并行、路由与编排</h3>
+          <p>各种 Agent 编排模式的适用场景与实现方法。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/05-agent-patterns.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/05-agent-patterns.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="c-6">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">06</span>
+          </div>
+          <h3>Claude Agent SDK：把模式落成代理</h3>
+          <p>如何用 SDK 把理论模式工程化落地。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/06-claude-agent-sdk.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/06-claude-agent-sdk.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="c-7">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">07</span>
+          </div>
+          <h3>响应工程篇：JSON、缓存、引用、评测</h3>
+          <p>提升稳定性、压缩成本、提升可控性。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/07-responses-and-performance.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/07-responses-and-performance.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="c-8">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">08</span>
+          </div>
+          <h3>生态集成篇：LlamaIndex、Pinecone、MongoDB</h3>
+          <p>如何接入现成的向量数据库与生态工具。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/08-integrations.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/08-integrations.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="c-9">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">09</span>
+          </div>
+          <h3>Skills 与微调：垂直化能力</h3>
+          <p>如何通过 Skills 扩展和微调构建垂直能力。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/09-skills-finetuning.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/09-skills-finetuning.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="c-10">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">10</span>
+          </div>
+          <h3>完整索引：66 个 Recipes 逐条导读</h3>
+          <p>完整覆盖所有 66 个 recipe 的导读目录。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/10-full-inventory.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/10-full-inventory.html">阅读全文</a>
+          </div>
+        </div>
+
+        <div class="card" id="c-11">
+          <div class="meta">
+            <span class="badge source-Anthropic">Anthropic</span>
+            <span class="badge">11</span>
+          </div>
+          <h3>发布篇：GitHub Pages 部署</h3>
+          <p>如何把这套内容发布到 GitHub Pages。</p>
+          <div class="actions">
+            <a class="btn primary" href="./cookbooks-slides/11-github-pages-deploy.pptx">PPT</a>
+            <a class="btn" href="./cookbooks/11-github-pages-deploy.html">阅读全文</a>
+          </div>
+        </div>
+
       </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">2025-09-29</span>
-        </div>
-        <h3>Context Engineering：上下文不是越多越好</h3>
-        <p>真正的问题从来不是"有没有上下文"，而是"给模型的 token 是否在当前时刻最值得占用注意力"。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/anthropic-context-engineering.html">演示页</a>
-          <a class="btn" href="./articles/anthropic-context-engineering.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Microsoft">Microsoft</span>
-          <span class="badge">2025-12-26</span>
-        </div>
-        <h3>Azure SRE Agent：工具收敛的生产经验</h3>
-        <p>微软在构建 Azure SRE Agent 时发现，复杂问题常常要靠删减、收敛和外化状态来解决。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/azure-sre-agent-context-engineering.html">演示页</a>
-          <a class="btn" href="./articles/azure-sre-agent-context-engineering.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-OpenAI">OpenAI Cookbook</span>
-          <span class="badge">2025-10-07</span>
-        </div>
-        <h3>PLANS.md：活计划支撑数小时执行</h3>
-        <p>把"计划"从一次性草稿变成贯穿执行全程的活文档，支撑 agent 在多小时任务里持续推进。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/plans-md-multi-hour-problem-solving.html">演示页</a>
-          <a class="btn" href="./articles/plans-md-multi-hour-problem-solving.html">阅读全文</a>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Series 2: Claude Cookbooks -->
-  <section id="cookbooks-series">
-    <div class="section-header">
-      <h2 class="section-title">系列二：Claude Cookbooks 中文导读</h2>
-      <p class="section-desc">来源：anthropics/claude-cookbooks | 11 篇系统性导读</p>
-    </div>
-    <div class="grid cols-3">
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">01</span>
-        </div>
-        <h3>仓库总览：Cookbooks 到底在教什么</h3>
-        <p>建立对整个仓库的认知地图，理解 66 个 recipes 的分类与重点。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/01-repo-overview.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/01-repo-overview.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">02</span>
-        </div>
-        <h3>基础能力篇：分类、RAG、摘要、Text-to-SQL</h3>
-        <p>Claude 在知识库问答场景下的原子能力详解。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/02-capabilities.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/02-capabilities.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">03</span>
-        </div>
-        <h3>工具调用篇：函数调用与工具生态</h3>
-        <p>从基础函数调用到完整工具生态系统的实现路径。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/03-tool-use.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/03-tool-use.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">04</span>
-        </div>
-        <h3>多模态篇：视觉、文档、图表理解</h3>
-        <p>图像、PDF、表单处理等多模态场景实践。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/04-multimodal.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/04-multimodal.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">05</span>
-        </div>
-        <h3>Agent 模式篇：链式、并行、路由与编排</h3>
-        <p>各种 Agent 编排模式的适用场景与实现方法。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/05-agent-patterns.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/05-agent-patterns.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">06</span>
-        </div>
-        <h3>Claude Agent SDK：把模式落成代理</h3>
-        <p>如何用 SDK 把理论模式工程化落地。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/06-claude-agent-sdk.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/06-claude-agent-sdk.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">07</span>
-        </div>
-        <h3>响应工程篇：JSON、缓存、引用、评测</h3>
-        <p>提升稳定性、压缩成本、提升响可控性。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/07-responses-and-performance.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/07-responses-and-performance.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">08</span>
-        </div>
-        <h3>生态集成篇：LlamaIndex、Pinecone、MongoDB</h3>
-        <p>如何接入现成的向量数据库与生态工具。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/08-integrations.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/08-integrations.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">09</span>
-        </div>
-        <h3>Skills 与微调：垂直化能力</h3>
-        <p>如何通过 Skills 扩展和微调构建垂直能力。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/09-skills-finetuning.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/09-skills-finetuning.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">10</span>
-        </div>
-        <h3>完整索引：66 个 Recipes 逐条导读</h3>
-        <p>完整覆盖所有 66 个 recipe 的导读目录。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/10-full-inventory.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/10-full-inventory.html">阅读全文</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="meta">
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">11</span>
-        </div>
-        <h3>发布篇：GitHub Pages 部署</h3>
-        <p>如何把这套内容发布到 GitHub Pages。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/11-github-pages-deploy.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/11-github-pages-deploy.html">阅读全文</a>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-</main>
+    </section>
+  </main>
+</div>
 
 <footer class="footer">
   <p>内容为对原文的中文详细解读与读后感，不是逐字转载。原文版权归各自作者与发布方所有。</p>
   <p>站点部署方式：静态 HTML + GitHub Pages | <a href="https://github.com/mathhyphen/markdown-pages">查看源码</a></p>
 </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const sidebar = document.getElementById('sidebar');
+  const harnessSection = document.getElementById('harness-series');
+  const cookbooksSection = document.getElementById('cookbooks-series');
+
+  // Highlight active section in sidebar
+  function updateActiveLink() {
+    const scrollPos = window.scrollY + 200;
+
+    if (scrollPos < harnessSection.offsetTop + harnessSection.offsetHeight) {
+      document.querySelectorAll('.sidebar-list a').forEach(a => a.classList.remove('active'));
+      document.querySelectorAll('#harness-list a').forEach(a => a.classList.add('active'));
+    } else {
+      document.querySelectorAll('.sidebar-list a').forEach(a => a.classList.remove('active'));
+      document.querySelectorAll('#cookbooks-list a').forEach(a => a.classList.add('active'));
+    }
+  }
+
+  window.addEventListener('scroll', updateActiveLink);
+  updateActiveLink();
+
+  // Click sidebar link to scroll
+  document.querySelectorAll('.sidebar-list a').forEach(link => {
+    link.addEventListener('click', function(e) {
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+});
+</script>
 
 </body>
 </html>
