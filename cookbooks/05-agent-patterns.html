@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Cookbooks</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+        h1 { color: #1a1a2e; border-bottom: 3px solid #4a90d9; padding-bottom: 0.5rem; }
+        h2 { color: #16213e; margin-top: 2rem; }
+        h3 { color: #0f3460; }
+        code { background: #f4f4f4; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #4a90d9; margin: 1rem 0; padding-left: 1rem; color: #666; }
+        a { color: #4a90d9; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+<hr />
+<p>layout: page
+title: "05｜Agent 模式篇：链式、并行、路由与编排"</p>
+<hr />
+<p><code>patterns/agents/</code> 这一组内容，像是 Claude Cookbooks 的“架构课”。它不关心某个具体业务，而是关心：<strong>多步任务应该怎样拆、怎样编排、怎样在成本与效果之间折中。</strong></p>
+<h2>系列导航</h2>
+<ul>
+<li><a href="index.html">Claude Cookbooks 中文导读</a></li>
+<li><a href="01-repo-overview.html">01｜仓库总览：Claude Cookbooks 到底在教什么</a></li>
+<li><a href="02-capabilities.html">02｜基础能力篇：分类、RAG、摘要与 Text-to-SQL</a></li>
+<li><a href="03-tool-use.html">03｜工具调用篇：从函数调用到工具生态</a></li>
+<li><a href="04-multimodal.html">04｜多模态篇：视觉、文档、图表与图像理解</a></li>
+<li><a href="05-agent-patterns.html">05｜Agent 模式篇：链式、并行、路由与编排</a></li>
+<li><a href="06-claude-agent-sdk.html">06｜Claude Agent SDK 篇：把模式落成真正的代理</a></li>
+<li><a href="07-responses-and-performance.html">07｜响应工程篇：JSON、缓存、引用、评测与成本</a></li>
+<li><a href="08-integrations.html">08｜生态集成篇：LlamaIndex、Pinecone、MongoDB、音频与语音</a></li>
+<li><a href="09-skills-finetuning.html">09｜Skills、微调与垂直化能力</a></li>
+<li><a href="10-full-inventory.html">10｜完整索引：66 个 Claude Cookbooks 逐条导读</a></li>
+<li><a href="11-github-pages-deploy.html">11｜发布篇：把这套文章放到 GitHub Pages</a></li>
+</ul>
+<h2>1. 为什么这组内容很重要</h2>
+<p>很多团队一开始做 Agent，脑子里只有一个模糊想法：<br />
+“让模型自己规划一下，然后一步步做完。”</p>
+<p>但真实系统往往会失败在两个地方：</p>
+<ul>
+<li>任务拆解方式混乱；</li>
+<li>把所有复杂度都塞给一个大模型。</li>
+</ul>
+<p><code>patterns/agents/</code> 的价值就在于：把一些经常被神秘化的“Agent 能力”，重新还原成清楚的工作流模式。</p>
+<h2>2. 三个基础模式：链式、并行、路由</h2>
+<ul>
+<li><strong>Basic workflows</strong>：用 prompt chaining、parallelization、routing 三种模式搭建多 LLM 工作流。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/patterns/agents/basic_workflows.ipynb">原文</a>）</li>
+</ul>
+<p><code>basic_workflows.ipynb</code> 本质上在讲三件事：</p>
+<h3>Prompt Chaining</h3>
+<p>把一个复杂任务拆成若干顺序步骤，每一步只解决一个子问题。<br />
+适合：
+- 信息抽取后再格式化；
+- 先理解再生成；
+- 需要中间结果可检查的流程。</p>
+<h3>Parallelization</h3>
+<p>把彼此独立的子任务同时交给多个模型调用。<br />
+适合：
+- 多视角分析；
+- 多利益相关者影响评估；
+- 多候选方案并行生成。</p>
+<h3>Routing</h3>
+<p>先判断输入属于哪一类，再把它送到不同的专用 prompt / 子流程里。<br />
+适合：
+- 工单分流；
+- 任务类型识别；
+- 多业务线共享入口。</p>
+<p>这三个模式其实已经能覆盖大量“伪 Agent”场景。<br />
+很多时候，你不需要一个复杂自治体，只需要清楚的 workflow design。</p>
+<h2>3. 生成—评估—优化循环</h2>
+<ul>
+<li><strong>Building evals</strong>：搭建评测系统来衡量和改进 Claude 的输出质量。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/building_evals.ipynb">原文</a>）</li>
+<li><strong>Evaluator optimizer</strong>：生成—评估—反馈循环的经典代理模式。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/patterns/agents/evaluator_optimizer.ipynb">原文</a>）</li>
+</ul>
+<p><code>evaluator_optimizer</code> 是很经典的一类模式：<br />
+一个模型先生成，另一个模型负责评估并反馈，然后继续修正。</p>
+<p>它很适合：</p>
+<ul>
+<li>需要质量门槛的生成任务；</li>
+<li>规范严格的文档写作；</li>
+<li>结构化输出纠错；</li>
+<li>Prompt 自动改进。</li>
+</ul>
+<p>这也是“让模型自我改进”最容易走向工程化的一条路，因为它天然与 <strong>评测系统</strong> 相连。</p>
+<h2>4. Orchestrator + Workers：真正进入代理编排</h2>
+<ul>
+<li><strong>Using Haiku as a sub-agent</strong>：用 Haiku 子代理做提取，再用更强模型做综合。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/using_sub_agents.ipynb">原文</a>）</li>
+<li><strong>Orchestrator workers</strong>：由中心模型动态分派任务给多个 worker 并合成结果。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/patterns/agents/orchestrator_workers.ipynb">原文</a>）</li>
+</ul>
+<p>当问题过于复杂，一个模型很难既做分解、又做执行、还做整合。这时就会进入更像组织结构的模式：</p>
+<ul>
+<li><strong>Orchestrator</strong>：负责拆任务、分派任务、收集结果；</li>
+<li><strong>Workers</strong>：负责执行各自的子任务；</li>
+<li><strong>Synthesizer</strong>：有时由 orchestrator 兼任，负责汇总输出。</li>
+</ul>
+<p>这是理解多代理系统最好的起点，因为它避开了很多“自治神话”，直接让你看到：<br />
+<strong>多代理本质上是任务分工与结果合成。</strong></p>
+<h2>5. 什么时候不该上复杂 Agent</h2>
+<p>这是很多文章不愿意讲，但 Claude Cookbooks 这组内容其实在暗示的地方：</p>
+<ul>
+<li>如果流程固定，先用 chaining；</li>
+<li>如果任务能独立拆分，先用 parallelization；</li>
+<li>如果只是多类型输入，先用 routing；</li>
+<li>只有当任务路径会随信息发现而改变时，再认真考虑更强 Agent。</li>
+</ul>
+<p>这也是为什么后续 <code>claude_agent_sdk/</code> 的研究代理会被放在更靠后的学习路径里。</p>
+<h2>6. 你可以从这里学到什么架构判断</h2>
+<h3>先看任务结构，而不是先看框架</h3>
+<p>Agent 不是产品类别，而是一种任务组织方式。</p>
+<h3>复杂度要分层</h3>
+<p>不要让一个模型既负责分类、又负责计划、又负责执行、又负责复盘。</p>
+<h3>评估闭环要从一开始就设计</h3>
+<p>越是多步流程，越需要知道到底是哪个环节在掉链子。</p>
+<h2>7. 可写成哪些文章</h2>
+<ul>
+<li><strong>别再泛化“Agent”了：其实就是这三种工作流</strong></li>
+<li><strong>什么时候该用 chaining，什么时候该上 orchestrator</strong></li>
+<li><strong>多代理系统不是越多越好</strong></li>
+<li><strong>Evaluator-Optimizer：最值得落地的 Agent 模式之一</strong></li>
+</ul>
+<h2>8. 这篇的核心结论</h2>
+<ul>
+<li><code>patterns/agents/</code> 不是在教“炫酷 Agent”，而是在教 <strong>工作流结构</strong>；</li>
+<li>绝大多数实用系统，都可以从 chaining / parallelization / routing 开始；</li>
+<li>复杂代理应该是最后一步，而不是第一步。</li>
+</ul>
+<h2>对应原始 notebook</h2>
+<ul>
+<li><strong>Basic workflows</strong>：用 prompt chaining、parallelization、routing 三种模式搭建多 LLM 工作流。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/patterns/agents/basic_workflows.ipynb">原文</a>）</li>
+<li><strong>Evaluator optimizer</strong>：生成—评估—反馈循环的经典代理模式。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/patterns/agents/evaluator_optimizer.ipynb">原文</a>）</li>
+<li><strong>Orchestrator workers</strong>：由中心模型动态分派任务给多个 worker 并合成结果。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/patterns/agents/orchestrator_workers.ipynb">原文</a>）</li>
+</ul>
+<h2>相关补充</h2>
+<ul>
+<li><a href="https://github.com/anthropics/claude-cookbooks/tree/main/claude_agent_sdk">claude_agent_sdk 目录</a></li>
+<li><a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/using_sub_agents.ipynb">multimodal/using_sub_agents.ipynb</a></li>
+</ul>
+</body>
+</html>

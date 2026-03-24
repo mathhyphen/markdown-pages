@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Cookbooks</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+        h1 { color: #1a1a2e; border-bottom: 3px solid #4a90d9; padding-bottom: 0.5rem; }
+        h2 { color: #16213e; margin-top: 2rem; }
+        h3 { color: #0f3460; }
+        code { background: #f4f4f4; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #4a90d9; margin: 1rem 0; padding-left: 1rem; color: #666; }
+        a { color: #4a90d9; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+<hr />
+<p>layout: page
+title: "07｜响应工程篇：JSON、缓存、引用、评测与成本"</p>
+<hr />
+<p>很多人第一次打开 Claude Cookbooks，会优先看 RAG、工具调用或多模态。但如果你真的要做一个 <strong>稳定、可控、可上线</strong> 的系统，那么最该认真看的，反而是 <code>misc/</code>、<code>extended_thinking/</code>、<code>observability/</code> 和 <code>tool_evaluation/</code> 这些看起来不那么“炫”的部分。</p>
+<h2>系列导航</h2>
+<ul>
+<li><a href="index.html">Claude Cookbooks 中文导读</a></li>
+<li><a href="01-repo-overview.html">01｜仓库总览：Claude Cookbooks 到底在教什么</a></li>
+<li><a href="02-capabilities.html">02｜基础能力篇：分类、RAG、摘要与 Text-to-SQL</a></li>
+<li><a href="03-tool-use.html">03｜工具调用篇：从函数调用到工具生态</a></li>
+<li><a href="04-multimodal.html">04｜多模态篇：视觉、文档、图表与图像理解</a></li>
+<li><a href="05-agent-patterns.html">05｜Agent 模式篇：链式、并行、路由与编排</a></li>
+<li><a href="06-claude-agent-sdk.html">06｜Claude Agent SDK 篇：把模式落成真正的代理</a></li>
+<li><a href="07-responses-and-performance.html">07｜响应工程篇：JSON、缓存、引用、评测与成本</a></li>
+<li><a href="08-integrations.html">08｜生态集成篇：LlamaIndex、Pinecone、MongoDB、音频与语音</a></li>
+<li><a href="09-skills-finetuning.html">09｜Skills、微调与垂直化能力</a></li>
+<li><a href="10-full-inventory.html">10｜完整索引：66 个 Claude Cookbooks 逐条导读</a></li>
+<li><a href="11-github-pages-deploy.html">11｜发布篇：把这套文章放到 GitHub Pages</a></li>
+</ul>
+<h2>1. 为什么这一组最像“工程实战”</h2>
+<p>因为真实项目最后都会落到这些问题上：</p>
+<ul>
+<li>怎样拿到稳定 JSON；</li>
+<li>如何控制成本；</li>
+<li>怎样管理长上下文；</li>
+<li>怎样给回答加引用；</li>
+<li>怎样评估系统，而不是靠感觉；</li>
+<li>怎样知道到底花了多少钱、哪个环节最慢；</li>
+<li>怎样在超长输出、批量处理这类边界情况下仍然可用。</li>
+</ul>
+<p>这一组 notebook 的价值就在这里：它们让你看到 <strong>LLM 应用的非功能性要求</strong>。</p>
+<h2>2. 结构化输出：JSON、引用与可核查性</h2>
+<ul>
+<li><strong>Prompting Claude for JSON mode</strong>：通过提示工程稳定拿到 JSON 输出。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/how_to_enable_json_mode.ipynb">原文</a>）</li>
+<li><strong>Citations</strong>：让 Claude 在基于文档回答时带上引用来源。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/using_citations.ipynb">原文</a>）</li>
+<li><strong>Extracting structured JSON using Claude and tool use</strong>：用工具调用把抽取结果稳定约束成结构化 JSON。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/tool_use/extracting_structured_json.ipynb">原文</a>）</li>
+</ul>
+<p>这几篇共同围绕一个现实问题：<br />
+<strong>模型输出再聪明，如果系统消费不了、核查不了，也很难进入生产环境。</strong></p>
+<h3>JSON mode</h3>
+<p>重点不是“模型会不会 JSON”，而是如何通过 prompt 和约束提升成功率。</p>
+<h3>Citations</h3>
+<p>重点不是“多一个脚注”，而是让回答可验证、可追踪、可审计。</p>
+<h3>Structured JSON via tool use</h3>
+<p>重点不是文本美感，而是让抽取任务天然走向可解析结果。</p>
+<h2>3. 上下文与成本：缓存、压缩、批处理</h2>
+<ul>
+<li><strong>Batch processing with Message Batches API</strong>：用批处理 API 低成本处理大批量请求。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/batch_processing.ipynb">原文</a>）</li>
+<li><strong>Prompt caching through the Claude API</strong>：复用上下文缓存以降低成本、提升响应速度。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/prompt_caching.ipynb">原文</a>）</li>
+<li><strong>Session memory compaction</strong>：在长对话/长代理流程里压缩会话记忆，控制上下文长度。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/session_memory_compaction.ipynb">原文</a>）</li>
+<li><strong>Speculative prompt caching</strong>：在用户输入完成前预热缓存，缩短首 token 等待时间。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/speculative_prompt_caching.ipynb">原文</a>）</li>
+<li><strong>Automatic context compaction</strong>：在长流程代理中自动压缩上下文，管理 token 预算。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/tool_use/automatic-context-compaction.ipynb">原文</a>）</li>
+</ul>
+<p>这是最接近“上线之后才会真正痛”的部分。</p>
+<h3>Prompt caching</h3>
+<p>解决重复上下文太贵的问题。</p>
+<h3>Speculative prompt caching</h3>
+<p>解决等待首 token 太慢的问题。</p>
+<h3>Session memory compaction / automatic context compaction</h3>
+<p>解决长流程代理越跑越胖、越跑越贵的问题。</p>
+<h3>Batch processing</h3>
+<p>解决“大量任务都要跑，但不是每个都必须实时返回”的问题。</p>
+<p>这几篇加在一起，等于是在教你：<br />
+<strong>如何让 Claude 应用在吞吐、延迟、上下文长度和预算之间找到平衡。</strong></p>
+<h2>4. 思考与推理：Extended Thinking</h2>
+<ul>
+<li><strong>Extended thinking</strong>：介绍 extended thinking 的思路、预算管理和透明推理体验。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/extended_thinking/extended_thinking.ipynb">原文</a>）</li>
+<li><strong>Extended thinking with tool use</strong>：把 extended thinking 与工具调用结合，覆盖多步任务场景。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/extended_thinking/extended_thinking_with_tool_use.ipynb">原文</a>）</li>
+</ul>
+<p>Extended Thinking 这组内容体现的是一个很重要的方向：<br />
+<strong>复杂任务不只是“给更多 tokens”，而是给模型一个更清晰的思考预算和多步推理空间。</strong></p>
+<p>当它和工具调用结合时，意义更大，因为多步任务里往往需要：</p>
+<ul>
+<li>先判断；</li>
+<li>再搜集；</li>
+<li>再调用工具；</li>
+<li>最后综合。</li>
+</ul>
+<p>这比“单发 prompt”更接近真实工作流。</p>
+<h2>5. 评测与质量保障：不要只看 demo</h2>
+<ul>
+<li><strong>Building evals</strong>：搭建评测系统来衡量和改进 Claude 的输出质量。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/building_evals.ipynb">原文</a>）</li>
+<li><strong>Generate synthetic test data for your prompt template</strong>：自动生成测试样例来评估和改进 prompt。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/generate_test_cases.ipynb">原文</a>）</li>
+<li><strong>Tool evaluation</strong>：并行评估工具本身的表现，而不是只评估最终回答。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/tool_evaluation/tool_evaluation.ipynb">原文</a>）</li>
+</ul>
+<p>许多 LLM 项目停留在“看起来不错”，是因为它们缺一个稳定评测框架。<br />
+这里至少有三条思路：</p>
+<ul>
+<li>建立业务指标；</li>
+<li>先自动生成测试样例；</li>
+<li>把工具本身也拿出来单独评估。</li>
+</ul>
+<p>尤其 <code>tool_evaluation</code> 很关键，因为多步 Agent 里，最终失败未必是模型的锅，也可能是工具本身的设计、权限、延迟或返回格式有问题。</p>
+<h2>6. 可观测性：用量与成本</h2>
+<ul>
+<li><strong>Usage &amp; cost Admin API cookbook</strong>：通过 Admin API 拉取 Claude API 的用量与成本数据。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/observability/usage_cost_api.ipynb">原文</a>）</li>
+</ul>
+<p>这是非常“生产系统”的一篇。<br />
+当团队开始真实使用 Claude API 后，大家很快会问：</p>
+<ul>
+<li>谁在花钱；</li>
+<li>哪个应用最贵；</li>
+<li>哪个模型最耗；</li>
+<li>哪类请求增长最快。</li>
+</ul>
+<p>如果没有可观测性，LLM 系统的成本治理几乎无从谈起。</p>
+<h2>7. 其他很实用但容易被忽略的内容</h2>
+<ul>
+<li><strong>Building a moderation filter with Claude</strong>：用提示规则自定义内容审核/风控过滤器。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/building_moderation_filter.ipynb">原文</a>）</li>
+<li><strong>How to make SQL queries with Claude</strong>：在给定数据库 schema 的前提下，让 Claude 生成 SQL。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/how_to_make_sql_queries.ipynb">原文</a>）</li>
+<li><strong>Metaprompt</strong>：用元提示帮你从空白页出发，生成更好的初始 prompt。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/metaprompt.ipynb">原文</a>）</li>
+<li><strong>Uploading PDFs to Claude via the API</strong>：通过 API 解析 PDF、提取文本，并交给 Claude 总结。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/pdf_upload_summarization.ipynb">原文</a>）</li>
+<li><strong>Summarizing web page content with Claude 3 Haiku</strong>：抓取网页正文并用 Haiku 做快速摘要。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/read_web_pages_with_haiku.ipynb">原文</a>）</li>
+<li><strong>Sampling responses from Claude beyond the max tokens limit</strong>：用 continuation / prefill 的方式绕过单次 max_tokens 限制。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/sampling_past_max_tokens.ipynb">原文</a>）</li>
+</ul>
+<p>这一组没有统一大标题，但都很像“你迟早会用到”的技巧仓库。</p>
+<h2>8. 如果只挑 5 篇，我会选这些</h2>
+<ul>
+<li><strong>Extended thinking with tool use</strong>：把 extended thinking 与工具调用结合，覆盖多步任务场景。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/extended_thinking/extended_thinking_with_tool_use.ipynb">原文</a>）</li>
+<li><strong>Building evals</strong>：搭建评测系统来衡量和改进 Claude 的输出质量。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/building_evals.ipynb">原文</a>）</li>
+<li><strong>Prompt caching through the Claude API</strong>：复用上下文缓存以降低成本、提升响应速度。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/prompt_caching.ipynb">原文</a>）</li>
+<li><strong>Citations</strong>：让 Claude 在基于文档回答时带上引用来源。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/using_citations.ipynb">原文</a>）</li>
+<li><strong>Usage &amp; cost Admin API cookbook</strong>：通过 Admin API 拉取 Claude API 的用量与成本数据。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/observability/usage_cost_api.ipynb">原文</a>）</li>
+</ul>
+<h2>9. 这篇的核心结论</h2>
+<ul>
+<li>这一组内容最不花哨，但最接近真正的生产需求；</li>
+<li>工程化不是多接几个 tool，而是把 <strong>输出稳定性、可评测性、成本、上下文、速度</strong> 一起考虑；</li>
+<li>如果你要做长期应用，应该把这些 notebook 当成“上线指南”。</li>
+</ul>
+<h2>对应原始 notebook</h2>
+<ul>
+<li><strong>Extended thinking</strong>：介绍 extended thinking 的思路、预算管理和透明推理体验。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/extended_thinking/extended_thinking.ipynb">原文</a>）</li>
+<li><strong>Extended thinking with tool use</strong>：把 extended thinking 与工具调用结合，覆盖多步任务场景。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/extended_thinking/extended_thinking_with_tool_use.ipynb">原文</a>）</li>
+<li><strong>Batch processing with Message Batches API</strong>：用批处理 API 低成本处理大批量请求。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/batch_processing.ipynb">原文</a>）</li>
+<li><strong>Building evals</strong>：搭建评测系统来衡量和改进 Claude 的输出质量。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/building_evals.ipynb">原文</a>）</li>
+<li><strong>Building a moderation filter with Claude</strong>：用提示规则自定义内容审核/风控过滤器。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/building_moderation_filter.ipynb">原文</a>）</li>
+<li><strong>Generate synthetic test data for your prompt template</strong>：自动生成测试样例来评估和改进 prompt。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/generate_test_cases.ipynb">原文</a>）</li>
+<li><strong>Prompting Claude for JSON mode</strong>：通过提示工程稳定拿到 JSON 输出。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/how_to_enable_json_mode.ipynb">原文</a>）</li>
+<li><strong>How to make SQL queries with Claude</strong>：在给定数据库 schema 的前提下，让 Claude 生成 SQL。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/how_to_make_sql_queries.ipynb">原文</a>）</li>
+<li><strong>Metaprompt</strong>：用元提示帮你从空白页出发，生成更好的初始 prompt。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/metaprompt.ipynb">原文</a>）</li>
+<li><strong>Uploading PDFs to Claude via the API</strong>：通过 API 解析 PDF、提取文本，并交给 Claude 总结。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/pdf_upload_summarization.ipynb">原文</a>）</li>
+<li><strong>Prompt caching through the Claude API</strong>：复用上下文缓存以降低成本、提升响应速度。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/prompt_caching.ipynb">原文</a>）</li>
+<li><strong>Session memory compaction</strong>：在长对话/长代理流程里压缩会话记忆，控制上下文长度。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/session_memory_compaction.ipynb">原文</a>）</li>
+<li><strong>Summarizing web page content with Claude 3 Haiku</strong>：抓取网页正文并用 Haiku 做快速摘要。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/read_web_pages_with_haiku.ipynb">原文</a>）</li>
+<li><strong>Sampling responses from Claude beyond the max tokens limit</strong>：用 continuation / prefill 的方式绕过单次 max_tokens 限制。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/sampling_past_max_tokens.ipynb">原文</a>）</li>
+<li><strong>Speculative prompt caching</strong>：在用户输入完成前预热缓存，缩短首 token 等待时间。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/speculative_prompt_caching.ipynb">原文</a>）</li>
+<li><strong>Citations</strong>：让 Claude 在基于文档回答时带上引用来源。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/using_citations.ipynb">原文</a>）</li>
+<li><strong>Usage &amp; cost Admin API cookbook</strong>：通过 Admin API 拉取 Claude API 的用量与成本数据。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/observability/usage_cost_api.ipynb">原文</a>）</li>
+<li><strong>Tool evaluation</strong>：并行评估工具本身的表现，而不是只评估最终回答。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/tool_evaluation/tool_evaluation.ipynb">原文</a>）</li>
+<li><strong>Memory &amp; context management with Claude Sonnet 4.6</strong>：面向代理应用的持久记忆、上下文编辑与状态管理。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/tool_use/memory_cookbook.ipynb">原文</a>）</li>
+</ul>
+<h2>原始资料</h2>
+<ul>
+<li><a href="https://github.com/anthropics/claude-cookbooks/tree/main/misc">misc 目录</a></li>
+<li><a href="https://github.com/anthropics/claude-cookbooks/tree/main/extended_thinking">extended_thinking 目录</a></li>
+<li><a href="https://github.com/anthropics/claude-cookbooks/tree/main/observability">observability 目录</a></li>
+<li><a href="https://github.com/anthropics/claude-cookbooks/tree/main/tool_evaluation">tool_evaluation 目录</a></li>
+</ul>
+</body>
+</html>

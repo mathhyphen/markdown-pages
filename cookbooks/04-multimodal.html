@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Cookbooks</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+        h1 { color: #1a1a2e; border-bottom: 3px solid #4a90d9; padding-bottom: 0.5rem; }
+        h2 { color: #16213e; margin-top: 2rem; }
+        h3 { color: #0f3460; }
+        code { background: #f4f4f4; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #4a90d9; margin: 1rem 0; padding-left: 1rem; color: #666; }
+        a { color: #4a90d9; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+<hr />
+<p>layout: page
+title: "04｜多模态篇：视觉、文档、图表与图像理解"</p>
+<hr />
+<p>Claude Cookbooks 的多模态部分很值得看，因为它并不只是展示“Claude 能看图”，而是在回答一个更实用的问题：<strong>图片、PDF、图表、表单、幻灯片这些复杂输入，如何被接进真实工作流？</strong></p>
+<h2>系列导航</h2>
+<ul>
+<li><a href="index.html">Claude Cookbooks 中文导读</a></li>
+<li><a href="01-repo-overview.html">01｜仓库总览：Claude Cookbooks 到底在教什么</a></li>
+<li><a href="02-capabilities.html">02｜基础能力篇：分类、RAG、摘要与 Text-to-SQL</a></li>
+<li><a href="03-tool-use.html">03｜工具调用篇：从函数调用到工具生态</a></li>
+<li><a href="04-multimodal.html">04｜多模态篇：视觉、文档、图表与图像理解</a></li>
+<li><a href="05-agent-patterns.html">05｜Agent 模式篇：链式、并行、路由与编排</a></li>
+<li><a href="06-claude-agent-sdk.html">06｜Claude Agent SDK 篇：把模式落成真正的代理</a></li>
+<li><a href="07-responses-and-performance.html">07｜响应工程篇：JSON、缓存、引用、评测与成本</a></li>
+<li><a href="08-integrations.html">08｜生态集成篇：LlamaIndex、Pinecone、MongoDB、音频与语音</a></li>
+<li><a href="09-skills-finetuning.html">09｜Skills、微调与垂直化能力</a></li>
+<li><a href="10-full-inventory.html">10｜完整索引：66 个 Claude Cookbooks 逐条导读</a></li>
+<li><a href="11-github-pages-deploy.html">11｜发布篇：把这套文章放到 GitHub Pages</a></li>
+</ul>
+<h2>多模态在这座仓库里的位置</h2>
+<p>多模态并不是一个孤立能力，它在整个 repo 中承担的是“把现实世界里的非结构化材料变成可理解、可处理对象”的角色。<br />
+换句话说，如果 <code>tool_use/</code> 解决“Claude 怎么行动”，那 <code>multimodal/</code> 解决的就是“Claude 怎么看懂复杂输入”。</p>
+<h2>1. 入门两件套：先会传图，再学会提问</h2>
+<ul>
+<li><strong>Getting started with vision</strong>：从零开始把图片传给 Claude 做视觉理解。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/getting_started_with_vision.ipynb">原文</a>）</li>
+<li><strong>Best practices for using vision with Claude</strong>：总结视觉模型输入、分辨率、任务设计与结果校验的经验。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/best_practices_for_vision.ipynb">原文</a>）</li>
+</ul>
+<p>这两篇应该一起看：</p>
+<ul>
+<li><strong>Getting started with vision</strong>：教你把图像输入传给 Claude；</li>
+<li><strong>Best practices for vision</strong>：告诉你怎样设计输入与任务，避免视觉任务失真。</li>
+</ul>
+<p>视觉任务里最常见的问题并不是“模型看不懂”，而是：</p>
+<ul>
+<li>图太大或太小；</li>
+<li>局部信息太密；</li>
+<li>任务目标写得太含糊；</li>
+<li>没有要求结构化输出；</li>
+<li>缺乏结果核对机制。</li>
+</ul>
+<p>因此“best practices” 往往比“hello world”更接近真实价值。</p>
+<h2>2. 文档理解：多模态最容易落地的地方</h2>
+<ul>
+<li><strong>Uploading PDFs to Claude via the API</strong>：通过 API 解析 PDF、提取文本，并交给 Claude 总结。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/pdf_upload_summarization.ipynb">原文</a>）</li>
+<li><strong>How to transcribe documents with Claude</strong>：把图片或 PDF 中的非结构化文本提取成结构化内容。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/how_to_transcribe_text.ipynb">原文</a>）</li>
+</ul>
+<p>许多公司真正的多模态需求并不是图片生成，而是：</p>
+<ul>
+<li>扫描件 OCR / 转写；</li>
+<li>合同、表单、发票、票据解析；</li>
+<li>PDF 摘要；</li>
+<li>截图内容抽取；</li>
+<li>手写或排版复杂内容的结构化整理。</li>
+</ul>
+<p><code>how_to_transcribe_text</code> 这类 notebook 的核心价值是让你看到：<strong>图像理解并不是终点，结构化提取才是业务价值所在</strong>。</p>
+<h2>3. 图表与幻灯片：从“看见”到“读懂”</h2>
+<ul>
+<li><strong>Working with charts, graphs, and slide decks</strong>：分析图表、幻灯片和可视化材料。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/reading_charts_graphs_powerpoints.ipynb">原文</a>）</li>
+<li><strong>Giving Claude a crop tool for better image analysis</strong>：给 Claude 一个裁剪工具，让它放大局部区域进行更细的图像分析。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/crop_tool.ipynb">原文</a>）</li>
+</ul>
+<p>图表类任务的难点在于，它不是 OCR 问题，而是混合了：</p>
+<ul>
+<li>图形元素识别；</li>
+<li>坐标含义理解；</li>
+<li>局部标签定位；</li>
+<li>趋势解释；</li>
+<li>文本与图形之间的联动推断。</li>
+</ul>
+<p><code>crop_tool</code> 特别有代表性，因为它体现了一个关键思想：<br />
+<strong>当图太复杂时，不是硬让模型一次全读，而是给它一个“看局部”的工具。</strong></p>
+<p>这和 RAG、tool use 的思路其实一致：<br />
+你不是要求模型直接掌握一切，而是给它合适的外部机制来改善理解。</p>
+<h2>4. 子代理与多模态的结合</h2>
+<ul>
+<li><strong>Using Haiku as a sub-agent</strong>：用 Haiku 子代理做提取，再用更强模型做综合。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/using_sub_agents.ipynb">原文</a>）</li>
+<li><strong>Using vision with tools</strong>：把视觉输入与工具调用结合，做结构化提取。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/tool_use/vision_with_tools.ipynb">原文</a>）</li>
+</ul>
+<p>多模态任务很适合分层处理，例如：</p>
+<ol>
+<li>一个轻量模型负责局部抽取；</li>
+<li>一个更强模型负责整合；</li>
+<li>工具系统负责结果校验、存储或二次处理。</li>
+</ol>
+<p>所以多模态内容和 Agent 内容并不是两条线，而是会在真实产品里合流。</p>
+<h2>5. 这一组 notebook 最值得吸收的三个思路</h2>
+<h3>思路一：多模态 = 输入层能力</h3>
+<p>多模态最重要的意义，不是“模型会看图”，而是让原本不能进入 LLM 的资料进入系统。</p>
+<h3>思路二：多模态任务需要拆分</h3>
+<p>图像理解经常要拆成：
+- 识别局部；
+- 抽取字段；
+- 再综合解释。<br />
+这比“请总结这张图”更可靠。</p>
+<h3>思路三：多模态最终还是要回到结构化输出</h3>
+<p>真正能进入业务系统的，通常不是一段自由文本，而是：
+- 表格；
+- JSON；
+- 字段集合；
+- 审核结果；
+- 风险标签。</p>
+<h2>6. 建议你怎么改写成中文内容</h2>
+<p>可以拆成以下几篇：</p>
+<ul>
+<li><strong>Claude 做视觉理解，不只是 OCR</strong></li>
+<li><strong>处理 PDF / 表单时，为什么结构化抽取比摘要更重要</strong></li>
+<li><strong>图表理解为什么需要 crop / zoom 类工具</strong></li>
+<li><strong>多模态 Agent：看图、抽字段、再执行动作</strong></li>
+</ul>
+<h2>7. 这篇的核心结论</h2>
+<ul>
+<li><code>multimodal/</code> 不只是“演示能看图”，而是在教你如何处理真实世界的复杂输入；</li>
+<li>多模态任务往往要和工具调用、子代理、结构化输出一起设计；</li>
+<li>文档、PDF、图表、表单，是最值得优先落地的多模态场景。</li>
+</ul>
+<h2>对应原始 notebook</h2>
+<ul>
+<li><strong>Getting started with vision</strong>：从零开始把图片传给 Claude 做视觉理解。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/getting_started_with_vision.ipynb">原文</a>）</li>
+<li><strong>Best practices for using vision with Claude</strong>：总结视觉模型输入、分辨率、任务设计与结果校验的经验。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/best_practices_for_vision.ipynb">原文</a>）</li>
+<li><strong>How to transcribe documents with Claude</strong>：把图片或 PDF 中的非结构化文本提取成结构化内容。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/how_to_transcribe_text.ipynb">原文</a>）</li>
+<li><strong>Working with charts, graphs, and slide decks</strong>：分析图表、幻灯片和可视化材料。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/reading_charts_graphs_powerpoints.ipynb">原文</a>）</li>
+<li><strong>Using Haiku as a sub-agent</strong>：用 Haiku 子代理做提取，再用更强模型做综合。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/using_sub_agents.ipynb">原文</a>）</li>
+<li><strong>Giving Claude a crop tool for better image analysis</strong>：给 Claude 一个裁剪工具，让它放大局部区域进行更细的图像分析。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/multimodal/crop_tool.ipynb">原文</a>）</li>
+</ul>
+<h2>相关补充</h2>
+<ul>
+<li><a href="https://github.com/anthropics/claude-cookbooks/blob/main/tool_use/vision_with_tools.ipynb">tool_use/vision_with_tools.ipynb</a></li>
+<li><a href="https://github.com/anthropics/claude-cookbooks/blob/main/misc/pdf_upload_summarization.ipynb">misc/pdf_upload_summarization.ipynb</a></li>
+</ul>
+</body>
+</html>

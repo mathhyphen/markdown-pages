@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Cookbooks</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+        h1 { color: #1a1a2e; border-bottom: 3px solid #4a90d9; padding-bottom: 0.5rem; }
+        h2 { color: #16213e; margin-top: 2rem; }
+        h3 { color: #0f3460; }
+        code { background: #f4f4f4; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #4a90d9; margin: 1rem 0; padding-left: 1rem; color: #666; }
+        a { color: #4a90d9; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+<hr />
+<p>layout: page
+title: "06｜Claude Agent SDK 篇：把模式落成真正的代理"</p>
+<hr />
+<p>如果说 <code>patterns/agents/</code> 是“架构概念课”，那么 <code>claude_agent_sdk/</code> 就是“把架构写成代码”的地方。它代表的是 Claude Cookbooks 的一个明显新阶段：从 recipe demo 走向 <strong>真正的代理开发 SDK</strong>。</p>
+<h2>系列导航</h2>
+<ul>
+<li><a href="index.html">Claude Cookbooks 中文导读</a></li>
+<li><a href="01-repo-overview.html">01｜仓库总览：Claude Cookbooks 到底在教什么</a></li>
+<li><a href="02-capabilities.html">02｜基础能力篇：分类、RAG、摘要与 Text-to-SQL</a></li>
+<li><a href="03-tool-use.html">03｜工具调用篇：从函数调用到工具生态</a></li>
+<li><a href="04-multimodal.html">04｜多模态篇：视觉、文档、图表与图像理解</a></li>
+<li><a href="05-agent-patterns.html">05｜Agent 模式篇：链式、并行、路由与编排</a></li>
+<li><a href="06-claude-agent-sdk.html">06｜Claude Agent SDK 篇：把模式落成真正的代理</a></li>
+<li><a href="07-responses-and-performance.html">07｜响应工程篇：JSON、缓存、引用、评测与成本</a></li>
+<li><a href="08-integrations.html">08｜生态集成篇：LlamaIndex、Pinecone、MongoDB、音频与语音</a></li>
+<li><a href="09-skills-finetuning.html">09｜Skills、微调与垂直化能力</a></li>
+<li><a href="10-full-inventory.html">10｜完整索引：66 个 Claude Cookbooks 逐条导读</a></li>
+<li><a href="11-github-pages-deploy.html">11｜发布篇：把这套文章放到 GitHub Pages</a></li>
+</ul>
+<h2>1. 这一组内容为什么值得单独成篇</h2>
+<p>因为它不再满足于讲“怎么设计一个多步流程”，而是开始回答：</p>
+<ul>
+<li>代理应该怎么定义；</li>
+<li>工具如何授权；</li>
+<li>与外部系统怎么连接；</li>
+<li>子代理如何组织；</li>
+<li>如何从其他 Agent SDK 迁移过来。</li>
+</ul>
+<p>也就是说，它已经不再只是“调用一个模型”，而是在讲 <strong>代理运行时</strong> 的问题。</p>
+<h2>2. 最小起点：Research Agent</h2>
+<ul>
+<li><strong>The one-liner research agent</strong>：使用 Claude Agent SDK 和 WebSearch 构建最小化研究代理。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/claude_agent_sdk/00_The_one_liner_research_agent.ipynb">原文</a>）</li>
+</ul>
+<p>这一篇非常适合作为 SDK 的第一篇，因为它展示了一个很清晰的代理任务：<br />
+<strong>信息不在输入里，而在外部世界里；代理需要一边搜索、一边判断下一步搜什么。</strong></p>
+<p>这比很多“玩具 Agent”更真实，因为研究任务本来就具备两个特点：</p>
+<ol>
+<li>答案不自带，需要外部检索；</li>
+<li>路径不是预先写死，而是边查边展开。</li>
+</ol>
+<h2>3. 组织型代理：Chief of Staff</h2>
+<ul>
+<li><strong>The chief of staff agent</strong>：用子代理、hooks、output styles 与 plan mode 组织多代理工作流。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb">原文</a>）</li>
+</ul>
+<p>这类例子把多代理系统从“技术演示”拉近到“组织协作 metaphor”。<br />
+Chief of Staff 不是单纯回答问题，而像一个高层协调者：</p>
+<ul>
+<li>接收目标；</li>
+<li>制定计划；</li>
+<li>分给不同子代理；</li>
+<li>回收结果并输出最终产物。</li>
+</ul>
+<p>如果你要写博客，这一篇很适合讲“AI 代理如何模拟组织分工”。</p>
+<h2>4. 外部系统与可操作环境：Observability / SRE</h2>
+<ul>
+<li><strong>The observability agent</strong>：通过 MCP 把代理连接到 GitHub 等外部系统，做监控与 CI 工作流。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/claude_agent_sdk/02_The_observability_agent.ipynb">原文</a>）</li>
+<li><strong>The site reliability agent</strong>：面向 SRE/事故响应，展示可读写 MCP 工具下的诊断、修复与复盘。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/claude_agent_sdk/03_The_site_reliability_agent.ipynb">原文</a>）</li>
+</ul>
+<p>这两篇的意义在于：<br />
+它们把代理从“只会看文档”推进到了“能接外部系统做真实工作”的阶段。</p>
+<h3>Observability Agent</h3>
+<p>强调的是监控、GitHub、CI 等外部系统连接，往往通过 MCP 来暴露能力。</p>
+<h3>Site Reliability Agent</h3>
+<p>更进一步，不只是观察，还包含读写能力、诊断、修复和事后文档化。</p>
+<p>这说明 Claude Agent SDK 的使用场景，正在明显靠近工程运维与真实企业系统。</p>
+<h2>5. 迁移视角：从 OpenAI Agents SDK 迁过来</h2>
+<ul>
+<li><strong>Migrating from the OpenAI Agents SDK</strong>：把 OpenAI Agents SDK 应用迁移到 Claude Agent SDK。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/claude_agent_sdk/04_migrating_from_openai_agents_sdk.ipynb">原文</a>）</li>
+</ul>
+<p>这一篇很重要，因为它说明 Anthropic 已经不只是面向“新用户”，而是在争取已经使用其他 Agent 框架的人。<br />
+对写作者来说，这也提供了很好的选题方向：</p>
+<ul>
+<li>Claude Agent SDK 和 OpenAI Agents SDK 的概念映射；</li>
+<li>tools / sessions / handoffs / guardrails 的对应关系；</li>
+<li>迁移成本与心智模型变化。</li>
+</ul>
+<h2>6. 这一组内容的核心变化</h2>
+<p>和前面的 notebook 相比，<code>claude_agent_sdk/</code> 至少有三点新意：</p>
+<h3>更像真实软件开发</h3>
+<p>开始出现 SDK、依赖、配置、工具授权、运行时事件等概念。</p>
+<h3>更像系统设计</h3>
+<p>不再只是“写一个 prompt”，而是考虑代理生命周期。</p>
+<h3>更强调外部环境</h3>
+<p>代理能做什么，越来越依赖它接入了哪些系统、允许哪些动作。</p>
+<h2>7. 对中文内容创作的启发</h2>
+<p>如果你要把它写成一个长期专栏，我建议这一组拆成：</p>
+<ol>
+<li><strong>什么是 Claude Agent SDK</strong></li>
+<li><strong>为什么 Research Agent 是最好的第一例子</strong></li>
+<li><strong>Chief of Staff：多代理系统的组织学隐喻</strong></li>
+<li><strong>从可观测性到 SRE：代理开始进入生产系统</strong></li>
+<li><strong>如何从 OpenAI Agents SDK 迁移到 Claude Agent SDK</strong></li>
+</ol>
+<h2>8. 这篇的核心结论</h2>
+<ul>
+<li><code>claude_agent_sdk/</code> 是 Claude Cookbooks 里最明显“迈向工程化代理开发”的一组内容；</li>
+<li>它把 Agent 从概念模式推进到 SDK、系统连接和运行时层面；</li>
+<li>如果你真正打算做长期可维护的 Agent 系统，这一组比单个 demo 更值得反复看。</li>
+</ul>
+<h2>对应原始 notebook</h2>
+<ul>
+<li><strong>The one-liner research agent</strong>：使用 Claude Agent SDK 和 WebSearch 构建最小化研究代理。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/claude_agent_sdk/00_The_one_liner_research_agent.ipynb">原文</a>）</li>
+<li><strong>The chief of staff agent</strong>：用子代理、hooks、output styles 与 plan mode 组织多代理工作流。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb">原文</a>）</li>
+<li><strong>The observability agent</strong>：通过 MCP 把代理连接到 GitHub 等外部系统，做监控与 CI 工作流。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/claude_agent_sdk/02_The_observability_agent.ipynb">原文</a>）</li>
+<li><strong>The site reliability agent</strong>：面向 SRE/事故响应，展示可读写 MCP 工具下的诊断、修复与复盘。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/claude_agent_sdk/03_The_site_reliability_agent.ipynb">原文</a>）</li>
+<li><strong>Migrating from the OpenAI Agents SDK</strong>：把 OpenAI Agents SDK 应用迁移到 Claude Agent SDK。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/claude_agent_sdk/04_migrating_from_openai_agents_sdk.ipynb">原文</a>）</li>
+</ul>
+<h2>相关补充</h2>
+<ul>
+<li><a href="https://github.com/anthropics/claude-cookbooks/blob/main/patterns/agents/basic_workflows.ipynb">patterns/agents/basic_workflows.ipynb</a></li>
+<li><a href="https://docs.claude.com">Anthropic 开发文档</a></li>
+</ul>
+</body>
+</html>

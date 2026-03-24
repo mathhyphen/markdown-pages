@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Cookbooks</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+        h1 { color: #1a1a2e; border-bottom: 3px solid #4a90d9; padding-bottom: 0.5rem; }
+        h2 { color: #16213e; margin-top: 2rem; }
+        h3 { color: #0f3460; }
+        code { background: #f4f4f4; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #4a90d9; margin: 1rem 0; padding-left: 1rem; color: #666; }
+        a { color: #4a90d9; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+<hr />
+<p>layout: page
+title: "02｜基础能力篇：分类、RAG、摘要与 Text-to-SQL"</p>
+<hr />
+<p>如果你把 Claude Cookbooks 当成一整套课程，那么 <code>capabilities/</code> 就是最像“基础课”的部分。这里不追求炫技，而是围绕四类最常见、也最容易真正落地的任务：<strong>分类、RAG、摘要、Text-to-SQL</strong>。</p>
+<h2>系列导航</h2>
+<ul>
+<li><a href="index.html">Claude Cookbooks 中文导读</a></li>
+<li><a href="01-repo-overview.html">01｜仓库总览：Claude Cookbooks 到底在教什么</a></li>
+<li><a href="02-capabilities.html">02｜基础能力篇：分类、RAG、摘要与 Text-to-SQL</a></li>
+<li><a href="03-tool-use.html">03｜工具调用篇：从函数调用到工具生态</a></li>
+<li><a href="04-multimodal.html">04｜多模态篇：视觉、文档、图表与图像理解</a></li>
+<li><a href="05-agent-patterns.html">05｜Agent 模式篇：链式、并行、路由与编排</a></li>
+<li><a href="06-claude-agent-sdk.html">06｜Claude Agent SDK 篇：把模式落成真正的代理</a></li>
+<li><a href="07-responses-and-performance.html">07｜响应工程篇：JSON、缓存、引用、评测与成本</a></li>
+<li><a href="08-integrations.html">08｜生态集成篇：LlamaIndex、Pinecone、MongoDB、音频与语音</a></li>
+<li><a href="09-skills-finetuning.html">09｜Skills、微调与垂直化能力</a></li>
+<li><a href="10-full-inventory.html">10｜完整索引：66 个 Claude Cookbooks 逐条导读</a></li>
+<li><a href="11-github-pages-deploy.html">11｜发布篇：把这套文章放到 GitHub Pages</a></li>
+</ul>
+<h2>这组 notebook 的价值</h2>
+<p>它们共同回答一个问题：<strong>Claude 适合用来解决哪些高频企业任务，以及这些任务应该怎么系统化搭起来？</strong></p>
+<p>相比“随便发个 prompt 看结果”，<code>capabilities/</code> 里的 notebook 更像是：</p>
+<ul>
+<li>明确定义任务；</li>
+<li>设计输入输出；</li>
+<li>引入评测；</li>
+<li>再做优化。</li>
+</ul>
+<p>也就是说，它们是从“能用”走向“可复现、可优化”。</p>
+<h2>1. Classification：别把分类理解成小任务</h2>
+<ul>
+<li><strong>Classification with Claude</strong>：用 Claude 做文本/工单分类，示范如何结合 RAG 与推理过程提升分类质量。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/capabilities/classification/guide.ipynb">原文</a>）</li>
+</ul>
+<p>分类看上去简单，其实是许多业务系统的入口能力，例如：</p>
+<ul>
+<li>工单分流；</li>
+<li>邮件标签；</li>
+<li>风险分类；</li>
+<li>客诉优先级判断；</li>
+<li>文档归类。</li>
+</ul>
+<p>这一类 notebook 的关键不只是“给标签”，而是教你如何让分类系统变得<strong>更稳、更可解释、更适合复杂业务标签体系</strong>。</p>
+<h3>这里值得借鉴的做法</h3>
+<ul>
+<li>不把分类问题只看成 prompt 一句话；</li>
+<li>当类别定义复杂时，把外部知识和案例引入分类流程；</li>
+<li>对分类结果建立评估，而不是只看几个 demo 样例。</li>
+</ul>
+<h2>2. Retrieval Augmented Generation：真正的大头</h2>
+<ul>
+<li><strong>Enhancing RAG with contextual retrieval</strong>：通过给 chunk 补充上下文再做 embedding，提升检索质量。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/capabilities/contextual-embeddings/guide.ipynb">原文</a>）</li>
+<li><strong>Retrieval augmented generation</strong>：从基础 RAG 到评测、summary indexing、reranking 的完整优化路径。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/capabilities/retrieval_augmented_generation/guide.ipynb">原文</a>）</li>
+</ul>
+<p>如果说这个仓库里哪个主题最接近企业 AI 应用的现实主战场，那一定是 <strong>RAG</strong>。<br />
+Claude Cookbooks 并没有把 RAG 讲成“向量库 + 问答”这么简单，而是把它拆成几层：</p>
+<ol>
+<li>先做一个基础 pipeline；</li>
+<li>再区分“检索质量”和“最终回答质量”；</li>
+<li>再通过 summary indexing、reranking、contextual retrieval 等手段持续优化。</li>
+</ol>
+<p>这比很多只讲“怎么接 Pinecone”的教程更有价值，因为它把 <strong>RAG 的瓶颈</strong> 摊开来讲了。</p>
+<h3>为什么 contextual retrieval 值得单独看</h3>
+<p>很多人做 RAG 时直接把文档切块后 embedding，但这会导致 chunk 脱离上下文。<br />
+<code>contextual-embeddings</code> 这一篇强调的是：<strong>在 embedding 之前，先把 chunk 放回上下文里补足语义</strong>。<br />
+这背后的思想非常重要：RAG 的关键不是“有检索”，而是“检索到的片段在被取出来时仍然可理解”。</p>
+<h2>3. Summarization：摘要不是“压缩一下”这么简单</h2>
+<ul>
+<li><strong>Summarization with Claude</strong>：以法律文档为例，系统讲解摘要任务、评测与高级技巧。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/capabilities/summarization/guide.ipynb">原文</a>）</li>
+</ul>
+<p>很多团队会低估摘要任务，以为“让模型写短一点”就够了。实际进入法律、金融、报告、会议纪要等场景后，摘要会遇到几个常见问题：</p>
+<ul>
+<li>不同读者需要不同粒度；</li>
+<li>摘要容易漏关键信息；</li>
+<li>摘要经常把不确定内容写得过于肯定；</li>
+<li>很难量化摘要质量。</li>
+</ul>
+<p>这篇 notebook 的价值就在于：它把摘要任务从“写作文”升级成“可评测的信息压缩任务”。</p>
+<h2>4. Text-to-SQL：最典型的结构化输出应用</h2>
+<ul>
+<li><strong>Text to SQL with Claude</strong>：把自然语言问题转换成 SQL，并展示如何用 RAG 与自我改进提升效果。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/capabilities/text_to_sql/guide.ipynb">原文</a>）</li>
+</ul>
+<p>Text-to-SQL 一直是 LLM 应用里很实用的一支，因为它天然连接：</p>
+<ul>
+<li>业务用户的自然语言问题；</li>
+<li>数据团队管理的结构化数据库；</li>
+<li>BI / 分析场景里的即时查询需求。</li>
+</ul>
+<p>Claude Cookbooks 里的这条线不是只教“把一句话变成 SQL”，而是强调：</p>
+<ul>
+<li>schema 上下文很关键；</li>
+<li>RAG 能帮助补足数据库与业务语义；</li>
+<li>自我改进 / 反思机制能提升正确率。</li>
+</ul>
+<h2>5. 这一组 notebook 的共同方法论</h2>
+<h3>从“做出来”转向“评出来”</h3>
+<p>这一组内容最大的优点，是不满足于 demo，而是在多处强调 <strong>evaluation</strong>。<br />
+这意味着你不是只看模型“像不像会了”，而是要定义指标、比方案、做迭代。</p>
+<h3>从“单次回答”转向“任务系统”</h3>
+<p>不论是分类、摘要还是 RAG，真正落地时都要考虑：</p>
+<ul>
+<li>输入清洗；</li>
+<li>结构设计；</li>
+<li>检索与上下文策略；</li>
+<li>输出验证；</li>
+<li>错误分析。</li>
+</ul>
+<p>Claude Cookbooks 的这些基础能力 notebook，本质上就是在教你如何把任务工程化。</p>
+<h2>6. 我会怎么把它们改写成你自己的文章系列</h2>
+<p>你完全可以把 <code>capabilities/</code> 拆成 4 篇独立专栏：</p>
+<ol>
+<li><strong>为什么 RAG 并不只是接个向量库</strong>  </li>
+<li><strong>Claude 做复杂分类的几种打法</strong>  </li>
+<li><strong>摘要系统如何做评测</strong>  </li>
+<li><strong>Text-to-SQL：从 prompt 到可用查询系统</strong></li>
+</ol>
+<p>这种写法比“仓库导读”更适合吸引搜索流量和持续连载。</p>
+<h2>7. 这篇的核心结论</h2>
+<ul>
+<li><code>capabilities/</code> 是整座仓库最适合新读者入门的一组 notebook；</li>
+<li>真正的关键词不是“提示词”，而是 <strong>任务建模 + 评测 + 优化</strong>；</li>
+<li>如果你想用 Claude 做企业知识系统，这一组几乎是必读。</li>
+</ul>
+<h2>对应原始 notebook</h2>
+<ul>
+<li><strong>Classification with Claude</strong>：用 Claude 做文本/工单分类，示范如何结合 RAG 与推理过程提升分类质量。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/capabilities/classification/guide.ipynb">原文</a>）</li>
+<li><strong>Enhancing RAG with contextual retrieval</strong>：通过给 chunk 补充上下文再做 embedding，提升检索质量。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/capabilities/contextual-embeddings/guide.ipynb">原文</a>）</li>
+<li><strong>Retrieval augmented generation</strong>：从基础 RAG 到评测、summary indexing、reranking 的完整优化路径。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/capabilities/retrieval_augmented_generation/guide.ipynb">原文</a>）</li>
+<li><strong>Summarization with Claude</strong>：以法律文档为例，系统讲解摘要任务、评测与高级技巧。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/capabilities/summarization/guide.ipynb">原文</a>）</li>
+<li><strong>Text to SQL with Claude</strong>：把自然语言问题转换成 SQL，并展示如何用 RAG 与自我改进提升效果。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/capabilities/text_to_sql/guide.ipynb">原文</a>）</li>
+</ul>
+<h2>原始资料</h2>
+<ul>
+<li><a href="https://github.com/anthropics/claude-cookbooks/tree/main/capabilities">capabilities 目录</a></li>
+<li><a href="https://raw.githubusercontent.com/anthropics/claude-cookbooks/main/registry.yaml">recipes 注册表</a></li>
+</ul>
+</body>
+</html>

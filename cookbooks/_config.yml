@@ -1,0 +1,12 @@
+title: Claude Cookbooks 中文导读
+description: Anthropic Claude Cookbooks 仓库系统梳理与 GitHub Pages 文章系列
+theme: minima
+markdown: kramdown
+plugins:
+  - jekyll-feed
+header_pages:
+  - index.md
+  - 10-full-inventory.md
+  - 11-github-pages-deploy.md
+minima:
+  social_links: []

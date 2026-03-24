@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Cookbooks</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+        h1 { color: #1a1a2e; border-bottom: 3px solid #4a90d9; padding-bottom: 0.5rem; }
+        h2 { color: #16213e; margin-top: 2rem; }
+        h3 { color: #0f3460; }
+        code { background: #f4f4f4; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #4a90d9; margin: 1rem 0; padding-left: 1rem; color: #666; }
+        a { color: #4a90d9; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+<hr />
+<p>layout: page
+title: "11｜发布篇：把这套文章放到 GitHub Pages"</p>
+<hr />
+<p>这篇不谈 Claude，本质上是在教你怎么把这套 Markdown 文章直接挂到 GitHub Pages。</p>
+<h2>系列导航</h2>
+<ul>
+<li><a href="index.html">Claude Cookbooks 中文导读</a></li>
+<li><a href="01-repo-overview.html">01｜仓库总览：Claude Cookbooks 到底在教什么</a></li>
+<li><a href="02-capabilities.html">02｜基础能力篇：分类、RAG、摘要与 Text-to-SQL</a></li>
+<li><a href="03-tool-use.html">03｜工具调用篇：从函数调用到工具生态</a></li>
+<li><a href="04-multimodal.html">04｜多模态篇：视觉、文档、图表与图像理解</a></li>
+<li><a href="05-agent-patterns.html">05｜Agent 模式篇：链式、并行、路由与编排</a></li>
+<li><a href="06-claude-agent-sdk.html">06｜Claude Agent SDK 篇：把模式落成真正的代理</a></li>
+<li><a href="07-responses-and-performance.html">07｜响应工程篇：JSON、缓存、引用、评测与成本</a></li>
+<li><a href="08-integrations.html">08｜生态集成篇：LlamaIndex、Pinecone、MongoDB、音频与语音</a></li>
+<li><a href="09-skills-finetuning.html">09｜Skills、微调与垂直化能力</a></li>
+<li><a href="10-full-inventory.html">10｜完整索引：66 个 Claude Cookbooks 逐条导读</a></li>
+<li><a href="11-github-pages-deploy.html">11｜发布篇：把这套文章放到 GitHub Pages</a></li>
+</ul>
+<h2>最简单的发布方式</h2>
+<p>这份包我已经按 <strong><code>docs/</code> 目录发布</strong> 的思路整理好了。你只需要：</p>
+<ol>
+<li>把整个 <code>docs/</code> 目录放进你的 GitHub 仓库；</li>
+<li>提交并推送到 <code>main</code>（或你的默认分支）；</li>
+<li>打开 GitHub 仓库的 <strong>Settings → Pages</strong>；</li>
+<li>在 <strong>Build and deployment</strong> 里选择 <strong>Deploy from a branch</strong>；</li>
+<li>选择你的分支，例如 <code>main</code>；</li>
+<li>目录选择 <strong><code>/docs</code></strong>；</li>
+<li>保存。</li>
+</ol>
+<p>几分钟后，你的站点就会出现在：</p>
+<ul>
+<li><code>https://&lt;你的用户名&gt;.github.io/&lt;仓库名&gt;/</code></li>
+</ul>
+<h2>什么时候改用 GitHub Actions</h2>
+<p>GitHub 官方现在更推荐用 <strong>GitHub Actions</strong> 来部署 Pages，尤其当你有以下需求时：</p>
+<ul>
+<li>想在发布前做额外构建；</li>
+<li>用的不是标准 Jekyll 流程；</li>
+<li>想自动化检查、打包和部署；</li>
+<li>仓库里有符号链接或更复杂的构建逻辑。</li>
+</ul>
+<p>不过，如果你只是想先把这组文章挂起来，<code>/docs</code> 分支发布是最省事的方式。</p>
+<h2>这份站点包里有什么</h2>
+<ul>
+<li><code>_config.yml</code>：Jekyll / GitHub Pages 的基础配置；</li>
+<li><code>index.md</code>：站点首页；</li>
+<li><code>01</code> 到 <code>11</code> 的系列文章；</li>
+<li>所有页面都已经带好了 front matter，可以直接被 GitHub Pages 处理。</li>
+</ul>
+<h2>你可能想顺手改的三个地方</h2>
+<h3>1. 站点标题</h3>
+<p>改 <code>docs/_config.yml</code> 里的：</p>
+<div class="codehilite"><pre><span></span><code><span class="n">title</span><span class="o">:</span><span class="w"> </span><span class="n">Claude</span><span class="w"> </span><span class="n">Cookbooks</span><span class="w"> </span><span class="err">中文导读</span>
+<span class="n">description</span><span class="o">:</span><span class="w"> </span><span class="n">Anthropic</span><span class="w"> </span><span class="n">Claude</span><span class="w"> </span><span class="n">Cookbooks</span><span class="w"> </span><span class="err">仓库系统梳理与</span><span class="w"> </span><span class="n">GitHub</span><span class="w"> </span><span class="n">Pages</span><span class="w"> </span><span class="err">文章系列</span>
+</code></pre></div>
+
+<h3>2. 首页文案</h3>
+<p>改 <code>docs/index.md</code> 顶部介绍，让它更像你的个人博客或团队专栏。</p>
+<h3>3. 文章风格</h3>
+<p>现在这套稿子是“导读型”。你可以继续改成：
+- 更偏教程；
+- 更偏翻译；
+- 更偏源码解读；
+- 更偏企业落地案例。</p>
+<h2>自定义域名怎么做</h2>
+<p>如果你后面要接自己的域名，GitHub Pages 也支持自定义域名。通常步骤是：</p>
+<ol>
+<li>在 <strong>Settings → Pages</strong> 里填你的 custom domain；</li>
+<li>在 DNS 服务商那里配置对应记录；</li>
+<li>建议顺手完成域名验证；</li>
+<li>打开 HTTPS。</li>
+</ol>
+<h2>我建议的下一步</h2>
+<p>最实用的做法不是先美化主题，而是先补两类内容：</p>
+<ol>
+<li><strong>你的个人观点</strong>：比如“我最推荐的 10 篇 notebook”；  </li>
+<li><strong>你的实战案例</strong>：比如“我把某一篇改成了可运行 demo”。</li>
+</ol>
+<p>这样站点就会从“资料整理”升级为“有作者性的专栏”。</p>
+<h2>推荐的仓库结构</h2>
+<div class="codehilite"><pre><span></span><code>your-repo/
+├── README.md
+└── docs/
+    ├── _config.yml
+    ├── index.md
+    ├── 01-repo-overview.md
+    ├── 02-capabilities.md
+    ├── ...
+    └── 11-github-pages-deploy.md
+</code></pre></div>
+
+<h2>原始资料</h2>
+<ul>
+<li><a href="https://docs.github.com/pages">GitHub Pages 文档首页</a></li>
+<li><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site">Configuring a publishing source for your GitHub Pages site</a></li>
+<li><a href="https://docs.github.com/github/working-with-github-pages/about-github-pages-and-jekyll">About GitHub Pages and Jekyll</a></li>
+</ul>
+</body>
+</html>

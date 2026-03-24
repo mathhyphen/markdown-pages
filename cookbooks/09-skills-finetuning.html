@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Cookbooks</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+        h1 { color: #1a1a2e; border-bottom: 3px solid #4a90d9; padding-bottom: 0.5rem; }
+        h2 { color: #16213e; margin-top: 2rem; }
+        h3 { color: #0f3460; }
+        code { background: #f4f4f4; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #4a90d9; margin: 1rem 0; padding-left: 1rem; color: #666; }
+        a { color: #4a90d9; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+<hr />
+<p>layout: page
+title: "09｜Skills、微调与垂直化能力"</p>
+<hr />
+<p>到了这一步，Claude Cookbooks 里剩下的一些内容就显得更“垂直化”了：它们不是在讲通用能力，而是在讲 <strong>如何把能力包装、定制和产品化</strong>。这一篇主要覆盖三个方向：<strong>Skills、微调、以及特定创作场景下的 prompt 专题</strong>。</p>
+<h2>系列导航</h2>
+<ul>
+<li><a href="index.html">Claude Cookbooks 中文导读</a></li>
+<li><a href="01-repo-overview.html">01｜仓库总览：Claude Cookbooks 到底在教什么</a></li>
+<li><a href="02-capabilities.html">02｜基础能力篇：分类、RAG、摘要与 Text-to-SQL</a></li>
+<li><a href="03-tool-use.html">03｜工具调用篇：从函数调用到工具生态</a></li>
+<li><a href="04-multimodal.html">04｜多模态篇：视觉、文档、图表与图像理解</a></li>
+<li><a href="05-agent-patterns.html">05｜Agent 模式篇：链式、并行、路由与编排</a></li>
+<li><a href="06-claude-agent-sdk.html">06｜Claude Agent SDK 篇：把模式落成真正的代理</a></li>
+<li><a href="07-responses-and-performance.html">07｜响应工程篇：JSON、缓存、引用、评测与成本</a></li>
+<li><a href="08-integrations.html">08｜生态集成篇：LlamaIndex、Pinecone、MongoDB、音频与语音</a></li>
+<li><a href="09-skills-finetuning.html">09｜Skills、微调与垂直化能力</a></li>
+<li><a href="10-full-inventory.html">10｜完整索引：66 个 Claude Cookbooks 逐条导读</a></li>
+<li><a href="11-github-pages-deploy.html">11｜发布篇：把这套文章放到 GitHub Pages</a></li>
+</ul>
+<h2>1. Skills：把“能力”打包成可复用资产</h2>
+<ul>
+<li><strong>Introduction to Claude Skills</strong>：介绍 Skills 的概念、安装方式，以及 Excel / PowerPoint / PDF 能力。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/skills/notebooks/01_skills_introduction.ipynb">原文</a>）</li>
+<li><strong>Claude Skills for financial applications</strong>：把 Skills 用到财务 dashboard、投资组合分析等场景。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/skills/notebooks/02_skills_financial_applications.ipynb">原文</a>）</li>
+<li><strong>Building custom Skills for Claude</strong>：自定义、打包和管理自己的 Skills。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/skills/notebooks/03_skills_custom_development.ipynb">原文</a>）</li>
+</ul>
+<p>如果前面的 notebook 更像“单个 recipe”，那 Skills 这一组更像在回答：<br />
+<strong>如何把 instructions、helper scripts、资源文件和组织知识一起打包成一个更高层的能力单元。</strong></p>
+<h3>为什么 Skills 值得单独看</h3>
+<p>因为它和普通 tool 的差别在于：</p>
+<ul>
+<li>不只是一个 API 接口；</li>
+<li>还包含可执行代码、资源文件、约定流程；</li>
+<li>更适合封装组织级知识和长期复用流程。</li>
+</ul>
+<p>这意味着 Skills 的目标不是“多一个功能”，而是<strong>把成熟工作流沉淀下来</strong>。</p>
+<h3>这三篇各自负责什么</h3>
+<ul>
+<li><strong>Introduction to Claude Skills</strong>：概念、安装与快速体验；</li>
+<li><strong>Skills for financial applications</strong>：展示在金融类工作流中的用法；</li>
+<li><strong>Building custom Skills</strong>：讲怎么自定义、管理和扩展。</li>
+</ul>
+<p>如果你想写长期系列，这一组很适合扩成“Claude 能力产品化”专题。</p>
+<h2>2. Fine-Tuning：不是所有问题都该靠 prompt 解决</h2>
+<ul>
+<li><strong>Finetuning Claude 3 Haiku on Bedrock</strong>：在 Amazon Bedrock 上微调 Claude 3 Haiku 的步骤与注意事项。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/finetuning/finetuning_on_bedrock.ipynb">原文</a>）</li>
+</ul>
+<p>Claude Cookbooks 里关于 Fine-Tuning 的内容不多，但它出现本身就很说明问题：<br />
+Anthropic 并不把所有问题都导向“再写更复杂的 prompt”，而是承认有些场景值得走到更深的定制层。</p>
+<p>不过从整个仓库的重心来看，你也能读出一个明显倾向：</p>
+<ul>
+<li>先做 prompt / tool / RAG / workflow；</li>
+<li>只有在收益足够明确时，再考虑 fine-tuning。</li>
+</ul>
+<p>这也很符合大多数团队的实际路线。</p>
+<h2>3. Prompting for frontend aesthetics：一个很有意思的信号</h2>
+<ul>
+<li><strong>Prompting for frontend aesthetics</strong>：讨论如何提示 Claude 产出更有风格感的前端界面，而不是“千篇一律”的 AI 设计。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/coding/prompting_for_frontend_aesthetics.ipynb">原文</a>）</li>
+</ul>
+<p>这一篇虽然只有一条，但很值得提，因为它代表 Claude Cookbooks 里另一种新的倾向：<br />
+<strong>从“能做功能”进一步走向“能做得更好看、更有审美和品牌感”。</strong></p>
+<p>这说明 Claude 的 cookbook 不再只关心“准确性”，也开始关注：</p>
+<ul>
+<li>界面风格；</li>
+<li>设计表达；</li>
+<li>差异化品味；</li>
+<li>避免 AI 味太重的输出。</li>
+</ul>
+<p>如果你在做前端生成、原型草图、设计协同，这条内容很适合单独扩成系列。</p>
+<h2>4. 这一组内容共同说明了什么</h2>
+<h3>Claude 的发展已经不只是 API 调用</h3>
+<p>开始往“能力包”“组织工作流”“专业场景封装”演进。</p>
+<h3>不是所有优化都该靠更长 prompt</h3>
+<p>有时需要：
+- 能力打包（Skills）
+- 数据定制（Fine-Tuning）
+- 任务专项方法（如前端审美 prompting）</p>
+<h3>从 demo 到资产化</h3>
+<p>一旦一个模式反复有用，就应该被封装，而不是每次重新写。</p>
+<h2>5. 可以延展成哪些文章</h2>
+<ul>
+<li><strong>Claude Skills 是什么，和 MCP / tools 有什么区别</strong></li>
+<li><strong>什么时候该做自定义 Skills，而不是继续堆 prompt</strong></li>
+<li><strong>企业内部工作流如何沉淀成 Claude Skills</strong></li>
+<li><strong>Fine-Tuning 在 Claude 生态里的合理位置</strong></li>
+<li><strong>如何让 Claude 生成更有审美辨识度的前端界面</strong></li>
+</ul>
+<h2>6. 这篇的核心结论</h2>
+<ul>
+<li>Skills 代表的是 Claude 能力的“打包、复用和组织化”；</li>
+<li>Fine-Tuning 代表的是更深层的任务定制；</li>
+<li>垂直专题（如前端审美 prompting）说明 cookbook 已开始覆盖更具体的生产创作问题。</li>
+</ul>
+<h2>对应原始 notebook</h2>
+<ul>
+<li><strong>Prompting for frontend aesthetics</strong>：讨论如何提示 Claude 产出更有风格感的前端界面，而不是“千篇一律”的 AI 设计。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/coding/prompting_for_frontend_aesthetics.ipynb">原文</a>）</li>
+<li><strong>Finetuning Claude 3 Haiku on Bedrock</strong>：在 Amazon Bedrock 上微调 Claude 3 Haiku 的步骤与注意事项。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/finetuning/finetuning_on_bedrock.ipynb">原文</a>）</li>
+<li><strong>Introduction to Claude Skills</strong>：介绍 Skills 的概念、安装方式，以及 Excel / PowerPoint / PDF 能力。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/skills/notebooks/01_skills_introduction.ipynb">原文</a>）</li>
+<li><strong>Claude Skills for financial applications</strong>：把 Skills 用到财务 dashboard、投资组合分析等场景。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/skills/notebooks/02_skills_financial_applications.ipynb">原文</a>）</li>
+<li><strong>Building custom Skills for Claude</strong>：自定义、打包和管理自己的 Skills。（<a href="https://github.com/anthropics/claude-cookbooks/blob/main/skills/notebooks/03_skills_custom_development.ipynb">原文</a>）</li>
+</ul>
+<h2>原始资料</h2>
+<ul>
+<li><a href="https://github.com/anthropics/claude-cookbooks/tree/main/skills">skills 目录</a></li>
+<li><a href="https://github.com/anthropics/claude-cookbooks/tree/main/finetuning">finetuning 目录</a></li>
+<li><a href="https://github.com/anthropics/claude-cookbooks/tree/main/coding">coding 目录</a></li>
+</ul>
+</body>
+</html>
