@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Harness design for long-running application development：让 AI 在数小时任务中保持节奏的三代理架构｜演示页</title>
+  <meta name="description" content="Anthropic Labs 团队的 Prithvi Rajasekaran 分享了如何通过 GAN 启发的三代理架构，让 Claude 在前端设计和全栈开发任务中实现多小时稳定运行。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="deck-page">
+
+<header class="deck-header">
+  <div class="left">
+    <a class="btn small ghost" href="../index.html">← 返回首页</a>
+    <span class="badge">Anthropic</span>
+    <span class="badge">2026-03-24</span>
+  </div>
+  <div class="right">
+    <a class="btn small primary" href="../articles/harness-design-long-running-apps.html">阅读全文</a>
+    <span class="badge">上下箭头 / PageUp / PageDown 可翻页</span>
+  </div>
+</header>
+
+  <div class="deck-dots">
+    <button class="deck-dot active" aria-label="第 1 页"></button>
+<button class="deck-dot" aria-label="第 2 页"></button>
+<button class="deck-dot" aria-label="第 3 页"></button>
+<button class="deck-dot" aria-label="第 4 页"></button>
+<button class="deck-dot" aria-label="第 5 页"></button>
+<button class="deck-dot" aria-label="第 6 页"></button>
+  </div>
+  <main class="deck-container">
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Anthropic · 2026-03-24</div>
+    <h1>Harness design for long-running application development：让 AI 在数小时任务中保持节奏的三代理架构</h1>
+    <p>Anthropic Labs 团队的 Prithvi Rajasekaran 在两个领域（主观审美与客观正确性）各建一套 harness，最终都收敛到同一个 GAN 启发的三代理架构：Planner 规划、Generator 构建、Evaluator 评估。</p>
+    <div class="pill-row" style="margin-top:22px;">
+      <span class="badge">harness / three-agent / GAN / Playwright MCP / Opus 4.6</span>
+    </div>
+    <div class="slide-cta">
+      <a class="btn primary" href="../articles/harness-design-long-running-apps.html">点击阅读全文</a>
+      <a class="btn" href="https://www.anthropic.com/engineering/harness-design-long-running-apps" target="_blank" rel="noopener">打开原文 ↗</a>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 1 页</div>
+    <h2>朴素实现的两类失败</h2>
+    <p>长任务有两个持续存在的失败模式：上下文焦虑（context anxiety）和自我评估失真。</p>
+    <div class="bullets"><div class="bullet">Context reset 可以解决上下文焦虑，但增加编排复杂度和 token 开销。</div><div class="bullet">分离生成与评估是打破"自信自夸"循环最有效手段。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 2 页</div>
+    <h2>GAN 启发的设计评估体系</h2>
+    <p>四个评分标准：Design quality、Originality、Craft、Functionality。有意强调前两项，让模型在创意上走出安全区。</p>
+    <div class="bullets"><div class="bullet">Evaluator 使用 Playwright MCP 直接与运行中的页面交互验证。</div><div class="bullet">"博物馆质量"这样的措辞直接塑造了输出特征的视觉收敛方向。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 3 页</div>
+    <h2>三代理架构</h2>
+    <p>Planner（扩展 spec）、Generator（逐 sprint 构建）、Evaluator（Playwright 验证）。每个 sprint 前双方协商 contract。</p>
+    <div class="bullets"><div class="bullet">Evaluator 的价值取决于任务是否超出模型可靠独立完成的能力边界。</div><div class="bullet">Sprint contract 弥合了高层 spec 与可测试实现之间的差距。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 4 页</div>
+    <h2>DAW 构建实验结果</h2>
+    <p>3h50m，$124，总计 3 轮 build/QA。Generator 跑了 2+ 小时无 sprint 分解。Evaluator 持续捕捉核心功能缺口。</p>
+    <div class="bullets"><div class="bullet">完整 harness 输出远优于 solo agent，核心功能真正可用。</div><div class="bullet">Playwright QA 发现 spec 明确要求的"核心交互"是展示态而非可操作。</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">第 5 页</div>
+    <h2>Opus 4.6 时代的简化</h2>
+    <p>移除 sprint 构造，Evaluator 移至单次 end-of-run 通过。某些原本承重的组件在更强模型下变成多余。</p>
+    <div class="bullets"><div class="bullet">harness 是对模型能力边界的时刻快照，需要随模型改进持续重新评估。</div><div class="bullet">Evaluator 不是固定 yes/no，而是任务复杂度的连续函数。</div></div>
+  </div>
+</section>
+
+  </main>
+  <script src="../assets/site.js"></script>
+</body>
+</html>
