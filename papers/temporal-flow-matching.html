@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporal Flow Matching for 4D Medical Image Prediction | 论文解读</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: #11172a;
+            --panel-2: #171f36;
+            --text: #edf2ff;
+            --muted: #b8c2e8;
+            --line: rgba(255,255,255,0.10);
+            --accent: #8fb5ff;
+            --accent-2: #b5f0ff;
+            --good: #c9ffe0;
+            --bad: #ffd1d1;
+            --shadow: 0 20px 60px rgba(0,0,0,0.25);
+            --radius: 22px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+        }
+        .topbar {
+            position: sticky; top: 0; z-index: 20;
+            backdrop-filter: blur(12px);
+            background: rgba(8, 14, 28, 0.72);
+            border-bottom: 1px solid var(--line);
+            padding: 14px 20px;
+        }
+        .topbar-inner { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+        .back-link { color: var(--accent-2); text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px 80px; }
+        .paper-header { margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid var(--line); }
+        .paper-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .badge { padding: 6px 12px; border-radius: 999px; font-size: 13px; background: rgba(255,255,255,0.06); border: 1px solid var(--line); }
+        .badge.cs.CV { color: #c9a0f0; border-color: rgba(201,160,240,0.3); background: rgba(201,160,240,0.1); }
+        .paper-title { font-size: clamp(28px, 5vw, 42px); margin: 0 0 16px; line-height: 1.2; letter-spacing: -0.02em; }
+        .paper-subtitle { color: var(--muted); font-size: 18px; margin-bottom: 20px; }
+        .authors { color: var(--muted); font-size: 14px; }
+        .authors strong { color: var(--text); }
+        .abstract { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin: 30px 0; }
+        .abstract h3 { margin: 0 0 12px; color: var(--accent-2); font-size: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .abstract p { margin: 0; color: #dce6ff; }
+        .section { margin: 40px 0; }
+        .section h2 { font-size: 24px; margin: 0 0 20px; padding-bottom: 10px; border-bottom: 1px solid var(--line); color: var(--accent); }
+        .section h3 { font-size: 18px; margin: 24px 0 12px; color: var(--accent-2); }
+        .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin: 16px 0; }
+        .card h4 { margin: 0 0 10px; color: var(--text); font-size: 16px; }
+        .card p { margin: 0; color: var(--muted); }
+        .highlight-box { background: linear-gradient(135deg, rgba(143,181,255,0.15), rgba(181,240,255,0.1)); border: 1px solid rgba(143,181,255,0.3); border-radius: var(--radius); padding: 24px; margin: 20px 0; }
+        .highlight-box h4 { margin: 0 0 12px; color: var(--accent-2); }
+        .highlight-box p { margin: 0; }
+        .contribution-list { list-style: none; padding: 0; margin: 16px 0; }
+        .contribution-list li { padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin: 8px 0; }
+        .dataset-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0; }
+        .dataset-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+        .dataset-card h4 { margin: 0 0 8px; color: var(--accent); font-size: 16px; }
+        .dataset-card p { margin: 0; color: var(--muted); font-size: 14px; }
+        .metric-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .metric-table th, .metric-table td { border: 1px solid var(--line); padding: 12px; text-align: left; }
+        .metric-table th { background: var(--panel); color: var(--accent-2); }
+        .metric-table td { background: rgba(255,255,255,0.02); }
+        .metric-table .best { color: var(--good); font-weight: 600; }
+        .conclusion { background: linear-gradient(135deg, rgba(80,220,140,0.1), rgba(80,220,140,0.05)); border: 1px solid rgba(80,220,140,0.3); border-radius: var(--radius); padding: 24px; margin: 20px 0; }
+        .conclusion h4 { margin: 0 0 12px; color: var(--good); }
+        .conclusion p { margin: 0; }
+        .footer { border-top: 1px solid var(--line); padding: 20px; text-align: center; color: var(--muted); font-size: 14px; margin-top: 60px; }
+        code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="back-link" href="../index.html">← 返回首页</a>
+        <a class="back-link" href="../index.html#papers-series">← 返回论文系列</a>
+    </div>
+</header>
+
+<div class="container">
+    <div class="paper-header">
+        <div class="paper-meta">
+            <span class="badge cs.CV">cs.CV</span>
+            <span class="badge">2025-08-29</span>
+            <span class="badge">Flow Matching</span>
+            <span class="badge">4D Medical Imaging</span>
+        </div>
+        <h1 class="paper-title">Temporal Flow Matching for Learning Spatio-Temporal Trajectories in 4D Longitudinal Medical Imaging</h1>
+        <p class="paper-subtitle">时间流匹配：用于4D纵向医学影像时空轨迹学习的生成模型</p>
+        <p class="authors"><strong>作者：</strong>Nico Albert Disch, Yannick Kirchhoff, Robin Peretzke, Maximilian Rokuss, Saikat Roy, Constantin Ulrich, David Zimmerer, Klaus Maier-Hein（德国癌症研究中心DKFZ & 海德堡大学）</p>
+    </div>
+
+    <div class="abstract">
+        <h3>摘要</h3>
+        <p>本文提出了 Temporal Flow Matching（TFM），一种统一的生成轨迹方法，用于从稀疏、不规则的纵向医学影像数据中预测未来图像。TFM 通过预测图像变化（而非完整图像）来建模时间分布，可以回退到最近邻图像预测器，支持3D体积、多次先验扫描和不规则采样。在三个纵向数据集（ACDC、ISLES、Lumiere）上的实验表明，TFM 在所有评估指标（NRMSE、SSIM、PSNR）上均一致地超越了时空方法，建立了新的 state-of-the-art 基线。</p>
+    </div>
+
+    <div class="section">
+        <h2>1. 研究背景与问题</h2>
+        <p>纵向医学影像分析对于疾病进展建模至关重要。然而，现有的深度学习方法通常将医学图像作为独立的时间点来分析，忽略了疾病进展建模所必需的关键时间信息。</p>
+        <div class="highlight-box">
+            <h4>核心问题</h4>
+            <p>如何在稀疏、不规则的随访扫描条件下，学习纵向医学影像的时空分布？这是临床实践中普遍面临的挑战——患者可能在不同时间点进行扫描，扫描间隔不规则，且3D影像数据量庞大。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. 方法：时间流匹配（TFM）</h2>
+        <h3>2.1 核心思想：差异建模</h3>
+        <p>TFM 的关键洞察是：不直接预测完整图像，而是预测图像变化（即差异）。这使得模型可以学习"在给定当前状态的情况下，图像如何随时间演变"。</p>
+
+        <h3>2.2 技术框架</h3>
+        <div class="card">
+            <h4>Flow Matching 扩展</h4>
+            <p>TFM 将 Flow Matching 扩展到可以同时处理多个上下文图像，通过在上下文图像和目标图像之间建模速度场来实现。速度场定义了如何从一个状态转换到另一个状态。</p>
+        </div>
+
+        <h3>2.3 关键特性</h3>
+        <ul class="contribution-list">
+            <li><strong>差异建模（Difference Modeling）</strong>：预测图像变化而非完整图像，减少了模型需要表示的信息量</li>
+            <li><strong>Last Context Image (LCI) 基线</strong>：当预测效果不如直接使用最近上下文图像时，模型自动回退到 LCI</li>
+            <li><strong>多上下文支持</strong>：可以同时利用多次先验扫描的信息</li>
+            <li><strong>不规则采样处理</strong>：灵活处理不同时间间隔的随访扫描</li>
+            <li><strong>3D 体积支持</strong>：原生支持 3D 医学影像</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>3. 实验设置</h2>
+        <h3>3.1 数据集</h3>
+        <div class="dataset-grid">
+            <div class="dataset-card">
+                <h4>ACDC</h4>
+                <p>心脏 MRI 数据集，包含舒张末和收缩末期的心脏电影成像，用于心肌病评估</p>
+            </div>
+            <div class="dataset-card">
+                <h4>ISLES</h4>
+                <p>卒中灌注 CT 数据集，包含缺血性卒中患者的急性灌注成像，用于梗死核心预测</p>
+            </div>
+            <div class="dataset-card">
+                <h4>Lumiere</h4>
+                <p>脑胶质瘤 MRI 数据集，包含多模态胶质瘤患者的纵向成像，用于肿瘤进展追踪</p>
+            </div>
+        </div>
+
+        <h3>3.2 基线方法对比</h3>
+        <table class="metric-table">
+            <tr><th>方法</th><th>类型</th><th>说明</th></tr>
+            <tr><td>ConvLSTM</td><td>循环方法</td><td>用于时空预测的 LSTM 扩展</td></tr>
+            <tr><td>SimVP</td><td>视频预测</td><td>基于 U-Net 结构的视频预测模型</td></tr>
+            <tr><td>ViViT</td><td>Transformer</td><td>Video Vision Transformer 方法</td></tr>
+            <tr><td>DDPM</td><td>扩散模型</td><td>Denoising Diffusion Probabilistic Models</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>4. 实验结果</h2>
+        <h3>4.1 主要结果</h3>
+        <p>TFM 在三个数据集上均取得了最佳成绩，在 NRMSE、SSIM 和 PSNR 指标上均建立了新的 state-of-the-art：</p>
+
+        <div class="highlight-box">
+            <h4>核心发现</h4>
+            <p>TFM 一致性地超越了所有基线方法，包括 ConvLSTM、SimVP、ViViT 和 DDPM。这表明差异建模策略和 Flow Matching 框架的结合对于纵向医学影像预测是有效的。</p>
+        </div>
+
+        <h3>4.2 消融实验</h3>
+        <div class="card">
+            <h4>稀疏填充（Sparsity Filling）</h4>
+            <p>消融实验表明，稀疏填充对于稳定训练至关重要。在训练时填充稀疏的时间点可以显著提高模型性能。</p>
+        </div>
+        <div class="card">
+            <h4>注意力机制</h4>
+            <p>相对于基线方法，引入注意力机制对性能的提升较小。这表明 TFM 的核心架构设计已经足够有效。</p>
+        </div>
+        <div class="card">
+            <h4>时间上下文</h4>
+            <p>在训练时使用额外的时间上下文可以提高模型的鲁棒性，使其更好地处理不规则的随访时间间隔。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>5. 训练效率</h2>
+        <div class="highlight-box">
+            <h4>端到端优化</h4>
+            <p>整个训练过程可以在 11.3GB GPU 内存中完成，这使得该方法在计算资源有限的医院环境中也具有实际应用的可行性。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>6. 结论与意义</h2>
+        <div class="conclusion">
+            <h4>总结</h4>
+            <p>TFM 建立了一个新的 state-of-the-art 基线，用于 4D 医学影像预测。该方法特别适合稀疏、不规则随访扫描的现实场景。通过差异建模策略，TFM 能够有效地学习医学图像的时间演变规律，为疾病进展预测提供了有力的工具。</p>
+        </div>
+        <div class="card">
+            <h4>局限性</h4>
+            <p>论文未明确讨论局限性，但可以推测：作为生成模型，可能在某些边界情况下产生不真实的图像；此外，对于极长期预测任务，性能可能会有所下降。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>7. 论文信息</h2>
+        <table class="metric-table">
+            <tr><th>项目</th><th>内容</th></tr>
+            <tr><td>arXiv ID</td><td>2508.21580</td></tr>
+            <tr><td>发表日期</td><td>2025年8月29日</td></tr>
+            <tr><td>研究领域</td><td>Computer Vision and Pattern Recognition (cs.CV)</td></tr>
+            <tr><td>许可证</td><td>CC BY 4.0</td></tr>
+            <tr><td>机构</td><td>German Cancer Research Center (DKFZ), Heidelberg University</td></tr>
+        </table>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>内容为对论文的中文详细解读，不是逐字翻译。论文版权归作者所有。</p>
+    <p><a href="https://arxiv.org/abs/2508.21580" style="color: var(--accent-2);">查看原始论文件</a></p>
+</footer>
+</body>
+</html>
