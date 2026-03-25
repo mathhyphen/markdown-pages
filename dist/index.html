@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文档首页</title>
+  <style>
+    :root {
+      --bg: #f4efe7;
+      --panel: #fffaf2;
+      --ink: #1f2a1f;
+      --muted: #5b6259;
+      --line: #d9cfbf;
+      --accent: #1f8f55;
+      --shadow: 0 18px 50px rgba(60, 42, 20, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at top left, rgba(31, 143, 85, 0.08), transparent 26rem), var(--bg);
+      line-height: 1.7;
+      padding: 32px 20px 64px;
+    }
+    .wrap {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero {
+      background: rgba(255, 250, 242, 0.95);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(28px, 4vw, 36px);
+      color: var(--ink);
+    }
+    .meta {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .content {
+      background: rgba(255, 250, 242, 0.95);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 32px 40px;
+      box-shadow: var(--shadow);
+    }
+    h2 {
+      margin: 32px 0 16px;
+      font-size: 22px;
+      color: var(--ink);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 8px;
+    }
+    h2:first-child { margin-top: 0; }
+    h3 {
+      margin: 24px 0 12px;
+      font-size: 18px;
+    }
+    p { margin: 12px 0; }
+    ul, ol {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+    li { margin: 8px 0; }
+    code {
+      background: #f2e7d6;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      color: #6c4f32;
+    }
+    pre {
+      background: #1b231d;
+      color: #d7f5df;
+      padding: 16px 20px;
+      border-radius: 12px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 20px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(60, 42, 20, 0.08);
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+    th {
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    td {
+      background: rgba(255, 250, 242, 0.95);
+      font-size: 14px;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f2e7d6; }
+    @media print {
+      table { box-shadow: none; }
+      th { background: #1f8f55 !important; -webkit-print-color-adjust: exact; }
+    }
+    blockquote {
+      margin: 16px 0;
+      padding: 14px 16px;
+      border-left: 4px solid var(--accent);
+      background: #e7f6ed;
+      border-radius: 0 12px 12px 0;
+    }
+    a { color: var(--accent); }
+    hr {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 32px 0;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 16px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back-link:hover { text-decoration: underline; }
+    @media (max-width: 640px) {
+      body { padding: 20px 14px 48px; }
+      .hero, .content { border-radius: 18px; padding: 22px 18px; }
+      .content { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a href="/" class="back-link">← 返回首页</a>
+    <div class="content">
+      <h1>文档列表</h1>
+<li><a href="index.html">欢迎使用 Markdown Pages</a></li>
+<li><a href="weekly_report_2026_03_23.html">周报：2026-03-17 ~ 2026-03-23</a></li>
+    </div>
+  </div>
+</body>
+</html>

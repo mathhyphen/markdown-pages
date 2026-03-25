@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TReFT: Taming Rectified Flow Models For One-Step Image Translation | 论文解读</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: #11172a;
+            --panel-2: #171f36;
+            --text: #edf2ff;
+            --muted: #b8c2e8;
+            --line: rgba(255,255,255,0.10);
+            --accent: #8fb5ff;
+            --accent-2: #b5f0ff;
+            --good: #c9ffe0;
+            --bad: #ffd1d0;
+            --shadow: 0 20px 60px rgba(0,0,0,0.25);
+            --radius: 22px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+        }
+        .topbar {
+            position: sticky; top: 0; z-index: 20;
+            backdrop-filter: blur(12px);
+            background: rgba(8, 14, 28, 0.72);
+            border-bottom: 1px solid var(--line);
+            padding: 14px 20px;
+        }
+        .topbar-inner { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+        .back-link { color: var(--accent-2); text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px 80px; }
+        .paper-header { margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid var(--line); }
+        .paper-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .badge { padding: 6px 12px; border-radius: 999px; font-size: 13px; background: rgba(255,255,255,0.06); border: 1px solid var(--line); }
+        .badge.cs.CV { color: #f0c9a0; border-color: rgba(240,201,160,0.3); background: rgba(240,201,160,0.1); }
+        .paper-title { font-size: clamp(28px, 5vw, 42px); margin: 0 0 16px; line-height: 1.2; letter-spacing: -0.02em; }
+        .paper-subtitle { color: var(--muted); font-size: 18px; margin-bottom: 20px; }
+        .authors { color: var(--muted); font-size: 14px; }
+        .authors strong { color: var(--text); }
+        .abstract { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin: 30px 0; }
+        .abstract h3 { margin: 0 0 12px; color: var(--accent-2); font-size: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .abstract p { margin: 0; color: #dce6ff; }
+        .section { margin: 40px 0; }
+        .section h2 { font-size: 24px; margin: 0 0 20px; padding-bottom: 10px; border-bottom: 1px solid var(--line); color: var(--accent); }
+        .section h3 { font-size: 18px; margin: 24px 0 12px; color: var(--accent-2); }
+        .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin: 16px 0; }
+        .card h4 { margin: 0 0 10px; color: var(--text); font-size: 16px; }
+        .card p { margin: 0; color: var(--muted); }
+        .highlight-box { background: linear-gradient(135deg, rgba(143,181,255,0.15), rgba(181,240,255,0.1)); border: 1px solid rgba(143,181,255,0.3); border-radius: var(--radius); padding: 24px; margin: 20px 0; }
+        .highlight-box h4 { margin: 0 0 12px; color: var(--accent-2); }
+        .highlight-box p { margin: 0; }
+        .theorem-box { background: linear-gradient(135deg, rgba(200,160,255,0.12), rgba(200,160,255,0.05)); border: 1px solid rgba(200,160,255,0.3); border-radius: var(--radius); padding: 20px; margin: 16px 0; }
+        .theorem-box h4 { margin: 0 0 10px; color: #c8a0ff; }
+        .theorem-box p { margin: 0; color: #e0d0ff; font-size: 15px; }
+        .method-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0; }
+        .method-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+        .method-card h4 { margin: 0 0 12px; font-size: 16px; color: var(--accent); }
+        .metric-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .metric-table th, .metric-table td { border: 1px solid var(--line); padding: 12px; text-align: left; }
+        .metric-table th { background: var(--panel); color: var(--accent-2); }
+        .metric-table td { background: rgba(255,255,255,0.02); }
+        .metric-table .best { color: var(--good); font-weight: 600; }
+        .dataset-tag { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 12px; background: rgba(143,181,255,0.1); color: var(--accent); margin: 2px; }
+        .conclusion { background: linear-gradient(135deg, rgba(80,220,140,0.1), rgba(80,220,140,0.05)); border: 1px solid rgba(80,220,140,0.3); border-radius: var(--radius); padding: 24px; margin: 20px 0; }
+        .conclusion h4 { margin: 0 0 12px; color: var(--good); }
+        .conclusion p { margin: 0; }
+        .footer { border-top: 1px solid var(--line); padding: 20px; text-align: center; color: var(--muted); font-size: 14px; margin-top: 60px; }
+        code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        .formula { background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center; font-size: 18px; font-style: italic; color: var(--accent-2); }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="back-link" href="../index.html">← 返回首页</a>
+        <a class="back-link" href="../index.html#papers-series">← 返回论文系列</a>
+    </div>
+</header>
+
+<div class="container">
+    <div class="paper-header">
+        <div class="paper-meta">
+            <span class="badge cs.CV">cs.CV</span>
+            <span class="badge">2025-11-25</span>
+            <span class="badge">Rectified Flow</span>
+            <span class="badge">Image Translation</span>
+            <span class="badge">One-Step</span>
+        </div>
+        <h1 class="paper-title">TReFT: Taming Rectified Flow Models For One-Step Image Translation</h1>
+        <p class="paper-subtitle">TReFT：驯服 Rectified Flow 模型实现单步图像翻译</p>
+        <p class="authors"><strong>作者：</strong>Shengqian Li, Ming Gao, Yi Liu, Zuzeng Lin, Feng Wang, Feng Dai</p>
+    </div>
+
+    <div class="abstract">
+        <h3>摘要</h3>
+        <p>Rectified Flow (RF) 模型通过最优传输理论推动了高质量图像和视频合成，但在图像到图像（I2I）翻译任务中仍依赖昂贵的多步去噪，阻碍了实时应用。尽管近期的对抗训练范式 CycleGAN-Turbo 可在预训练扩散模型中实现单步图像翻译，但作者发现直接应用于 RF 模型会导致严重的收敛问题。本文提出 TReFT，一种驯服预训练 Rectified Flow 模型实现单步图像翻译的新方法。与以往工作不同，TReFT 直接利用预训练 DiT 或 UNet 预测的速度作为输出——这是一种简单而有效的设计，解决了对抗训练在一步推理下的收敛问题。该设计基于一个重要发现：在去噪过程末端，预训练 RF 模型预测的速度收敛于从原点到最终清晰图像的向量。TReFT 应用于 SD3.5 和 FLUX 等大型预训练 RF 模型，在多个图像翻译数据集上实现与 SOTA 方法相当的性能，同时支持实时推理。</p>
+    </div>
+
+    <div class="section">
+        <h2>1. 研究背景与问题</h2>
+        <p>图像到图像翻译（I2I）是计算机视觉的核心任务，广泛应用于风格迁移、域转换、图像增强等场景。Rectified Flow (RF) 模型是一类基于最优传输理论的新型生成模型，在图像和视频合成任务中展现了卓越的生成质量。</p>
+
+        <div class="highlight-box">
+            <h4>核心问题</h4>
+            <p>尽管 RF 模型在生成质量上表现优异，但将其应用于 I2I 翻译任务时，仍需依赖昂贵的多步去噪过程。这严重阻碍了需要实时响应的应用场景，如视频游戏、AR/VR、实时图像编辑等。</p>
+        </div>
+
+        <div class="card">
+            <h4>CycleGAN-Turbo 的启发与局限</h4>
+            <p>CycleGAN-Turbo 证明了对抗训练范式可以应用于预训练扩散模型，实现单步图像翻译。然而，作者发现直接将此方法应用于 RF 模型会导致严重的收敛问题——训练不稳定甚至无法收敛。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. 问题分析：为什么 RF 模型难以直接应用对抗训练？</h2>
+        <p>作者深入分析了 RF 模型在对抗训练中收敛困难的根本原因：</p>
+
+        <div class="highlight-box">
+            <h4>关键发现</h4>
+            <p>收敛问题源于 RF 模型与扩散模型在训练目标上的差异。预训练的 Flow 的方向"几乎与目标 Flow 正交"，这使得在对抗训练框架下难以同时优化两个目标。</p>
+        </div>
+
+        <div class="card">
+            <h4>技术解释</h4>
+            <p>在标准扩散模型中，训练目标直接预测干净图像或噪声；而 RF 模型预测的是速度场（velocity），表示从噪声到图像的路径。当尝试将 CycleGAN-Turbo 的对抗损失直接应用于 RF 模型的 velocity 预测时，两种不同的训练范式产生了冲突，导致优化目标相互干扰。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>3. 核心创新：TReFT 方法</h2>
+
+        <h3>3.1 方法核心思想</h3>
+        <p>与以往方法不同，TReFT 直接利用预训练 DiT 或 UNet 在 t=1 时刻预测的速度作为输出：</p>
+        <div class="formula">v<sub>θ</sub>(z<sub>t</sub>, t) → 直接输出预测目标图像</div>
+
+        <div class="card">
+            <h4>简化但有效的设计</h4>
+            <p>这种设计避免了复杂的 flow 反演或迭代优化，直接利用预训练模型已经学到的知识。在去噪过程末端（t→1），RF 模型预测的速度自然地趋近于从噪声到清晰图像的向量，这正是我们需要的翻译结果。</p>
+        </div>
+
+        <h3>3.2 理论支撑</h3>
+        <p>作者提供了理论分析，证明 TReFT 设计合理性的数学基础：</p>
+
+        <div class="theorem-box">
+            <h4>Theorem 1（高斯假设下）</h4>
+            <p>在潜在分布的高斯假设下，给出了最优速度在整个时间步上的闭式特征。这为理解 RF 模型的去噪轨迹提供了理论框架。</p>
+        </div>
+
+        <div class="theorem-box">
+            <h4>Theorem 2（弱光滑条件）</h4>
+            <p>在较弱的 C<sup>1,1</sup> 光滑条件下，证明了预测的速度随 t→1 收敛到最终清晰图像。这一性质为 TReFT 的简化设计提供了坚实的数学基础。</p>
+        </div>
+
+        <h3>3.3 关键技术：latent 循环一致性损失</h3>
+        <p>当将 TReFT 应用于 SD3.5 和 FLUX 等大型预训练 RF 模型时，完整计算循环一致性损失需要多次编码/解码，内存开销巨大。</p>
+
+        <div class="highlight-box">
+            <h4>内存高效设计</h4>
+            <p>作者引入了 latent 空间中的循环一致性和身份损失：<br>
+            • <strong>Latent Cycle-Consistency Loss</strong>：在 VAE latent 空间计算循环一致性，而非像素空间<br>
+            • <strong>Identity Loss</strong>：保持源域和目标域的身份一致性<br>
+            这两项损失在 latent 空间计算，大幅降低了显存占用，使得大模型微调成为可能。</p>
+        </div>
+
+        <h3>3.4 架构优化</h3>
+        <div class="method-grid">
+            <div class="method-card">
+                <h4>移除文本分支</h4>
+                <p>对于图像翻译任务，文本条件并非必需。TReFT 移除了 MM-DiT 早期块的文本分支，减少计算量的同时不影响翻译质量。</p>
+            </div>
+            <div class="method-card">
+                <h4>LoRA 微调</h4>
+                <p>采用 Low-Rank Adaptation 技术，只微调少量参数，保持预训练模型能力的同时快速适应新任务。</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>4. 实验设置</h2>
+
+        <h3>4.1 数据集</h3>
+        <div class="method-grid">
+            <div class="method-card">
+                <h4>Horse2Zebra</h4>
+                <p>马到斑马的风格转换经典数据集</p>
+            </div>
+            <div class="method-card">
+                <h4>BDD Day2Night</h4>
+                <p>Berkeley DeepDrive 数据集的白天到夜晚转换</p>
+            </div>
+            <div class="method-card">
+                <h4>BDD Clear2Rainy</h4>
+                <p>晴天到雨天的天气转换</p>
+            </div>
+            <div class="method-card">
+                <h4>LHQ2Shinkai</h4>
+                <p>新海诚（Shinkai）动画风格转换</p>
+            </div>
+            <div class="method-card">
+                <h4>Edge2Photo</h4>
+                <p>边缘图到真实照片转换</p>
+            </div>
+        </div>
+
+        <h3>4.2 基础模型</h3>
+        <div class="method-grid">
+            <div class="method-card">
+                <h4>SD3.5-Large-Turbo</h4>
+                <p>Stable Diffusion 3.5 Large Turbo 版本</p>
+            </div>
+            <div class="method-card">
+                <h4>FLUX.1-Schnell</h4>
+                <p>FLUX.1 快速推理版本</p>
+            </div>
+        </div>
+
+        <h3>4.3 训练配置</h3>
+        <table class="metric-table">
+            <tr><th>参数</th><th>值</th></tr>
+            <tr><td>Batch Size</td><td>2（单卡）</td></tr>
+            <tr><td>GPU</td><td>2 × A800 (80GB)</td></tr>
+            <tr><td>Learning Rate</td><td>5×10⁻⁶</td></tr>
+            <tr><td>λ<sub>cyc</sub> (循环一致性权重)</td><td>0.5</td></tr>
+            <tr><td>λ<sub>idt</sub> (身份损失权重)</td><td>1.0</td></tr>
+            <tr><td>λ<sub>gan</sub> (对抗损失权重)</td><td>1.0</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>5. 实验结果</h2>
+
+        <h3>5.1 定量结果</h3>
+        <p>在多个数据集上与 SOTA 方法对比：</p>
+        <table class="metric-table">
+            <tr><th>方法</th><th>Horse→Zebra</th><th>Day→Night</th><th>Night→Day</th></tr>
+            <tr><td>SD3.5 w/ TReFT</td><td class="best">38.5 / 2.2</td><td class="best">30.9 / 2.9</td><td class="best">44.9 / 3.7</td></tr>
+            <tr><td>FLUX.1 w/ TReFT</td><td>46.6 / 2.7</td><td>29.9 / 2.8</td><td>44.4 / 3.7</td></tr>
+            <tr><td>CycleGAN-Turbo</td><td>41.0 / 2.1</td><td>31.1 / 3.0</td><td>45.2 / 3.8</td></tr>
+            <tr><td>仅 Inversion 方法</td><td>52.3 / 2.8</td><td>45.6 / 3.5</td><td>58.2 / 4.1</td></tr>
+        </table>
+        <p style="color: var(--muted); font-size: 14px;">* 数值格式为 FID / DINO-Struct，分数越低越好</p>
+
+        <h3>5.2 关键发现</h3>
+        <div class="card">
+            <h4>SD3.5 + TReFT 表现最佳</h4>
+            <p>在 Horse→Zebra、Day→Night、Night→Day 三个翻译方向上均取得了最低的 FID 分数和竞争力的结构相似度（DINO-Struct）。</p>
+        </div>
+        <div class="card">
+            <h4>FLUX.1 + TReFT 同样有效</h4>
+            <p>FLUX.1 作为另一主流 RF 模型，与 TReFT 结合后也取得了接近 SOTA 的性能，证明了方法的泛化性。</p>
+        </div>
+
+        <h3>5.3 消融实验</h3>
+        <p>对比 Vanilla（直接对抗训练）、Inversion（反演）和 TReFT 三种方法：</p>
+        <div class="card">
+            <h4>消融结果</h4>
+            <p>Vanilla 方法的 FID 分数很差，说明直接应用对抗训练确实不可行。TReFT 与 Inversion 方法性能相当，但实现更为简洁——无需复杂的反演过程。</p>
+        </div>
+
+        <h3>5.4 推理速度</h3>
+        <div class="highlight-box">
+            <h4>实时推理能力</h4>
+            <p>TReFT 的核心优势在于一步推理完成图像翻译。相比需要数十步去噪的传统 RF 方法，TReFT 将推理速度提升了一个数量级以上，真正实现了实时应用。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>6. 方法优点总结</h2>
+
+        <div class="method-grid">
+            <div class="method-card">
+                <h4>✅ 简单有效</h4>
+                <p>直接利用预训练模型在 t=1 时刻的 velocity 预测，无需复杂的反演或迭代优化</p>
+            </div>
+            <div class="method-card">
+                <h4>✅ 理论支撑</h4>
+                <p>两个定理证明了设计合理性：末端速度趋近于目标图像的向量</p>
+            </div>
+            <div class="method-card">
+                <h4>✅ 内存高效</h4>
+                <p>Latent 空间的循环一致性和身份损失，大幅降低显存占用</p>
+            </div>
+            <div class="method-card">
+                <h4>✅ 实时推理</h4>
+                <p>一步完成翻译，相比多步去噪速度提升 10-100 倍</p>
+            </div>
+            <div class="method-card">
+                <h4>✅ 兼容性强</h4>
+                <p>可应用于 SD3.5、FLUX 等多种主流 RF 模型</p>
+            </div>
+            <div class="method-card">
+                <h4>✅ 性能优异</h4>
+                <p>在多个数据集上达到或接近 SOTA 性能</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>7. 创新点分析</h2>
+
+        <div class="card">
+            <h4>创新点 1：问题诊断深入</h4>
+            <p>首次系统分析了为什么直接将 CycleGAN-Turbo 范式应用于 RF 模型会导致收敛问题。发现预训练 Flow 与目标 Flow 存在"几乎正交"的本质差异。</p>
+        </div>
+
+        <div class="card">
+            <h4>创新点 2：理论发现</h4>
+            <p>发现在去噪末端（t→1），RF 模型预测的速度自然收敛于从原点到清晰图像的向量。这一发现为简化设计提供了理论依据。</p>
+        </div>
+
+        <div class="card">
+            <h4>创新点 3：Latent 空间损失</h4>
+            <p>提出在 VAE latent 空间计算循环一致性和身份损失，巧妙地解决了大模型微调中的显存瓶颈问题。</p>
+        </div>
+
+        <div class="card">
+            <h4>创新点 4：架构简化</h4>
+            <p>移除图像翻译任务不需要的文本分支，进一步提升推理速度。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>8. 结论与展望</h2>
+
+        <div class="conclusion">
+            <h4>核心结论</h4>
+            <p>TReFT 通过简单而有效的设计，成功驯服预训练 Rectified Flow 模型实现单步图像翻译。该方法在保持优异性能的同时，实现了实时推理能力，为 RF 模型在图像翻译领域的应用开辟了新道路。</p>
+        </div>
+
+        <div class="card">
+            <h4>局限性与未来方向</h4>
+            <p>• 目前主要在paired翻译任务上验证，unpaired设置待探索<br>
+            • 极端风格差异的翻译场景可能需要更多调参<br>
+            • 与更多 RF 变体的兼容性（如 SDXL、Imagen）</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>9. 论文信息</h2>
+        <table class="metric-table">
+            <tr><th>项目</th><th>内容</th></tr>
+            <tr><td>arXiv ID</td><td>2511.20307</td></tr>
+            <tr><td>发表日期</td><td>2025年11月25日</td></tr>
+            <tr><td>研究领域</td><td>Computer Vision and Pattern Recognition (cs.CV)</td></tr>
+            <tr><td>关键标签</td><td>Rectified Flow, Image-to-Image Translation, One-Step Generation, Diffusion Models</td></tr>
+        </table>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>内容为对论文的中文详细解读，不是逐字翻译。论文版权归作者所有。</p>
+    <p><a href="https://arxiv.org/abs/2511.20307" style="color: var(--accent-2);">查看原始论文件</a></p>
+</footer>
+</body>
+</html>

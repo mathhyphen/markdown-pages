@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>周报：2026-03-17 ~ 2026-03-23</title>
+  <style>
+    :root {
+      --bg: #f4efe7;
+      --panel: #fffaf2;
+      --ink: #1f2a1f;
+      --muted: #5b6259;
+      --line: #d9cfbf;
+      --accent: #1f8f55;
+      --shadow: 0 18px 50px rgba(60, 42, 20, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at top left, rgba(31, 143, 85, 0.08), transparent 26rem), var(--bg);
+      line-height: 1.7;
+      padding: 32px 20px 64px;
+    }
+    .wrap {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero {
+      background: rgba(255, 250, 242, 0.95);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(28px, 4vw, 36px);
+      color: var(--ink);
+    }
+    .meta {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .content {
+      background: rgba(255, 250, 242, 0.95);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 32px 40px;
+      box-shadow: var(--shadow);
+    }
+    h2 {
+      margin: 32px 0 16px;
+      font-size: 22px;
+      color: var(--ink);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 8px;
+    }
+    h2:first-child { margin-top: 0; }
+    h3 {
+      margin: 24px 0 12px;
+      font-size: 18px;
+    }
+    p { margin: 12px 0; }
+    ul, ol {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+    li { margin: 8px 0; }
+    code {
+      background: #f2e7d6;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      color: #6c4f32;
+    }
+    pre {
+      background: #1b231d;
+      color: #d7f5df;
+      padding: 16px 20px;
+      border-radius: 12px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 20px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(60, 42, 20, 0.08);
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+    th {
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    td {
+      background: rgba(255, 250, 242, 0.95);
+      font-size: 14px;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f2e7d6; }
+    @media print {
+      table { box-shadow: none; }
+      th { background: #1f8f55 !important; -webkit-print-color-adjust: exact; }
+    }
+    blockquote {
+      margin: 16px 0;
+      padding: 14px 16px;
+      border-left: 4px solid var(--accent);
+      background: #e7f6ed;
+      border-radius: 0 12px 12px 0;
+    }
+    a { color: var(--accent); }
+    hr {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 32px 0;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 16px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back-link:hover { text-decoration: underline; }
+    @media (max-width: 640px) {
+      body { padding: 20px 14px 48px; }
+      .hero, .content { border-radius: 18px; padding: 22px 18px; }
+      .content { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a href="/" class="back-link">← 返回首页</a>
+    <div class="content">
+      <h1>周报：2026-03-17 ~ 2026-03-23</h1>
+<h2>一、本周工作概述</h2>
+<p>本周主要完成了 V4 联合空间-强度变换模型的实验验证，同时启动了 VoxelMorph v3 和 SVF Flow Matching 的训练实验。</p>
+<hr>
+<h2>二、已完成实验</h2>
+<h3>1. V4 实验（联合空间-强度变换模型 - 解耦监督框架）</h3>
+<p><strong>核心创新</strong>：将空间变换和强度变换的监督信号分离，使用加法强度变换替代 V3 的乘法变换。</p>
+<p><strong>架构</strong>：</p>
+<pre><code>source ──┬──&gt; [空间变换网络] ──&gt; spatial_transformed ──&gt; NCC(target)  [结构对齐]
+         │
+         └──&gt; [强度变换网络] ──&gt; intensity_offset ──┐
+                                                    │
+                         transformed = spatial + intensity_offset ──&gt; MSE(target)  [亮度对齐]
+</code></pre>
+<p><strong>关键改进</strong>：</p>
+<ul>
+<li>使用加法变换 <code>intensity_offset = t * v_intensity</code>，数值更稳定</li>
+<li>NCC 只监督空间变换输出，MSE 只监督最终输出（解耦监督）</li>
+<li>修正了测试脚本中的错误归一化处理</li>
+</ul>
+<p><strong>实验结果（189 测试样本，修正后）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>PSNR (dB)</th>
+<th>SSIM</th>
+<th>NCC</th>
+<th>MAE</th>
+<th>MSE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v4_add_1 (λ=1)</td>
+<td>33.63 ± 2.59</td>
+<td>0.6685 ± 0.0683</td>
+<td>0.9928 ± 0.0044</td>
+<td>0.0222 ± 0.0030</td>
+<td>0.0013 ± 0.0005</td>
+</tr>
+<tr>
+<td>v4_add_10 (λ=10)</td>
+<td>34.30 ± 2.78</td>
+<td>0.9168 ± 0.0266</td>
+<td>0.9923 ± 0.0058</td>
+<td>0.0134 ± 0.0027</td>
+<td>0.0011 ± 0.0007</td>
+</tr>
+<tr>
+<td><strong>v4_add_30 (λ=30)</strong></td>
+<td><strong>36.67 ± 3.00</strong></td>
+<td><strong>0.9524 ± 0.0147</strong></td>
+<td><strong>0.9955 ± 0.0036</strong></td>
+<td><strong>0.0102 ± 0.0024</strong></td>
+<td><strong>0.0007 ± 0.0004</strong></td>
+</tr>
+</tbody></table>
+<p><strong>关键发现</strong>：</p>
+<ul>
+<li>Lambda 越大，所有指标都越好，推荐 λ=30</li>
+<li>修正测试方法后，性能比原测试高约 15 dB</li>
+</ul>
+<p><strong>模型保存位置</strong>：<code>/mnt/nfsdata/nfsdata/wanghaifeng/Pre_trained/sandy/joint_flow_v4_add_*/</code></p>
+<hr>
+<h3>2. V3 实验（乘法强度变换版本）</h3>
+<p><strong>结论</strong>：验证了乘法变换存在数值爆炸问题，已被 V4 的加法变换方案取代。</p>
+<hr>
+<h2>三、正在训练的实验</h2>
+<h3>1. SVF Flow Matching（Stationary Velocity Field Flow Matching）</h3>
+<p><strong>训练配置</strong>：</p>
+<ul>
+<li>模型：SVF 积分器 + UNet 速度场预测</li>
+<li>数据：婴幼儿脑部 MRI（策略3预处理），1021 训练样本</li>
+<li>图像尺寸：(160, 192, 160)</li>
+<li>Max Epochs：150</li>
+</ul>
+<p><strong>当前进度</strong>：</p>
+<ul>
+<li>训练到 Epoch 127 / 150</li>
+<li>当前 loss：0.0389</li>
+<li>已保存 checkpoint：epoch_49.pt, epoch_99.pt, latest_model.pt</li>
+</ul>
+<p><strong>最新训练日志</strong>：</p>
+<pre><code>Epoch 123: loss=0.0408
+Epoch 124: loss=0.0401
+Epoch 125: loss=0.0402
+Epoch 126: loss=0.0419
+Epoch 127: loss=0.0389
+</code></pre>
+<p><strong>模型保存位置</strong>：<code>/mnt/nfsdata/nfsdata/wanghaifeng/Pre_trained/sandy/svf_flow_matching/</code></p>
+<hr>
+<h3>2. VoxelMorph v3（多配置对比实验）</h3>
+<p><strong>训练配置</strong>：</p>
+<ul>
+<li>Max Epochs：150</li>
+<li>Batch Size：1</li>
+<li>Learning Rate：1e-4</li>
+<li>图像尺寸：(160, 192, 160)</li>
+</ul>
+<p><strong>当前运行的配置</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>λ_smooth</th>
+<th>λ_mse</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>global_ncc_mse</td>
+<td>0.01</td>
+<td>0.1</td>
+<td>已保存 latest_model.pth</td>
+</tr>
+<tr>
+<td>local_ncc</td>
+<td>0.01</td>
+<td>-</td>
+<td>已保存 latest_model.pth</td>
+</tr>
+<tr>
+<td>local_ncc_mse</td>
+<td>0.01</td>
+<td>0.1</td>
+<td>已保存 latest_model.pth，训练中（断点续训）</td>
+</tr>
+<tr>
+<td>mse_only</td>
+<td>0.01</td>
+<td>1.0</td>
+<td>训练中</td>
+</tr>
+</tbody></table>
+<p><strong>模型保存位置</strong>：<code>/mnt/nfsdata/nfsdata/wanghaifeng/Pre_trained/sandy/voxelmorph_*/</code></p>
+<hr>
+<h2>四、下周计划</h2>
+<ol>
+<li><strong>完成 SVF Flow Matching 训练</strong>：预计还需 ~23 epochs</li>
+<li><strong>完成 VoxelMorph v3 多配置训练</strong>：对比不同损失函数组合的效果</li>
+<li><strong>测试对比</strong>：对训练完成的模型进行全面评估</li>
+<li><strong>V5 改进方向</strong>：<ul>
+<li>探索更大的 lambda 值（如 50、100）</li>
+<li>尝试多尺度监督</li>
+<li>引入自适应 lambda 调度</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2>五、技术要点记录</h2>
+<h3>V4 解耦监督框架的优势</h3>
+<ul>
+<li>NCC 专注于结构对齐（空间变换）</li>
+<li>MSE 专注于亮度对齐（强度变换）</li>
+<li>两个任务独立优化，避免相互干扰</li>
+</ul>
+<h3>测试方法重要性</h3>
+<ul>
+<li>原 V3/V4 测试脚本使用 <code>self.max</code> 归一化导致 PSNR 被低估约 15 dB</li>
+<li>修正后直接使用模型原始输出和 target 的实际范围计算指标</li>
+</ul>
+
+
+    </div>
+  </div>
+</body>
+</html>
