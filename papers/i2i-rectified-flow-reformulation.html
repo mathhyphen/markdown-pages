@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Improving Image-to-Image Translation via a Rectified Flow Reformulation | 论文解读</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: #11172a;
+            --panel-2: #171f36;
+            --text: #edf2ff;
+            --muted: #b8c2e8;
+            --line: rgba(255,255,255,0.10);
+            --accent: #8fb5ff;
+            --accent-2: #b5f0ff;
+            --good: #c9ffe0;
+            --bad: #ffd1d0;
+            --shadow: 0 20px 60px rgba(0,0,0,0.25);
+            --radius: 22px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+        }
+        .topbar {
+            position: sticky; top: 0; z-index: 20;
+            backdrop-filter: blur(12px);
+            background: rgba(8, 14, 28, 0.72);
+            border-bottom: 1px solid var(--line);
+            padding: 14px 20px;
+        }
+        .topbar-inner { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+        .back-link { color: var(--accent-2); text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px 80px; }
+        .paper-header { margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid var(--line); }
+        .paper-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .badge { padding: 6px 12px; border-radius: 999px; font-size: 13px; background: rgba(255,255,255,0.06); border: 1px solid var(--line); }
+        .badge.cs.CV { color: #f0c9a0; border-color: rgba(240,201,160,0.3); background: rgba(240,201,160,0.1); }
+        .paper-title { font-size: clamp(28px, 5vw, 42px); margin: 0 0 16px; line-height: 1.2; letter-spacing: -0.02em; }
+        .paper-subtitle { color: var(--muted); font-size: 18px; margin-bottom: 20px; }
+        .authors { color: var(--muted); font-size: 14px; }
+        .authors strong { color: var(--text); }
+        .abstract { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin: 30px 0; }
+        .abstract h3 { margin: 0 0 12px; color: var(--accent-2); font-size: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .abstract p { margin: 0; color: #dce6ff; }
+        .section { margin: 40px 0; }
+        .section h2 { font-size: 24px; margin: 0 0 20px; padding-bottom: 10px; border-bottom: 1px solid var(--line); color: var(--accent); }
+        .section h3 { font-size: 18px; margin: 24px 0 12px; color: var(--accent-2); }
+        .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin: 16px 0; }
+        .card h4 { margin: 0 0 10px; color: var(--text); font-size: 16px; }
+        .card p { margin: 0; color: var(--muted); }
+        .highlight-box { background: linear-gradient(135deg, rgba(143,181,255,0.15), rgba(181,240,255,0.1)); border: 1px solid rgba(143,181,255,0.3); border-radius: var(--radius); padding: 24px; margin: 20px 0; }
+        .highlight-box h4 { margin: 0 0 12px; color: var(--accent-2); }
+        .highlight-box p { margin: 0; }
+        .formula-box { background: var(--panel-2); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin: 16px 0; font-family: monospace; font-size: 15px; color: var(--accent-2); }
+        .contribution-list { list-style: none; padding: 0; margin: 16px 0; }
+        .contribution-list li { padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin: 8px 0; }
+        .method-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0; }
+        .method-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+        .method-card h4 { margin: 0 0 12px; font-size: 16px; }
+        .method-card .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; margin-bottom: 10px; }
+        .tag-input { background: rgba(143,181,255,0.2); color: #8fb5ff; }
+        .tag-noise { background: rgba(181,255,200,0.2); color: #8bffbe; }
+        .tag-output { background: rgba(255,181,200,0.2); color: #ff8b8b; }
+        .metric-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .metric-table th, .metric-table td { border: 1px solid var(--line); padding: 12px; text-align: left; }
+        .metric-table th { background: var(--panel); color: var(--accent-2); }
+        .metric-table td { background: rgba(255,255,255,0.02); }
+        .metric-table .best { color: var(--good); font-weight: 600; }
+        .result-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin: 16px 0; }
+        .result-box h4 { margin: 0 0 12px; color: var(--text); }
+        .result-box p { margin: 4px 0; color: var(--muted); }
+        .result-box .winner { color: var(--good); font-weight: 600; }
+        .conclusion { background: linear-gradient(135deg, rgba(80,220,140,0.1), rgba(80,220,140,0.05)); border: 1px solid rgba(80,220,140,0.3); border-radius: var(--radius); padding: 24px; margin: 20px 0; }
+        .conclusion h4 { margin: 0 0 12px; color: var(--good); }
+        .conclusion p { margin: 0; }
+        .footer { border-top: 1px solid var(--line); padding: 20px; text-align: center; color: var(--muted); font-size: 14px; margin-top: 60px; }
+        code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="back-link" href="../index.html">← 返回首页</a>
+        <a class="back-link" href="../index.html#papers-series">← 返回论文系列</a>
+    </div>
+</header>
+
+<div class="container">
+    <div class="paper-header">
+        <div class="paper-meta">
+            <span class="badge cs.CV">cs.CV</span>
+            <span class="badge">2026-03-20</span>
+            <span class="badge">Rectified Flow</span>
+            <span class="badge">Image Translation</span>
+        </div>
+        <h1 class="paper-title">Improving Image-to-Image Translation via a Rectified Flow Reformulation</h1>
+        <p class="paper-subtitle">通过修正流重构改进图像到图像翻译</p>
+        <p class="authors"><strong>作者：</strong>Satoshi Iizuka, Shun Okamoto, Kazuhiro Fukui（筑波大学）</p>
+    </div>
+
+    <div class="abstract">
+        <h3>摘要</h3>
+        <p>本文提出了<strong>Image-to-Image Rectified Flow Reformulation (I2I-RFR)</strong>，一种将标准I2I回归网络重新表述为连续时间传输模型的实用插件式重构方法。像素级I2I回归虽然简单、稳定、易于跨任务适配，但在病态和多模态目标上往往过度平滑；而生成式替代方案通常需要额外组件、任务特定调优以及更复杂的训练和推理流程。本文方法通过通道级拼接将噪声破坏的目标图像与输入图像连接来增强骨干输入，并优化简单的 t 重加权像素损失。该目标通过诱导速度场获得修正流解释，推理时可实现基于ODE的渐进式精炼，同时保留标准监督训练流程。在大多数情况下，采用I2I-RFR只需扩展输入通道，推理可用少量显式求解器步骤（如3步）完成，无需蒸馏。在多种图像到图像翻译和视频恢复任务上的广泛实验表明，I2I-RFR在各种任务和骨干网络上普遍提升性能，在感知质量和细节保留方面提升尤为明显。</p>
+    </div>
+
+    <div class="section">
+        <h2>1. 研究背景与问题</h2>
+        <p>图像到图像（I2I）翻译是计算机视觉的核心任务，涵盖超分辨率、恢复、低光增强等众多场景。</p>
+
+        <div class="card">
+            <h4>传统方法的困境</h4>
+            <p>像素级回归（如 ℓ₁、MSE 损失）虽然简单稳定，但面对病态或多模态目标时容易过度平滑，产生感知质量不佳的输出。而 GAN 等对抗训练虽然有效，但引入了额外的判别器网络和敏感的超参数。</p>
+        </div>
+
+        <div class="card">
+            <h4>扩散模型的局限</h4>
+            <p>扩散模型虽能处理多模态目标，但需要特定的参数化和调节机制、噪声调度，以及数十到数百步的迭代采样。潜在扩散还需要额外的编码器-解码器（如 VAE）来定义潜在空间。</p>
+        </div>
+
+        <div class="highlight-box">
+            <h4>核心问题</h4>
+            <p>能否在不放弃现有I2I回归器的简洁性、稳定性和强归纳偏置的情况下，获得连续时间传输模型的好处——特别是渐进式精炼和减少平均化伪影？</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. 核心方法：I2I-RFR</h2>
+
+        <h3>2.1 方法核心思想</h3>
+        <p>给定输入图像 x 和目标图像 y，构造噪声混合：</p>
+        <div class="formula-box">
+            y<sub>t</sub> = (1-t) · y + t · ε, 其中 ε ~ 𝒩(0, I), t ∈ (0, 1]
+        </div>
+        <p>将输入的通道级拼接 [x; y<sub>t</sub>] 送入现有的 I2I 骨干网络，训练网络从 [x; y<sub>t</sub>] 重建 y：</p>
+        <div class="formula-box">
+            min<sub>θ'</sub> 𝔼[ || (y - f<sub>θ'</sub>([x; y<sub>t</sub>])) / t || ]
+        </div>
+
+        <h3>2.2 输入输出变化</h3>
+        <div class="method-grid">
+            <div class="method-card">
+                <span class="tag tag-input">输入变化</span>
+                <h4>标准回归</h4>
+                <p>f<sub>θ</sub>: ℝ<sup>C<sub>in</sub>×H×W</sup> → ℝ<sup>C<sub>out</sub>×H×W</sup></p>
+            </div>
+            <div class="method-card">
+                <span class="tag tag-output">I2I-RFR</span>
+                <h4>RFR 重构</h4>
+                <p>f<sub>θ'</sub>: ℝ<sup>(C<sub>in</sub>+C<sub>out</sub>)×H×W</sup> → ℝ<sup>C<sub>out</sub>×H×W</sup></p>
+            </div>
+        </div>
+        <p>关键洞察：只需扩展输入通道从 C<sub>x</sub> 到 C<sub>x</sub> + C<sub>y</sub>（通常为 2C），现有骨干网络和训练配方即可直接复用。</p>
+
+        <h3>2.3 推理过程</h3>
+        <p>推理时，通过求解 ODE 来逐步精炼预测。由于输入图像 x 提供了信息丰富的空间线索，状态 y<sub>t</sub> 作为精炼变量而非无约束的生成潜在变量。少量显式欧拉步骤即可获得优异性能。</p>
+        <div class="highlight-box">
+            <h4>推理只需 3 步</h4>
+            <p>无需蒸馏，推理可用少量显式求解器步骤（如 3 步）完成，大大提升了推理效率。</p>
+        </div>
+
+        <h3>2.4 训练技巧：Beta 采样</h3>
+        <div class="card">
+            <h4>逆 CDF Beta 采样</h4>
+            <p>使用逆累积分布函数 Beta 采样对 t 进行非均匀采样，在高噪声区域（t ≈ 1）放置稍多的质量。这作为简单而有效的默认策略。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>3. 方法优点总结</h2>
+        <ul class="contribution-list">
+            <li><strong>✅ 插件式设计</strong>：只需扩展输入通道，无需重新设计骨干网络</li>
+            <li><strong>✅ 无需 GAN</strong>：不依赖额外的判别器网络和超参数调优</li>
+            <li><strong>✅ 无需蒸馏</strong>：推理可直接使用少量欧拉步骤，无需复杂的后处理</li>
+            <li><strong>✅ 无需时间嵌入</strong>：由于级联输入隐式携带损坏程度信息，无需显式时间嵌入</li>
+            <li><strong>✅ 保留骨干设计</strong>：直接利用现有的任务特定 I2I 架构和模块</li>
+            <li><strong>✅ 视频扩展</strong>：可同样应用于视频到视频翻译模型</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>4. 实验设置</h2>
+
+        <h3>4.1 任务类型</h3>
+        <div class="method-grid">
+            <div class="method-card">
+                <h4>低光模糊增强</h4>
+                <p>DarkIR 骨干 + I2I-RFR</p>
+            </div>
+            <div class="method-card">
+                <h4>水下图像增强</h4>
+                <p>Water5 数据集验证</p>
+            </div>
+            <div class="method-card">
+                <h4>视频恢复</h4>
+                <p>EDVR、VSR 等视频骨干</p>
+            </div>
+        </div>
+
+        <h3>4.2 骨干网络</h3>
+        <div class="card">
+            <h4>任务特定骨干</h4>
+            <p>• SwinIR：图像超分辨率的 Transformer 组件</p>
+            <p>• Restormer：通用图像恢复的高效注意力架构</p>
+            <p>• DarkIR：低光增强和去模糊的非对称编码器-解码器</p>
+            <p>• LEDNet：低光增强网络</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>5. 实验结果</h2>
+
+        <h3>5.1 主要发现</h3>
+        <div class="result-box">
+            <h4>感知质量与细节保留</h4>
+            <p>I2I-RFR 在各种任务和骨干网络上普遍提升性能，在感知质量和细节保留方面提升尤为明显。</p>
+            <p>• 减少回归伪影</p>
+            <p>• 提升感知保真度</p>
+            <p>• 改善细节保留</p>
+        </div>
+
+        <h3>5.2 对比分析</h3>
+        <table class="metric-table">
+            <tr><th>方法</th><th>复杂度</th><th>推理步骤</th><th>感知质量</th></tr>
+            <tr><td>标准 ℓ₁ 回归</td><td>低</td><td>1步</td><td>过度平滑</td></tr>
+            <tr><td>GAN 增强</td><td>高</td><td>1步</td><td>较好（但不稳定）</td></tr>
+            <tr class="best"><td>I2I-RFR（本文）</td><td>低</td><td>3步</td><td>最佳</td></tr>
+        </table>
+
+        <h3>5.3 消融实验</h3>
+        <div class="card">
+            <h4>输入通道扩展</h4>
+            <p>仅将输入通道从 C 扩展到 2C 即可带来显著改善。</p>
+        </div>
+        <div class="card">
+            <h4>时间采样策略</h4>
+            <p>逆 CDF Beta 采样相比均匀采样效果更好，在 t ≈ 1 区域放置更多权重有助于训练稳定性。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>6. 创新点分析</h2>
+        <ul class="contribution-list">
+            <li><strong>创新点 1：问题重构</strong>：将监督 I2I 回归问题重构为连续时间传输模型，保留回归框架的简洁性同时获得渐进式精炼能力</li>
+            <li><strong>创新点 2：输入级联设计</strong>：通过通道级联将噪声目标与输入图像结合，隐式携带损坏程度信息，无需显式时间嵌入</li>
+            <li><strong>创新点 3：插件式方案</strong>：最小化改动即可将现有 I2I 网络纳入修正流框架，无需重新设计骨干架构</li>
+            <li><strong>创新点 4：高效推理</strong>：少量欧拉步骤（3步）即可完成高质量推理，无需蒸馏或复杂采样策略</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>7. 结论与展望</h2>
+
+        <div class="conclusion">
+            <h4>核心结论</h4>
+            <p>I2I-RFR 提供了一种轻量级方法，将连续时间精炼融入传统 I2I 模型，无需引入繁重的生成式流程。该方法在保持监督学习简洁性的同时，显著提升了感知质量和细节保留能力。</p>
+        </div>
+
+        <div class="card">
+            <h4>局限性与未来方向</h4>
+            <p>• 目前主要在配对翻译任务上验证，非配对设置有待探索</p>
+            <p>• 极端风格差异的翻译场景可能需要更多调参</p>
+            <p>• 与更多修正流变体的兼容性（如与其他生成模型的结合）</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>8. 论文信息</h2>
+        <table class="metric-table">
+            <tr><th>项目</th><th>内容</th></tr>
+            <tr><td>arXiv ID</td><td>2603.20186v1</td></tr>
+            <tr><td>发表日期</td><td>2026年3月20日</td></tr>
+            <tr><td>研究领域</td><td>Computer Vision and Pattern Recognition (cs.CV)</td></tr>
+            <tr><td>机构</td><td>University of Tsukuba（筑波大学）</td></tr>
+            <tr><td>关键标签</td><td>Rectified Flow, Image-to-Image Translation, ODE-based Refinement, Perceptual Quality</td></tr>
+        </table>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>内容为对论文的中文详细解读，不是逐字翻译。论文版权归作者所有。</p>
+    <p><a href="https://arxiv.org/abs/2603.20186v1" style="color: var(--accent-2);">查看原始论文件</a></p>
+</footer>
+</body>
+</html>
