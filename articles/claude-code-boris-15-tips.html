@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Claude Code 15 条高频实战技巧：把 Boris 的工作流整理成一页工具手册</title>
+  <meta name="description" content="基于 Boris Cherny 2026 年 3 月 30 日分享的 15 条 Claude Code 技巧，整理成更适合开发者吸收的中文工具手册。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html">AI 技术阅览站</a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="https://x.com/AlchainHust/status/2038478220136194536" target="_blank" rel="noopener">转发入口</a>
+        <a class="btn small primary" href="https://x.com/bcherny/status/2038454336355999749" target="_blank" rel="noopener">Boris 原帖</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="meta-row">
+          <span class="badge">Tools</span>
+          <span class="badge">2026-03-30</span>
+          <span class="badge">Claude Code / worktrees / automation / verification</span>
+        </div>
+        <div class="kicker">工具板块新增</div>
+        <h1>Claude Code 15 条高频实战技巧：把 Boris 的工作流整理成一页工具手册</h1>
+        <p class="lead">这篇内容来自 Boris Cherny 在 2026 年 3 月 30 日公开分享的一组 Claude Code 隐藏与高频功能，AlchainHust 的转发长文把它重新带回中文圈。我这里不做逐条搬运，而是把原始技巧整理成更适合开发者直接吸收的工具手册：哪些是跨端接力，哪些是自动化，哪些是并行工作流，哪些是在给 agent 真正的“眼睛”和“手”。</p>
+        <div class="quote-box">
+          <p>如果你还在让一个 Claude 会话独自背着所有任务、所有上下文、所有批准请求一路硬扛，那问题往往不是模型不够强，而是你的工作流对它有点过于“单身主义”。</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="article-layout">
+      <aside class="toc">
+        <h4>目录</h4>
+        <a href="#why">一、为什么这组技巧值得单独放进工具区</a>
+        <a href="#fifteen">二、15 条技巧整理版</a>
+        <a href="#clusters">三、这些技巧其实在指向什么工作流</a>
+        <a href="#ideas">四、最值得拿走的几个 idea</a>
+        <a href="#suggestions">五、如果今天就想开始用</a>
+        <a href="#source">原始来源</a>
+      </aside>
+
+      <article class="prose">
+        <section id="why">
+          <h2>一、为什么这组技巧值得单独放进工具区</h2>
+          <p>这批内容最有价值的地方，不是“Claude Code 又多了 15 个命令”，而是它把 Claude Code 从一个终端聊天器，重新呈现成一个可跨设备、可自动化、可并行、可封装能力的运行时环境。</p>
+          <p>很多开发者用 agent 时，习惯仍然停留在“开一个会话，写一个 prompt，盯着它跑”。而 Boris 这组技巧展示的是另一套范式：移动端接力、云端和本地切换、hooks 注入、批量 worktree 扇出、前端自动验证、定时 loop、定制 agent。换句话说，它不是在教你“怎么把一句提示词说得更圆”，而是在教你怎么把 agent 变成一个真正有操作系统味道的工作台。</p>
+          <p>所以它适合放在工具板块，而不是论文板块。这里讲的不是一个新 benchmark，也不是一个研究结论，而是开发流程里立刻能拿来改变产能和节奏的具体做法。</p>
+        </section>
+
+        <section id="fifteen">
+          <h2>二、15 条技巧整理版</h2>
+          <p>下面这张表保留了原始内容的主干，同时加了一列“为什么重要”，方便你快速判断哪些值得先上手。</p>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>技巧</th>
+                <th>核心动作</th>
+                <th>为什么重要</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>移动端 Claude Code</td>
+                <td>在 iOS / Android 上进入 Code 视图，直接看改动、继续任务、处理批准。</td>
+                <td>把“必须坐到电脑前才能继续 agent”这个前提打掉，碎片时间终于不只能刷消息。</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><code>/teleport</code> 与 <code>/remote-control</code></td>
+                <td>把云端会话拉回本地，或从手机 / Web 控制本地运行中的 Claude 会话。</td>
+                <td>会话不再被设备绑死，连续工作比“在哪台机器上开了它”更重要。</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><code>/loop</code> 与 <code>/schedule</code></td>
+                <td>把代码审查跟进、PR 清理、反馈轮询这类重复任务定期自动执行。</td>
+                <td>重复性的维护工作可以逐步从“手动提醒自己”迁移到“让 agent 定时处理”。</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Hooks</td>
+                <td>在 SessionStart、PreToolUse、PermissionRequest、Stop 等生命周期节点注入确定性逻辑。</td>
+                <td>这相当于给 agent 增加硬边界和固定流程，少靠情绪，多靠机制。</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Dispatch</td>
+                <td>把桌面端 Claude 作为远程协作执行器，在不坐电脑前时处理 Slack、邮件、文件等事务。</td>
+                <td>它把“我离开电脑了”从流程中移除，agent 真正开始替你守着工作台。</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>给前端任务浏览器验证能力</td>
+                <td>用 Chrome 扩展或类似能力，让 Claude 自己看到页面结果并反复迭代。</td>
+                <td>前端质量的分水岭往往不是 prompt，而是模型有没有机会验证自己写出来的东西。</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>桌面端自动拉起并测试 Web 服务</td>
+                <td>让 Claude 自动启动本地 Web 服务，并在内置浏览器里检查运行效果。</td>
+                <td>这会把“改代码”和“跑起来看”连成闭环，减少你频繁手动来回切换。</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Fork 会话</td>
+                <td>用 <code>/branch</code> 或 <code>claude --resume &lt;session-id&gt; --fork-session</code> 从现有会话分叉。</td>
+                <td>你可以保留主线，同时为另一个假设或修复路线开一条支线，避免把一个上下文揉成面团。</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td><code>/btw</code> 侧问</td>
+                <td>在 agent 忙主任务时问一个旁支问题，而不打断当前执行。</td>
+                <td>这很小，但很像真正的多任务体验，尤其适合边跑边查边确认。</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Git Worktrees</td>
+                <td>用 <code>claude -w</code> 或桌面端 worktree 入口，为同仓库并行任务创建独立工作副本。</td>
+                <td>真正的并行不是把十件事塞进同一个会话，而是给十件事各自的空间。</td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td><code>/batch</code> 扇出大规模修改</td>
+                <td>让 Claude 采访你需求后，把任务分发给大量 worktree agents 并行完成。</td>
+                <td>对于批量迁移、机械性重构这类任务，并行扇出带来的收益往往远大于继续手工拆任务。</td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td><code>--bare</code></td>
+                <td>在 SDK 或非交互场景里显式关闭默认加载，减少启动时搜索本地配置的开销。</td>
+                <td>它提醒我们：交互式体验友好的默认值，不一定适合程序化调用。</td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td><code>--add-dir</code> / <code>/add-dir</code></td>
+                <td>把其他仓库或目录加入当前 Claude 会话的可见与可操作范围。</td>
+                <td>跨仓库开发时，上下文与权限常常一起卡脖子，这个入口正好同时解决两件事。</td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td><code>--agent</code> 与自定义 agents</td>
+                <td>在 <code>.claude/agents/</code> 里定义有专属系统提示、工具权限、模型配置的 agent。</td>
+                <td>把固定角色做成 agent，比每次重写一段长 prompt 更稳定，也更像工程资产。</td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td><code>/voice</code></td>
+                <td>在 CLI、桌面端或手机侧用语音输入继续驱动 Claude。</td>
+                <td>输入方式一旦放松，很多原本懒得写下来的意图和修正，就会更自然地进入工作流。</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="clusters">
+          <h2>三、这些技巧其实在指向什么工作流</h2>
+          <div class="list-cards">
+            <div class="list-card">
+              <strong>1. 把会话从“设备对象”变成“可迁移状态”</strong>
+              <p>移动端、<code>/teleport</code>、<code>/remote-control</code>、Dispatch、本质上都在干一件事：让 session 跟着任务走，而不是跟着设备走。只要这一点成立，agent 才真的能进入日常工作节奏。</p>
+            </div>
+            <div class="list-card">
+              <strong>2. 把重复维护工作编译成自动化</strong>
+              <p><code>/loop</code>、<code>/schedule</code>、hooks 这一组很关键。它们让 Claude Code 不只处理“此刻这次任务”，还开始接管那些原本散落在你脑内待办里的例行琐事。</p>
+            </div>
+            <div class="list-card">
+              <strong>3. 给前端与交互任务真正的反馈回路</strong>
+              <p>前端问题最怕闭门写代码。浏览器验证、自动起服与内置测试，把“生成”与“检查”绑在一起。这类能力的价值，通常比再把 prompt 润色三轮更大。</p>
+            </div>
+            <div class="list-card">
+              <strong>4. 用 worktree 而不是上下文污染来做并行</strong>
+              <p>Fork 会话、Git worktrees、<code>/batch</code> 都指向同一个思想：并行最好的实现方式，不是把更多信息塞进一个对话框，而是把任务拆给多个有边界的执行单元。</p>
+            </div>
+            <div class="list-card">
+              <strong>5. 把“角色”和“访问范围”做成显式配置</strong>
+              <p><code>--add-dir</code> 和 <code>--agent</code> 说明 Claude Code 的工程化不是抽象口号。目录边界、工具边界、角色边界，都可以被做成明确的运行时配置，而不是靠人每轮口头说明。</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="ideas">
+          <h2>四、最值得拿走的几个 idea</h2>
+          <div class="list-cards">
+            <div class="list-card">
+              <strong>Idea 1：Claude Code 更像一个 agent runtime，而不是高级聊天框</strong>
+              <p>这组技巧最核心的启发，是把 Claude Code 当成一个能调度会话、封装角色、连接设备、运行 hooks、管理目录权限的工作环境来看。视角一变，很多功能 suddenly make sense。</p>
+            </div>
+            <div class="list-card">
+              <strong>Idea 2：验证能力比“提示词雕花”更值钱</strong>
+              <p>Boris 对前端工作反复强调的一点很对：如果模型能看到结果，它就更有机会自己修正。很多 agent 工作流瓶颈不在生成，而在缺乏反馈。</p>
+            </div>
+            <div class="list-card">
+              <strong>Idea 3：并行不是奢侈品，而是默认生产方式</strong>
+              <p>当任务可拆、仓库支持 worktrees、会话能分叉时，单线推进反而会变成瓶颈。真正成熟的 agent 工作流，天然会往扇出、分支、汇总收敛。</p>
+            </div>
+            <div class="list-card">
+              <strong>Idea 4：把重复角色做成资产，比重复解释更省心</strong>
+              <p>自定义 agent、本地 hooks、额外目录授权，这些都在鼓励一种更工程化的习惯：把长期稳定的规则沉淀为配置，而不是每次重新对模型“晓之以理”。</p>
+            </div>
+            <div class="list-card">
+              <strong>Idea 5：移动端不是玩具，而是打断恢复器</strong>
+              <p>很多人低估手机入口的价值。它未必适合重度实现，但非常适合确认、批准、续跑和转移控制权。对长任务来说，这能显著降低“人离开电脑就停机”的损耗。</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="suggestions">
+          <h2>五、如果今天就想开始用</h2>
+          <p>不需要一次吃完 15 条。比较稳妥的起步顺序是下面这五步。</p>
+          <div class="list-cards">
+            <div class="list-card">
+              <strong>第一步：先把反馈回路补上</strong>
+              <p>如果你做前端或带界面的工作，优先解决“Claude 能不能自己看结果”。这是收益最大的一步。</p>
+            </div>
+            <div class="list-card">
+              <strong>第二步：把一个重复任务改写成 loop</strong>
+              <p>比如定时扫 PR、定时处理 review comments、定时整理反馈。只要成功一个，你就会知道自动化不只是演示用。</p>
+            </div>
+            <div class="list-card">
+              <strong>第三步：开始用 worktree 跑并行</strong>
+              <p>挑两个互不冲突的小任务，别再塞进同一会话里。用隔离换来清爽，比用记忆力硬扛轻松很多。</p>
+            </div>
+            <div class="list-card">
+              <strong>第四步：把一个常见角色做成自定义 agent</strong>
+              <p>例如只读审查员、文档整理员、前端验收员。把角色从 prompt 升级成配置，后面会省掉大量重复解释。</p>
+            </div>
+            <div class="list-card">
+              <strong>第五步：再考虑移动端接力与语音输入</strong>
+              <p>这些能力不会直接让代码质量暴涨，但会明显改善任务连续性。很多时候，真正贵的不是模型费用，而是人类频繁掉线。</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="source">
+          <h2>原始来源</h2>
+          <div class="source-box">
+            <p><strong>中文转发入口：</strong><a href="https://x.com/AlchainHust/status/2038478220136194536" target="_blank" rel="noopener">https://x.com/AlchainHust/status/2038478220136194536</a></p>
+            <p><strong>Boris 原始分享线程：</strong><a href="https://x.com/bcherny/status/2038454336355999749" target="_blank" rel="noopener">https://x.com/bcherny/status/2038454336355999749</a></p>
+            <p><strong>公开整理镜像：</strong><a href="https://raw.githubusercontent.com/shanraisshan/claude-code-best-practice/main/tips/claude-boris-15-tips-30-mar-26.md" target="_blank" rel="noopener">GitHub markdown mirror</a></p>
+            <p style="margin-top:10px;">说明：本文基于上述公开材料进行中文整理与重排。关于 15 条技巧本身的事实性描述，尽量保持与原始分享一致；关于“这些技巧说明了什么工作流”的归纳，则是本站的工程化解读，不是原帖逐字转述。</p>
+          </div>
+          <div class="article-nav">
+            <a class="btn primary" href="../index.html#t-2">返回索引位置</a>
+            <a class="btn" href="../index.html#tools-series">回到工具板块</a>
+            <a class="btn" href="../index.html">回到首页</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>本站内容为对原始资料的中文整理与读后评注，不是逐字转载。原文版权归作者与发布方所有。</p>
+    <p>站点部署方式：静态 HTML + GitHub Pages。</p>
+  </footer>
+</body>
+</html>
