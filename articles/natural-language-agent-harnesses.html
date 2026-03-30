@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Natural-Language Agent Harnesses：把 harness 从控制器代码里解放出来</title>
+  <meta name="description" content="对论文 Natural-Language Agent Harnesses 的中文解读：核心不是再写一个 agent 框架，而是把高层 harness 逻辑外部化为可移植、可执行、可比较的自然语言 artifact。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html">AI 技术阅读站</a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="https://www.alphaxiv.org/abs/2603.25723" target="_blank" rel="noopener">alphaXiv</a>
+        <a class="btn small primary" href="https://arxiv.org/abs/2603.25723" target="_blank" rel="noopener">arXiv</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="meta-row">
+          <span class="badge">arXiv</span>
+          <span class="badge">2026-03-26</span>
+          <span class="badge">natural-language harness / runtime contracts / portable artifacts</span>
+        </div>
+        <div class="kicker">Harness 系列新增</div>
+        <h1>Natural-Language Agent Harnesses：把 harness 从控制器代码里解放出来</h1>
+        <p class="lead">这篇论文最值得注意的，不是又发明了一个新的 agent 框架，而是它把问题提得非常准确：今天很多 harness 设计都埋在控制器代码和 runtime 约定里，导致它们难迁移、难比较、也难作为一个清晰对象被研究。作者尝试把这层高阶控制逻辑外部化成自然语言 artifact，并交给统一 runtime 执行。</p>
+        <div class="quote-box">
+          <p>如果说 AutoHarness 讨论的是“让模型自己写 harness”，那么这篇论文更像在问：“就算不写成代码，能不能先把 harness 变成一种独立、可执行、可搬运的对象？” 这正是 Harness Engineering 很自然的下一步。</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="article-layout">
+      <aside class="toc">
+        <h4>目录</h4>
+        <a href="#problem">一、论文在解决什么问题</a>
+        <a href="#proposal">二、作者提出了什么</a>
+        <a href="#value">三、为什么这个方向重要</a>
+        <a href="#advantages">四、这个 idea 的优点</a>
+        <a href="#caveats">五、需要保留的谨慎</a>
+        <a href="#placement">六、为什么它该进 Harness 板块</a>
+        <a href="#takeaways">重点结论</a>
+        <a href="#source">原始来源</a>
+      </aside>
+
+      <article class="prose">
+        <section id="problem">
+          <h2>一、论文在解决什么问题</h2>
+          <p>从 arXiv 摘要看，这篇论文抓住的是 Harness Engineering 里一个很核心、但平时常被忽略的事实：真正影响 agent 表现的高层控制逻辑，往往并不显式存在于论文、配置或规范里，而是散落在 controller code、runtime-specific conventions 和团队默认习惯中。</p>
+          <p>一旦 harness 被这样埋进去，它就会出现三个后果。第一，别人很难迁移你的 harness，因为他们拿不到那套隐性的约定。第二，研究者很难比较不同 harness，因为每个系统都把关键逻辑藏在不同代码路径里。第三，团队自己也很难把 harness 当成一个可独立演进的对象来治理。</p>
+          <p>这其实是很多 agent 项目的通病。系统看起来在比较模型，实际上在比较一整套谁也说不清的外围控制逻辑。论文的价值，在于它先把这个问题命名出来了。</p>
+        </section>
+
+        <section id="proposal">
+          <h2>二、作者提出了什么</h2>
+          <p>根据摘要，作者提出两层东西。</p>
+          <p>第一层是 <strong>Natural-Language Agent Harnesses (NLAHs)</strong>：把 harness 行为写成可编辑的自然语言，而不是埋在控制器代码里。这里的重点不是“用自然语言写 prompt”这么简单，而是把 harness 本身视为一个独立 artifact。</p>
+          <p>第二层是 <strong>Intelligent Harness Runtime (IHR)</strong>：一个共享 runtime，用显式 contracts、durable artifacts 和 lightweight adapters 来执行这些自然语言 harness。这个 runtime 不是附属品，而是论文成立的关键，因为没有运行时约束，自然语言只会重新退回模糊说明书。</p>
+          <p>摘要还提到，作者在 coding 与 computer-use benchmark 上做了受控评估，包括 operational viability、module ablation 和 code-to-text harness migration。也就是说，他们不只是提了一个框架名词，而是试图验证这种“代码到文本 harness”的迁移到底能不能运转。</p>
+        </section>
+
+        <section id="value">
+          <h2>三、为什么这个方向重要</h2>
+          <p>这篇论文的重要性，在于它把 Harness Engineering 从“写好一段控制器代码”推进到“设计一种可移植的 harness 表达层”。</p>
+          <p>以前我们会默认 harness 的最终形态就是代码。但这篇论文在问：高层控制逻辑是否一定要写成代码，还是可以先外部化成更便于编辑、迁移、讨论和比较的形式，再由 runtime 严格执行？</p>
+          <p>这件事对工程和研究都有价值。对工程来说，团队可以把 harness 变成像规范、合同或实验配置那样的独立对象。对研究来说，不同系统的 harness 才第一次有机会被放到同一张桌子上比较，而不是永远躲在仓库角落里。</p>
+        </section>
+
+        <section id="advantages">
+          <h2>四、这个 idea 的优点</h2>
+          <div class="list-cards">
+            <div class="list-card">
+              <strong>优点 1：把 harness 变成可见对象</strong>
+              <p>很多团队其实已经有 harness，只是它们藏在代码和约定里。NLAH 的价值是把这层逻辑抽出来，让它可以被审阅、修改、版本化和比较。对团队协作来说，这比“让新人去读 controller 代码猜规则”友好多了。</p>
+            </div>
+            <div class="list-card">
+              <strong>优点 2：天然适合迁移与复用</strong>
+              <p>一旦 harness 变成可移植 artifact，你就更容易把一套高层控制策略从 coding 任务迁到 computer-use 任务，或者从一个 runtime 迁到另一个 runtime。摘要里提到的 lightweight adapters，正是在为这种复用打底。</p>
+            </div>
+            <div class="list-card">
+              <strong>优点 3：降低 harness 迭代门槛</strong>
+              <p>如果 harness 必须改代码才能调整，很多高层策略实验的成本会很高。自然语言 harness 至少在理论上让“先改策略、再跑 runtime”这件事更轻。对于探索性很强的 agent 项目，这个方向很有吸引力。</p>
+            </div>
+            <div class="list-card">
+              <strong>优点 4：更容易做 module ablation</strong>
+              <p>摘要明确提到 module ablation，这说明作者把 harness 模块化地看待。对研究者而言，这是大优点：只有当 harness 被拆成较清晰的模块，才有可能研究哪些控制逻辑真有贡献，哪些只是惯例。</p>
+            </div>
+            <div class="list-card">
+              <strong>优点 5：更接近“标准化 harness 层”</strong>
+              <p>显式 contracts、durable artifacts、lightweight adapters 这三个词放在一起，透露出很强的平台工程意味。它不是在卖一个新 prompt 技巧，而是在尝试建立一层比较稳定的 harness substrate。对 Harness Engineering 来说，这是非常正路的方向。</p>
+            </div>
+            <div class="list-card">
+              <strong>优点 6：让 harness 更像科学对象，而不是私有魔法</strong>
+              <p>这是我最认同的一点。摘要里直接说，要让 harness 更容易 transfer、compare、study as a scientific object。也就是说，作者不满足于“我们团队自己能跑”，而是想让 harness 从内部技巧，变成可以被累积和讨论的公共知识。</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="caveats">
+          <h2>五、需要保留的谨慎</h2>
+          <p>这里需要诚实一点：我们目前能稳定核实到的原始信息主要来自 arXiv 摘要，所以以下几点属于基于摘要做出的工程判断，而不是论文全文已被完全证实的结论。</p>
+          <p>第一，natural-language harness 的优势，前提是 runtime contracts 足够强。否则“从代码外部化成自然语言”很可能只是把隐式逻辑从一处挪到另一处，并没有真正消除歧义。</p>
+          <p>第二，code-to-text harness migration 很值得关注，但这类迁移通常会面临表达精度损失的问题。高层策略适合用自然语言表达，不代表底层边界条件也适合。真正成熟的系统可能仍然需要“文本做高层、代码守底线”的双层结构。这一点是我的推断。</p>
+          <p>第三，coding 和 computer-use benchmark 能说明 operational viability，但不自动代表它能无缝迁到生产环境。真实系统有权限、审计、状态一致性、异步副作用等问题，这些都可能要求 harness 最终仍保留一部分强类型执行层。</p>
+        </section>
+
+        <section id="placement">
+          <h2>六、为什么它该进 Harness 板块</h2>
+          <p>这篇论文不应该被塞进普通论文区，因为它讨论的中心并不是某个新模型或某个 benchmark 分数，而是 harness 作为控制层如何被表达和执行。</p>
+          <p>如果说 OpenAI 的 <em>Harness Engineering</em> 把问题定义成“系统能力越来越取决于 harness”，AutoHarness 进一步回答“能不能让 harness 自动合成”，那么这篇 <em>Natural-Language Agent Harnesses</em> 则在追问另一个同样关键的问题：<strong>harness 能不能被表达成一种独立、便携、可比较的 artifact，而不是永远埋在代码里。</strong></p>
+          <p>所以我会把它放成 Harness 系列里的下一篇，接在 AutoHarness 后面。这个顺序很自然：人工写 harness、自动写 code harness、再到把 harness 外部化成自然语言并交给统一 runtime 执行。</p>
+        </section>
+
+        <section id="takeaways">
+          <h2>重点结论</h2>
+          <div class="list-cards">
+            <div class="list-card"><strong>结论 1</strong><p>这篇论文最大的价值，是把 harness 从控制器实现细节提升成独立对象。</p></div>
+            <div class="list-card"><strong>结论 2</strong><p>NLAH + IHR 的组合，本质上是在搭一层“可执行的 harness 表达层”。</p></div>
+            <div class="list-card"><strong>结论 3</strong><p>它对 Harness Engineering 的贡献，不在于更会写 prompt，而在于让 harness 更可移植、可比较、可研究。</p></div>
+            <div class="list-card"><strong>结论 4</strong><p>如果这个方向成立，未来团队维护的就不只是 agent controller，还会维护一套独立的 harness artifact 库。</p></div>
+            <div class="list-card"><strong>结论 5</strong><p>它很适合进入 Harness 板块，而且非常适合作为“harness 外部化”这一子线索的代表条目。</p></div>
+          </div>
+        </section>
+
+        <section id="source">
+          <h2>原始来源</h2>
+          <div class="source-box">
+            <p><strong>论文标题：</strong>Natural-Language Agent Harnesses</p>
+            <p><strong>作者：</strong>Linyue Pan, Lexiao Zou, Shuo Guo, Jingchen Ni, Hai-Tao Zheng</p>
+            <p><strong>arXiv 提交日期：</strong>2026-03-26</p>
+            <p><strong>arXiv：</strong><a href="https://arxiv.org/abs/2603.25723" target="_blank" rel="noopener">https://arxiv.org/abs/2603.25723</a></p>
+            <p><strong>alphaXiv：</strong><a href="https://www.alphaxiv.org/abs/2603.25723" target="_blank" rel="noopener">https://www.alphaxiv.org/abs/2603.25723</a></p>
+            <p style="margin-top:10px;">说明：本文解读里，关于 NLAH、IHR、contracts、durable artifacts、lightweight adapters、以及 coding / computer-use benchmark 的直接描述，来自 arXiv 摘要；关于其长期工程含义与双层结构判断，则是我基于摘要作出的工程推断。</p>
+          </div>
+          <div class="article-nav">
+            <a class="btn primary" href="../index.html#h-11">返回索引位置</a>
+            <a class="btn" href="autoharness-deepmind.html">上一篇</a>
+            <a class="btn" href="../index.html">回到首页</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>本站内容为对原文的中文解读与读后评注，不是逐字转载。原文版权归作者与发布方所有。</p>
+    <p>站点部署方式：静态 HTML + GitHub Pages。</p>
+  </footer>
+</body>
+</html>
