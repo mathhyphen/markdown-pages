@@ -604,45 +604,45 @@
 
           <h3>1.2 架构关系图</h3>
           <div class="flow-diagram">
-            <svg width="600" height="320" viewBox="0 0 600 320">
+            <svg width="700" height="360" viewBox="0 0 700 360">
               <!-- Natural Language Space -->
-              <rect x="180" y="10" width="240" height="70" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
-              <text x="300" y="35" text-anchor="middle" font-size="11" fill="#4338ca" font-weight="600">Natural Language Space</text>
-              <rect x="200" y="45" width="80" height="26" rx="4" fill="#c7d2fe"/>
-              <text x="240" y="63" text-anchor="middle" font-size="9" fill="#4338ca">System Prompt</text>
-              <rect x="290" y="45" width="80" height="26" rx="4" fill="#c7d2fe"/>
-              <text x="330" y="63" text-anchor="middle" font-size="9" fill="#4338ca">User Task</text>
-              <rect x="380" y="45" width="80" height="26" rx="4" fill="#c7d2fe"/>
-              <text x="420" y="63" text-anchor="middle" font-size="9" fill="#4338ca">Tool Response</text>
+              <rect x="150" y="8" width="400" height="85" rx="10" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+              <text x="350" y="32" text-anchor="middle" font-size="14" fill="#4338ca" font-weight="600">Natural Language Space</text>
+              <rect x="170" y="45" width="110" height="38" rx="6" fill="#c7d2fe"/>
+              <text x="225" y="70" text-anchor="middle" font-size="12" fill="#4338ca">System Prompt</text>
+              <rect x="295" y="45" width="110" height="38" rx="6" fill="#c7d2fe"/>
+              <text x="350" y="70" text-anchor="middle" font-size="12" fill="#4338ca">User Task</text>
+              <rect x="420" y="45" width="110" height="38" rx="6" fill="#c7d2fe"/>
+              <text x="475" y="70" text-anchor="middle" font-size="12" fill="#4338ca">Tool Response</text>
 
               <!-- Arrows down -->
-              <line x1="240" y1="71" x2="240" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
-              <line x1="330" y1="71" x2="330" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
-              <line x1="420" y1="71" x2="420" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
+              <line x1="225" y1="83" x2="225" y2="108" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
+              <line x1="350" y1="83" x2="350" y2="108" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
+              <line x1="475" y1="83" x2="475" y2="108" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
 
               <!-- QueryEnginePort -->
-              <rect x="220" y="100" width="160" height="50" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-              <text x="300" y="130" text-anchor="middle" font-size="12" fill="#1d4ed8" font-weight="600">QueryEnginePort</text>
+              <rect x="260" y="115" width="180" height="55" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+              <text x="350" y="148" text-anchor="middle" font-size="14" fill="#1d4ed8" font-weight="600">QueryEnginePort</text>
 
               <!-- Arrows to runtime -->
-              <line x1="300" y1="150" x2="300" y2="175" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)"/>
+              <line x1="350" y1="170" x2="350" y2="195" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)"/>
 
               <!-- Harness Runtime Layer -->
-              <rect x="100" y="180" width="400" height="80" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
-              <text x="300" y="200" text-anchor="middle" font-size="11" fill="#15803d" font-weight="600">Harness Runtime Layer</text>
-              <rect x="120" y="210" width="110" height="40" rx="6" fill="#bbf7d0"/>
-              <text x="175" y="234" text-anchor="middle" font-size="9" fill="#166534">PortRuntime</text>
-              <rect x="245" y="210" width="110" height="40" rx="6" fill="#bbf7d0"/>
-              <text x="300" y="234" text-anchor="middle" font-size="9" fill="#166534">Tool Registry</text>
-              <rect x="370" y="210" width="110" height="40" rx="6" fill="#bbf7d0"/>
-              <text x="425" y="234" text-anchor="middle" font-size="9" fill="#166534">Command Reg</text>
+              <rect x="80" y="205" width="540" height="95" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+              <text x="350" y="230" text-anchor="middle" font-size="14" fill="#15803d" font-weight="600">Harness Runtime Layer</text>
+              <rect x="100" y="245" width="150" height="45" rx="8" fill="#bbf7d0"/>
+              <text x="175" y="273" text-anchor="middle" font-size="12" fill="#166534" font-weight="500">PortRuntime</text>
+              <rect x="275" y="245" width="150" height="45" rx="8" fill="#bbf7d0"/>
+              <text x="350" y="273" text-anchor="middle" font-size="12" fill="#166534" font-weight="500">Tool Registry</text>
+              <rect x="450" y="245" width="150" height="45" rx="8" fill="#bbf7d0"/>
+              <text x="525" y="273" text-anchor="middle" font-size="12" fill="#166534" font-weight="500">Command Registry</text>
 
               <!-- Arrow down -->
-              <line x1="300" y1="260" x2="300" y2="280" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow)"/>
+              <line x1="350" y1="300" x2="350" y2="325" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow)"/>
 
               <!-- Reference -->
-              <rect x="180" y="285" width="240" height="30" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-              <text x="300" y="305" text-anchor="middle" font-size="10" fill="#b45309">Reference: tools_snapshot.json</text>
+              <rect x="200" y="332" width="300" height="28" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="350" y="351" text-anchor="middle" font-size="12" fill="#b45309">Reference: tools_snapshot.json</text>
 
               <!-- Arrow marker -->
               <defs>
@@ -761,45 +761,45 @@
 
           <h3>4.1 持久化流程</h3>
           <div class="flow-diagram">
-            <svg width="550" height="200" viewBox="0 0 550 200">
+            <svg width="700" height="220" viewBox="0 0 700 220">
               <!-- QueryEnginePort -->
-              <rect x="20" y="60" width="120" height="60" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-              <text x="80" y="85" text-anchor="middle" font-size="10" fill="#1d4ed8" font-weight="600">QueryEnginePort</text>
-              <text x="80" y="100" text-anchor="middle" font-size="8" fill="#3b82f6">In-Memory State</text>
+              <rect x="20" y="50" width="140" height="70" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+              <text x="90" y="80" text-anchor="middle" font-size="12" fill="#1d4ed8" font-weight="600">QueryEnginePort</text>
+              <text x="90" y="98" text-anchor="middle" font-size="10" fill="#3b82f6">In-Memory State</text>
 
               <!-- Arrow -->
-              <text x="150" y="95" text-anchor="middle" font-size="16" fill="#3b82f6">→</text>
+              <text x="170" y="90" text-anchor="middle" font-size="20" fill="#3b82f6">→</text>
 
               <!-- TranscriptStore -->
-              <rect x="170" y="60" width="120" height="60" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-              <text x="230" y="85" text-anchor="middle" font-size="10" fill="#b45309" font-weight="600">TranscriptStore</text>
-              <text x="230" y="100" text-anchor="middle" font-size="8" fill="#f59e0b">Serialization</text>
+              <rect x="190" y="50" width="150" height="70" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="265" y="80" text-anchor="middle" font-size="12" fill="#b45309" font-weight="600">TranscriptStore</text>
+              <text x="265" y="98" text-anchor="middle" font-size="10" fill="#f59e0b">Serialization</text>
 
               <!-- Arrow -->
-              <text x="300" y="95" text-anchor="middle" font-size="16" fill="#f59e0b">→</text>
+              <text x="350" y="90" text-anchor="middle" font-size="20" fill="#f59e0b">→</text>
 
               <!-- StoredSession -->
-              <rect x="320" y="60" width="120" height="60" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
-              <text x="380" y="85" text-anchor="middle" font-size="10" fill="#15803d" font-weight="600">StoredSession</text>
-              <text x="380" y="100" text-anchor="middle" font-size="8" fill="#22c55e">Dataclass</text>
+              <rect x="370" y="50" width="150" height="70" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+              <text x="445" y="80" text-anchor="middle" font-size="12" fill="#15803d" font-weight="600">StoredSession</text>
+              <text x="445" y="98" text-anchor="middle" font-size="10" fill="#22c55e">Dataclass</text>
 
               <!-- Arrow -->
-              <text x="450" y="95" text-anchor="middle" font-size="16" fill="#22c55e">→</text>
+              <text x="530" y="90" text-anchor="middle" font-size="20" fill="#22c55e">→</text>
 
               <!-- FileSystem -->
-              <rect x="470" y="60" width="70" height="60" rx="8" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2"/>
-              <text x="505" y="85" text-anchor="middle" font-size="10" fill="#7c3aed" font-weight="600">File</text>
-              <text x="505" y="100" text-anchor="middle" font-size="8" fill="#8b5cf6">System</text>
+              <rect x="550" y="50" width="130" height="70" rx="10" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2"/>
+              <text x="615" y="80" text-anchor="middle" font-size="12" fill="#7c3aed" font-weight="600">FileSystem</text>
+              <text x="615" y="98" text-anchor="middle" font-size="10" fill="#8b5cf6">.port_sessions/</text>
 
               <!-- Labels -->
-              <text x="80" y="145" text-anchor="middle" font-size="8" fill="#6b7280">flush_transcript()</text>
-              <text x="230" y="145" text-anchor="middle" font-size="8" fill="#6b7280">entries</text>
-              <text x="380" y="145" text-anchor="middle" font-size="8" fill="#6b7280">save_session()</text>
-              <text x="505" y="145" text-anchor="middle" font-size="8" fill="#6b7280">.port_sessions/</text>
+              <text x="90" y="150" text-anchor="middle" font-size="10" fill="#6b7280">flush_transcript()</text>
+              <text x="265" y="150" text-anchor="middle" font-size="10" fill="#6b7280">entries</text>
+              <text x="445" y="150" text-anchor="middle" font-size="10" fill="#6b7280">save_session()</text>
+              <text x="615" y="150" text-anchor="middle" font-size="10" fill="#6b7280">load_session()</text>
 
               <!-- Recovery path -->
-              <path d="M 505 120 L 505 170 L 80 170 L 80 130" fill="none" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="4"/>
-              <text x="290" y="185" text-anchor="middle" font-size="8" fill="#8b5cf6">from_saved_session(session_id) ← Recovery</text>
+              <path d="M 615 120 L 615 175 L 90 175 L 90 135" fill="none" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5"/>
+              <text x="350" y="195" text-anchor="middle" font-size="10" fill="#8b5cf6">← Recovery: from_saved_session(session_id)</text>
             </svg>
           </div>
 
