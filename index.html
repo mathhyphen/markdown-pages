@@ -2,759 +2,831 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AI 技术阅读站 | Annotated Reading Room for Agent Builders</title>
   <meta name="description" content="把 AI Agent、Harness Engineering、Claude Cookbooks、工具教程与论文整理成一间可导航的中文研究阅读室。">
   <link rel="stylesheet" href="./assets/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #fafbfc;
+      --bg-secondary: #ffffff;
+      --bg-sidebar: #f6f8fa;
+      --text-primary: #1f2328;
+      --text-secondary: #656d76;
+      --text-muted: #8b949e;
+      --accent-blue: #0969da;
+      --accent-green: #1a7f37;
+      --accent-purple: #8250df;
+      --accent-orange: #bf8700;
+      --border-color: #d0d7de;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .home-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 0;
+      max-width: 1400px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    /* Left Sidebar */
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      padding: 24px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-brand {
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-brand a {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: block;
+    }
+
+    .sidebar-brand a:hover {
+      color: var(--accent-blue);
+    }
+
+    .sidebar-brand .subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .toc-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .toc-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .toc-nav a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.88rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .toc-nav a:hover {
+      background: rgba(9, 105, 218, 0.08);
+      color: var(--accent-blue);
+      border-left-color: var(--accent-blue);
+    }
+
+    .toc-nav a.active {
+      background: rgba(9, 105, 218, 0.12);
+      color: var(--accent-blue);
+      font-weight: 600;
+      border-left-color: var(--accent-blue);
+    }
+
+    .toc-nav .nav-icon {
+      font-size: 0.8rem;
+    }
+
+    /* Main Content */
+    .main-content {
+      padding: 32px 48px;
+      max-width: 1000px;
+    }
+
+    /* Hero Section */
+    .hero {
+      margin-bottom: 40px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .hero-kicker {
+      font-size: 0.8rem;
+      color: var(--accent-blue);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .hero-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0 0 12px;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    .hero-lead {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin: 0 0 20px;
+      max-width: 600px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      color: white;
+      border: 1px solid var(--accent-blue);
+    }
+
+    .btn-primary:hover {
+      background: #0860ca;
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-sidebar);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Recent Updates Section */
+    .recent-updates {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 1px solid #fcd34d;
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      margin-bottom: 36px;
+    }
+
+    .recent-updates h3 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .recent-updates h3::before {
+      content: "🆕";
+    }
+
+    .update-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .update-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .update-badge {
+      flex-shrink: 0;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      color: #b45309;
+    }
+
+    .update-content {
+      flex: 1;
+    }
+
+    .update-content a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .update-content a:hover {
+      text-decoration: underline;
+    }
+
+    .update-content p {
+      margin: 2px 0 0;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* Section Headers */
+    .section-header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .section-kicker {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-blue);
+      margin: 0 0 4px;
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: var(--text-primary);
+    }
+
+    .section-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    /* Series Section */
+    .series-section {
+      margin-bottom: 48px;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .card-index {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .badge-source-OpenAI { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+    .badge-source-Anthropic { background: #f3e8ff; border-color: #c084fc; color: #7c3aed; }
+    .badge-source-Microsoft { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+    .badge-source-Research { background: #fef3c7; border-color: #fcd34d; color: #b45309; }
+    .badge-source-instructkr { background: #dcf0e7; border-color: #a7d9c2; color: #1a7f37; }
+    .badge-source-Tools { background: #fef3c7; border-color: #fcd34d; color: #b45309; }
+
+    .card h4 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .card h4 a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .card h4 a:hover {
+      color: var(--accent-blue);
+    }
+
+    .card p {
+      margin: 0 0 12px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .card-actions a {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .card-actions .primary {
+      background: var(--accent-blue);
+      color: white;
+    }
+
+    .card-actions .primary:hover {
+      background: #0860ca;
+    }
+
+    .card-actions .secondary {
+      background: var(--bg-sidebar);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+
+    .card-actions .secondary:hover {
+      background: #eaeef2;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 48px;
+    }
+
+    footer a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .home-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 16px;
+      }
+
+      .toc-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .toc-nav a {
+        padding: 6px 12px;
+        border-left: none;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+      }
+
+      .toc-nav a:hover, .toc-nav a.active {
+        border-left: 1px solid var(--accent-blue);
+      }
+
+      .main-content {
+        padding: 24px 16px;
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-stats {
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+    }
+  </style>
 </head>
-<body class="home-page">
+<body>
+  <div class="home-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <a href="./index.html">AI 技术阅读站</a>
+        <div class="subtitle">Annotated Reading Room</div>
+      </div>
 
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="brand-lockup">
-      <a class="brand" href="./index.html">AI 技术阅读站</a>
-      <span class="edition-chip">Curated Index 2026</span>
-    </div>
-    <div class="top-actions">
-      <nav class="top-nav">
-        <a href="#signal-board" class="nav-link">进入方式</a>
-        <a href="#harness-series" class="nav-link">Harness</a>
-        <a href="#cookbooks-series" class="nav-link">Cookbooks</a>
-        <a href="#tools-series" class="nav-link">工具教程</a>
-        <a href="#papers-series" class="nav-link">论文阅读</a>
+      <div class="toc-title">导航</div>
+      <nav class="toc-nav">
+        <a href="#recent" class="active"><span class="nav-icon">📌</span>最近更新</a>
+        <a href="#harness-series"><span class="nav-icon">⚙️</span>Harness 工程</a>
+        <a href="#cookbooks-series"><span class="nav-icon">📚</span>Cookbooks</a>
+        <a href="#tools-series"><span class="nav-icon">🔧</span>工具教程</a>
+        <a href="#papers-series"><span class="nav-icon">📄</span>论文阅读</a>
       </nav>
-      <a class="btn small ghost" href="https://github.com/mathhyphen/markdown-pages">GitHub</a>
-    </div>
-  </div>
-</header>
-
-<main class="home-shell">
-  <section class="hero-stage">
-    <div class="hero-copy">
-      <p class="kicker">Annotated reading room for AI agent builders</p>
-      <h1>把 AI Agent 学习资料，重新设计成一张真正能导航的首页。</h1>
-      <p class="lead">这里不是“链接堆放区”，而是一间适合备课、做分享、补工程直觉和串研究线索的数字阅览室。首页先告诉你从哪里进入，再带你进入每个资料库。</p>
-
-      <div class="hero-actions">
-        <a class="btn primary" href="#harness-series">先看 Harness</a>
-        <a class="btn" href="#signal-board">按任务选入口</a>
-      </div>
-
-      <div class="metric-row">
-        <article class="metric-card">
-          <span class="metric-label">Archive</span>
-          <strong>29</strong>
-          <p>篇整理后的入口与导读</p>
-        </article>
-        <article class="metric-card">
-          <span class="metric-label">Formats</span>
-          <strong>HTML / PPT / Papers</strong>
-          <p>阅读、展示与索引都能直接用</p>
-        </article>
-        <article class="metric-card">
-          <span class="metric-label">Focus</span>
-          <strong>Runtime First</strong>
-          <p>优先建立 agent 运行时和工程感</p>
-        </article>
-      </div>
-    </div>
-
-    <aside class="hero-panel">
-      <div class="panel-block">
-        <p class="panel-kicker">Curator Note</p>
-        <h2>首页的工作，不只是“好看”，而是帮访问者更快做出下一步判断。</h2>
-        <p>如果你是第一次来，这一页应该让你在 30 秒内知道先去哪里。如果你是第二次来，它应该像一张高密度导航图，而不是一面冗长的海报。</p>
-      </div>
-
-      <div class="panel-block">
-        <p class="panel-kicker">Reading Protocol</p>
-        <div class="protocol-list">
-          <div class="protocol-step">
-            <span class="protocol-no">1</span>
-            <div>
-              <strong>先定任务</strong>
-              <p>做 agent 工程，先看 Harness；要做课程和分享，先看 Cookbooks。</p>
-            </div>
-          </div>
-          <div class="protocol-step">
-            <span class="protocol-no">2</span>
-            <div>
-              <strong>再选介质</strong>
-              <p>要对外讲解就先看 PPT 或演示页，要深入吸收再读全文。</p>
-            </div>
-          </div>
-          <div class="protocol-step">
-            <span class="protocol-no">3</span>
-            <div>
-              <strong>最后串研究</strong>
-              <p>把工程直觉和论文线索接起来，避免只会喊“agent 很重要”。</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel-block panel-block-compact">
-        <div class="mini-stats">
-          <div>
-            <span>11</span>
-            <p>Harness 核心条目</p>
-          </div>
-          <div>
-            <span>11</span>
-            <p>Cookbooks 导读</p>
-          </div>
-          <div>
-            <span>5</span>
-            <p>论文阅读入口</p>
-          </div>
-        </div>
-      </div>
     </aside>
-  </section>
 
-  <section class="marquee-band" aria-label="archive qualities">
-    <span>工程导向</span>
-    <span>中文注释整理</span>
-    <span>适合备课与分享</span>
-    <span>兼顾 runtime 与 research</span>
-    <span>静态 HTML 可直接发布</span>
-  </section>
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-kicker">Annotated Reading Room for AI Agent Builders</div>
+        <h1 class="hero-title">把 AI Agent 学习资料，重新设计成一张真正能导航的首页</h1>
+        <p class="hero-lead">这里不是"链接堆放区"，而是一间适合备课、做分享、补工程直觉和串研究线索的数字阅览室。</p>
+        <div class="hero-actions">
+          <a href="#harness-series" class="btn btn-primary">先看 Harness</a>
+          <a href="#recent" class="btn btn-secondary">查看更新</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-value">30+</span>
+            <span class="stat-label">篇整理后的入口与导读</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">HTML</span>
+            <span class="stat-label">阅读、展示与索引</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">Runtime</span>
+            <span class="stat-label">优先建立工程感</span>
+          </div>
+        </div>
+      </section>
 
-  <section id="signal-board" class="signal-board">
-    <div class="section-intro">
-      <p class="section-kicker">Start Here</p>
-      <h2>按你的任务进入，不按时间线硬读。</h2>
-      <p>首页不要求所有人从同一篇开始。更好的做法，是先选你当前最需要解决的问题，再进入对应资料库。</p>
-    </div>
+      <!-- Recent Updates -->
+      <section class="recent-updates" id="recent">
+        <h3>最近更新</h3>
+        <ul class="update-list">
+          <li class="update-item">
+            <span class="update-badge">H-12</span>
+            <div class="update-content">
+              <a href="./articles/claw-code-architecture.html">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</a>
+              <p>深度解析 instructkr/claw-code 项目，揭示 Agent Harness 的核心设计逻辑</p>
+            </div>
+          </li>
+          <li class="update-item">
+            <span class="update-badge">T-02</span>
+            <div class="update-content">
+              <a href="./articles/claude-code-boris-15-tips.html">Claude Code 15 条高频实战技巧整理</a>
+              <p>跨端接力、自动化、前端验证、worktree 并行与自定义 agent 五个工作流</p>
+            </div>
+          </li>
+          <li class="update-item">
+            <span class="update-badge">P-05</span>
+            <div class="update-content">
+              <a href="./papers/regression-is-all-you-need-medical-image-translation.html">Regression is all you need</a>
+              <p>YODA 论文导读：强条件医疗图像翻译里，回归采样往往比昂贵扩散更快、更稳</p>
+            </div>
+          </li>
+        </ul>
+      </section>
 
-    <div class="lane-grid">
-      <a class="lane-card" href="#harness-series">
-        <span class="lane-no">01</span>
-        <h3>先把 Agent 跑稳</h3>
-        <p>从 Harness、Responses API、PLANS.md 入手，优先建立运行时意识和可持续执行感。</p>
-        <div class="lane-links">
-          <span>Harness Engineering</span>
-          <span>Responses API</span>
-          <span>PLANS.md</span>
+      <!-- Harness Series -->
+      <section class="series-section" id="harness-series">
+        <div class="section-header">
+          <div class="section-kicker">01 / Runtime Studies</div>
+          <h2 class="section-title">Harness Engineering</h2>
+          <p class="section-desc">OpenAI、Anthropic、Microsoft、Google DeepMind 的 agent 工程文章汇成一个运行时资料库。</p>
         </div>
-      </a>
 
-      <a class="lane-card" href="#cookbooks-series">
-        <span class="lane-no">02</span>
-        <h3>准备做分享或课程</h3>
-        <p>Cookbooks 区适合快速补理论框架，再配合 PPT 把复杂主题讲得更顺。</p>
-        <div class="lane-links">
-          <span>Agent 模式篇</span>
-          <span>响应工程篇</span>
-          <span>完整索引</span>
-        </div>
-      </a>
+        <div class="cards-grid">
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-12</span>
+              <span class="badge badge-source-instructkr">instructkr</span>
+              <span class="badge">2026-04-01</span>
+            </div>
+            <h4><a href="./articles/claw-code-architecture.html">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</a></h4>
+            <p>Claude Code 源码泄露后，instructkr 团队选择从零理解其架构设计，复刻出完整的 Agent Harness 工程逻辑。</p>
+            <div class="card-actions">
+              <a href="./articles/claw-code-architecture.html" class="primary">阅读全文</a>
+              <a href="https://github.com/instructkr/claw-code" class="secondary">查看源码</a>
+            </div>
+          </article>
 
-      <a class="lane-card" href="#tools-series">
-        <span class="lane-no">03</span>
-        <h3>先解决手边工具问题</h3>
-        <p>当系统设计聊得太高空时，回到工具教程，把服务器、连接链路和开发环境先搭稳。</p>
-        <div class="lane-links">
-          <span>XShell</span>
-          <span>xftp</span>
-          <span>Remote-SSH</span>
-        </div>
-      </a>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-09</span>
+              <span class="badge badge-source-Anthropic">Anthropic</span>
+              <span class="badge">2026-03-24</span>
+            </div>
+            <h4><a href="./articles/harness-design-long-running-apps.html">Harness Design：三代理架构驱动的长时间应用开发</a></h4>
+            <p>GAN 启发的三代理架构让 Claude 在前端设计和全栈开发中实现多小时稳定运行。</p>
+            <div class="card-actions">
+              <a href="./articles/harness-design-long-running-apps.html" class="primary">阅读全文</a>
+            </div>
+          </article>
 
-      <a class="lane-card" href="#papers-series">
-        <span class="lane-no">04</span>
-        <h3>把工程感接到研究感</h3>
-        <p>当你已经有了系统直觉，就去论文区看方法论如何落在图像建模与流匹配问题上。</p>
-        <div class="lane-links">
-          <span>Flow Matching</span>
-          <span>Rectified Flow</span>
-          <span>Medical Imaging</span>
-        </div>
-      </a>
-    </div>
-  </section>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-11</span>
+              <span class="badge">arXiv</span>
+              <span class="badge">2026-03-26</span>
+            </div>
+            <h4><a href="./articles/natural-language-agent-harnesses.html">Natural-Language Agent Harnesses</a></h4>
+            <p>把高层 harness 逻辑从 controller code 里抽出来，表达成可编辑自然语言。</p>
+            <div class="card-actions">
+              <a href="./articles/natural-language-agent-harnesses.html" class="primary">阅读全文</a>
+              <a href="https://arxiv.org/abs/2603.25723" class="secondary">arXiv</a>
+            </div>
+          </article>
 
-  <section class="spotlight-band" id="spotlights">
-    <div class="section-intro section-intro-tight">
-      <p class="section-kicker">Spotlight</p>
-      <h2>如果你只打算点开 4 个入口，可以先看这里。</h2>
-    </div>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-10</span>
+              <span class="badge">Google DeepMind</span>
+              <span class="badge">2026-02-10</span>
+            </div>
+            <h4><a href="./articles/autoharness-deepmind.html">AutoHarness：让 LLM 自动合成 code harness</a></h4>
+            <p>DeepMind 把 harness 从人工手写推进到自动合成，先解决非法动作与环境约束。</p>
+            <div class="card-actions">
+              <a href="./articles/autoharness-deepmind.html" class="primary">阅读全文</a>
+            </div>
+          </article>
 
-    <div class="spotlight-grid">
-      <article class="spotlight-card">
-        <span class="spotlight-tag">Runtime / OpenAI</span>
-        <h3>Harness Engineering</h3>
-        <p>适合作为整个站点的总索引起点，先建立“agent 时代什么才算工程能力”的总框架。</p>
-        <a class="btn primary" href="./articles/harness-engineering.html">阅读全文</a>
-      </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-03</span>
+              <span class="badge badge-source-OpenAI">OpenAI</span>
+              <span class="badge">2026-03-11</span>
+            </div>
+            <h4><a href="./articles/responses-computer-environment.html">Responses API：Agent 化的关键一跃</a></h4>
+            <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
+            <div class="card-actions">
+              <a href="./articles/responses-computer-environment.html" class="primary">阅读全文</a>
+            </div>
+          </article>
 
-      <article class="spotlight-card">
-        <span class="spotlight-tag">Cookbooks / Anthropic</span>
-        <h3>Agent 模式篇</h3>
-        <p>把链式、并行、路由和编排放在同一个视角下看，最适合做系统化补课。</p>
-        <a class="btn primary" href="./cookbooks/05-agent-patterns.html">进入导读</a>
-      </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-05</span>
+              <span class="badge badge-source-Anthropic">Anthropic</span>
+              <span class="badge">2025-11-26</span>
+            </div>
+            <h4><a href="./articles/anthropic-long-running-harnesses.html">Long Running Agents：长时间运行的 agent</a></h4>
+            <p>长任务失败往往不是因为模型短期不会做，而是无法在多轮执行中保持稳定状态。</p>
+            <div class="card-actions">
+              <a href="./articles/anthropic-long-running-harnesses.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+        </div>
+      </section>
 
-      <article class="spotlight-card">
-        <span class="spotlight-tag">Design / Anthropic</span>
-        <h3>Harness Design</h3>
-        <p>三代理架构如何支撑长时间运行的应用开发，是这批材料里非常“未来正在发生”的一篇。</p>
-        <a class="btn primary" href="./articles/harness-design-long-running-apps.html">阅读全文</a>
-      </article>
+      <!-- Cookbooks Series -->
+      <section class="series-section" id="cookbooks-series">
+        <div class="section-header">
+          <div class="section-kicker">02 / Structured Learning</div>
+          <h2 class="section-title">Claude Cookbooks 中文导读</h2>
+          <p class="section-desc">从能力地图到模式设计，再到集成与部署，这一栏更适合系统补课和快速备课。</p>
+        </div>
 
-      <article class="spotlight-card">
-        <span class="spotlight-tag">Research / Rectified Flow</span>
-        <h3>I2I-RFR</h3>
-        <p>如果你想把工程方法感延伸到论文阅读，这篇很适合拿来做一步式图像翻译的研究入口。</p>
-        <a class="btn primary" href="./papers/i2i-rectified-flow-reformulation.html">阅读论文导读</a>
-      </article>
-    </div>
-  </section>
+        <div class="cards-grid">
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">C-01</span>
+              <span class="badge badge-source-Anthropic">Anthropic</span>
+            </div>
+            <h4><a href="./cookbooks/01-repo-overview.html">仓库总览：Cookbooks 到底在教什么</a></h4>
+            <p>建立对整个仓库的认知地图，理解 66 个 recipes 的分类与重点。</p>
+            <div class="card-actions">
+              <a href="./cookbooks/01-repo-overview.html" class="primary">阅读全文</a>
+            </div>
+          </article>
 
-  <section id="harness-series" class="series-section">
-    <div class="section-header">
-      <div>
-        <p class="section-kicker">01 / Runtime Studies</p>
-        <h2 class="section-title">Harness Engineering</h2>
-        <p class="section-desc">OpenAI、Anthropic、Microsoft、Google DeepMind 的 agent 工程文章汇成一个运行时资料库。</p>
-      </div>
-      <p class="section-note">如果你准备认真做 agent，这一栏大概率属于“迟早都得回来补课”的基础设施文学。</p>
-    </div>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">C-05</span>
+              <span class="badge badge-source-Anthropic">Anthropic</span>
+            </div>
+            <h4><a href="./cookbooks/05-agent-patterns.html">Agent 模式篇：链式、并行、路由与编排</a></h4>
+            <p>各种 Agent 编排模式的适用场景与实现方法。</p>
+            <div class="card-actions">
+              <a href="./cookbooks/05-agent-patterns.html" class="primary">阅读全文</a>
+            </div>
+          </article>
 
-    <div class="grid cols-2 archive-grid">
-      <article class="card archive-card" id="h-1">
-        <div class="meta">
-          <span class="card-index">H-01</span>
-          <span class="badge source-OpenAI">OpenAI</span>
-          <span class="badge">2026-02-11</span>
-        </div>
-        <h3>Harness Engineering：Agent First 世界里的工程生产力</h3>
-        <p>当代码主要由 agent 产出时，工程团队真正要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/harness-engineering.html">演示页</a>
-          <a class="btn" href="./articles/harness-engineering.html">阅读全文</a>
-        </div>
-      </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">C-06</span>
+              <span class="badge badge-source-Anthropic">Anthropic</span>
+            </div>
+            <h4><a href="./cookbooks/06-claude-agent-sdk.html">Claude Agent SDK：把模式落成代理</a></h4>
+            <p>如何用 SDK 把理论模式工程化落地。</p>
+            <div class="card-actions">
+              <a href="./cookbooks/06-claude-agent-sdk.html" class="primary">阅读全文</a>
+            </div>
+          </article>
 
-      <article class="card archive-card" id="h-2">
-        <div class="meta">
-          <span class="card-index">H-02</span>
-          <span class="badge source-OpenAI">OpenAI</span>
-          <span class="badge">2026-02-04</span>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">C-07</span>
+              <span class="badge badge-source-Anthropic">Anthropic</span>
+            </div>
+            <h4><a href="./cookbooks/07-responses-and-performance.html">响应工程篇：JSON、缓存、引用、评测</a></h4>
+            <p>提升稳定性、压缩成本、提升可控性。</p>
+            <div class="card-actions">
+              <a href="./cookbooks/07-responses-and-performance.html" class="primary">阅读全文</a>
+            </div>
+          </article>
         </div>
-        <h3>Unlocking the Codex Harness：App Server 多客户端架构</h3>
-        <p>同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/unlocking-codex-harness.html">演示页</a>
-          <a class="btn" href="./articles/unlocking-codex-harness.html">阅读全文</a>
-        </div>
-      </article>
+      </section>
 
-      <article class="card archive-card" id="h-3">
-        <div class="meta">
-          <span class="card-index">H-03</span>
-          <span class="badge source-OpenAI">OpenAI</span>
-          <span class="badge">2026-03-11</span>
+      <!-- Tools Series -->
+      <section class="series-section" id="tools-series">
+        <div class="section-header">
+          <div class="section-kicker">03 / Practical Utilities</div>
+          <h2 class="section-title">工具教程</h2>
+          <p class="section-desc">把最实际的开发连接问题讲清楚，适合在工程准备阶段快速查阅。</p>
         </div>
-        <h3>Responses API：Agent 化的关键一跃</h3>
-        <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/responses-computer-environment.html">演示页</a>
-          <a class="btn" href="./articles/responses-computer-environment.html">阅读全文</a>
-        </div>
-      </article>
 
-      <article class="card archive-card" id="h-4">
-        <div class="meta">
-          <span class="card-index">H-04</span>
-          <span class="badge source-OpenAI">OpenAI</span>
-          <span class="badge">2026-01-23</span>
-        </div>
-        <h3>Unrolling the Codex Agent Loop：可靠性细节</h3>
-        <p>从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率的运行时细节。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/unrolling-codex-agent-loop.html">演示页</a>
-          <a class="btn" href="./articles/unrolling-codex-agent-loop.html">阅读全文</a>
-        </div>
-      </article>
+        <div class="cards-grid">
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">T-02</span>
+              <span class="badge badge-source-Tools">Claude Code</span>
+              <span class="badge">2026-03-30</span>
+            </div>
+            <h4><a href="./articles/claude-code-boris-15-tips.html">Claude Code 15 条高频实战技巧整理</a></h4>
+            <p>跨端接力、自动化、前端验证、worktree 并行与自定义 agent 五个工作流主题。</p>
+            <div class="card-actions">
+              <a href="./articles/claude-code-boris-15-tips.html" class="primary">阅读全文</a>
+            </div>
+          </article>
 
-      <article class="card archive-card" id="h-5">
-        <div class="meta">
-          <span class="card-index">H-05</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">2025-11-26</span>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">T-01</span>
+              <span class="badge badge-source-Tools">工具教程</span>
+              <span class="badge">2026-03-27</span>
+            </div>
+            <h4><a href="./articles/server-connection-guide.html">服务器连接指南</a></h4>
+            <p>详细介绍使用 XShell、xftp 以及 VSCode Remote-SSH 连接远程服务器的完整步骤。</p>
+            <div class="card-actions">
+              <a href="./articles/server-connection-guide.html" class="primary">阅读全文</a>
+            </div>
+          </article>
         </div>
-        <h3>Long Running Agents：长时间运行的 agent</h3>
-        <p>长任务失败往往不是因为模型短期不会做，而是无法在多轮、多小时执行中保持稳定状态。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/anthropic-long-running-harnesses.html">演示页</a>
-          <a class="btn" href="./articles/anthropic-long-running-harnesses.html">阅读全文</a>
-        </div>
-      </article>
+      </section>
 
-      <article class="card archive-card" id="h-6">
-        <div class="meta">
-          <span class="card-index">H-06</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">2025-09-29</span>
+      <!-- Papers Series -->
+      <section class="series-section" id="papers-series">
+        <div class="section-header">
+          <div class="section-kicker">04 / Research Shelf</div>
+          <h2 class="section-title">论文阅读</h2>
+          <p class="section-desc">研究区刻意保持更像论文索引页的气质，用来把工程直觉延展到图像生成与流匹配问题。</p>
         </div>
-        <h3>Context Engineering：上下文不是越多越好</h3>
-        <p>真正的问题从来不是“有没有上下文”，而是“给模型的 token 是否在当前时刻最值得占用注意力”。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/anthropic-context-engineering.html">演示页</a>
-          <a class="btn" href="./articles/anthropic-context-engineering.html">阅读全文</a>
-        </div>
-      </article>
 
-      <article class="card archive-card" id="h-7">
-        <div class="meta">
-          <span class="card-index">H-07</span>
-          <span class="badge source-Microsoft">Microsoft</span>
-          <span class="badge">2025-12-26</span>
-        </div>
-        <h3>Azure SRE Agent：工具收敛的生产经验</h3>
-        <p>微软在构建 Azure SRE Agent 时发现，复杂问题常常要靠删减、收敛和外化状态来解决。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/azure-sre-agent-context-engineering.html">演示页</a>
-          <a class="btn" href="./articles/azure-sre-agent-context-engineering.html">阅读全文</a>
-        </div>
-      </article>
+        <div class="cards-grid">
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">P-05</span>
+              <span class="badge badge-source-Research">Medical Imaging</span>
+              <span class="badge">2025-10-21</span>
+            </div>
+            <h4><a href="./papers/regression-is-all-you-need-medical-image-translation.html">Regression is all you need</a></h4>
+            <p>YODA 论文导读：强条件医疗图像翻译里，回归采样往往比昂贵扩散更快、更稳，也更保真。</p>
+            <div class="card-actions">
+              <a href="./papers/regression-is-all-you-need-medical-image-translation.html" class="primary">阅读全文</a>
+            </div>
+          </article>
 
-      <article class="card archive-card" id="h-8">
-        <div class="meta">
-          <span class="card-index">H-08</span>
-          <span class="badge">OpenAI Cookbook</span>
-          <span class="badge">2025-10-07</span>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">P-04</span>
+              <span class="badge badge-source-Research">Rectified Flow</span>
+              <span class="badge">2026-03-20</span>
+            </div>
+            <h4><a href="./papers/i2i-rectified-flow-reformulation.html">I2I-RFR：图像翻译的修正流重构</a></h4>
+            <p>将标准 I2I 回归网络重新表述为连续时间传输模型，1 步推理即可完成高质量翻译。</p>
+            <div class="card-actions">
+              <a href="./papers/i2i-rectified-flow-reformulation.html" class="primary">阅读全文</a>
+            </div>
+          </article>
         </div>
-        <h3>PLANS.md：活计划支撑数小时执行</h3>
-        <p>把“计划”从一次性草稿变成贯穿执行全程的活文档，支撑 agent 在多小时任务里持续推进。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/plans-md-multi-hour-problem-solving.html">演示页</a>
-          <a class="btn" href="./articles/plans-md-multi-hour-problem-solving.html">阅读全文</a>
-        </div>
-      </article>
+      </section>
+    </main>
+  </div>
 
-      <article class="card archive-card" id="h-9">
-        <div class="meta">
-          <span class="card-index">H-09</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">2026-03-24</span>
-        </div>
-        <h3>Harness Design：三代理架构驱动的长时间应用开发</h3>
-        <p>GAN 启发的三代理架构让 Claude 在前端设计和全栈开发中实现多小时稳定运行。</p>
-        <div class="actions">
-          <a class="btn primary" href="./slides/harness-design-long-running-apps.html">演示页</a>
-          <a class="btn" href="./articles/harness-design-long-running-apps.html">阅读全文</a>
-        </div>
-      </article>
+  <footer>
+    <p>本站内容为中文注释与读后整理，不是逐字转载。目标不是把材料堆满，而是让它们更容易被进入、串联和复用。</p>
+    <p>站点技术：静态 HTML + GitHub Pages · <a href="https://github.com/mathhyphen/markdown-pages">查看源码</a></p>
+  </footer>
 
-      <article class="card archive-card" id="h-10">
-        <div class="meta">
-          <span class="card-index">H-10</span>
-          <span class="badge">Google DeepMind</span>
-          <span class="badge">2026-02-10</span>
-        </div>
-        <h3>AutoHarness：让 LLM 自动合成 code harness</h3>
-        <p>DeepMind 把 harness 从人工手写推进到自动合成：先解决非法动作与环境约束，再进一步把策略编译成代码外壳。</p>
-        <div class="actions">
-          <a class="btn primary" href="./articles/autoharness-deepmind.html">阅读全文</a>
-          <a class="btn" href="https://arxiv.org/abs/2603.03329">查看论文</a>
-        </div>
-      </article>
+  <script>
+    // TOC active state on scroll
+    const sections = document.querySelectorAll('.series-section[id]');
+    const navLinks = document.querySelectorAll('.toc-nav a');
 
-      <article class="card archive-card" id="h-11">
-        <div class="meta">
-          <span class="card-index">H-11</span>
-          <span class="badge">arXiv</span>
-          <span class="badge">2026-03-26</span>
-        </div>
-        <h3>Natural-Language Agent Harnesses：把 harness 外部化成可执行文本</h3>
-        <p>这篇论文把高层 harness 逻辑从 controller code 里抽出来，表达成可编辑自然语言，并交给共享 runtime 通过 contracts 与 artifacts 执行。</p>
-        <div class="actions">
-          <a class="btn primary" href="./articles/natural-language-agent-harnesses.html">阅读全文</a>
-          <a class="btn" href="https://arxiv.org/abs/2603.25723">查看论文</a>
-        </div>
-      </article>
+    function highlightActive() {
+      const scrollPos = window.scrollY + 200;
 
-      <article class="card archive-card" id="h-12">
-        <div class="meta">
-          <span class="card-index">H-12</span>
-          <span class="badge source-instructkr">instructkr</span>
-          <span class="badge">2026-04-01</span>
-        </div>
-        <h3>从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</h3>
-        <p>Claude Code 源码泄露后，instructkr 团队选择从零理解其架构设计，复刻出完整的 Agent Harness 工程逻辑。</p>
-        <div class="actions">
-          <a class="btn primary" href="./articles/claw-code-architecture.html">阅读全文</a>
-          <a class="btn" href="https://github.com/instructkr/claw-code">查看源码</a>
-        </div>
-      </article>
-    </div>
-  </section>
+      let activeId = 'recent';
+      sections.forEach(section => {
+        if (scrollPos >= section.offsetTop) {
+          activeId = section.id;
+        }
+      });
 
-  <section id="cookbooks-series" class="series-section">
-    <div class="section-header">
-      <div>
-        <p class="section-kicker">02 / Structured Learning</p>
-        <h2 class="section-title">Claude Cookbooks 中文导读</h2>
-        <p class="section-desc">从能力地图到模式设计，再到集成与部署，这一栏更适合系统补课和快速备课。</p>
-      </div>
-      <p class="section-note">如果你的目标是“把主题讲清楚”，Cookbooks 是最省时间的中层结构；看完再回工程文章，理解会更稳。</p>
-    </div>
-
-    <div class="grid cols-2 archive-grid">
-      <article class="card archive-card" id="c-1">
-        <div class="meta">
-          <span class="card-index">C-01</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">01</span>
-        </div>
-        <h3>仓库总览：Cookbooks 到底在教什么</h3>
-        <p>建立对整个仓库的认知地图，理解 66 个 recipes 的分类与重点。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/01-repo-overview.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/01-repo-overview.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="c-2">
-        <div class="meta">
-          <span class="card-index">C-02</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">02</span>
-        </div>
-        <h3>基础能力篇：分类、RAG、摘要、Text-to-SQL</h3>
-        <p>Claude 在知识库问答场景下的原子能力详解。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/02-capabilities.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/02-capabilities.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="c-3">
-        <div class="meta">
-          <span class="card-index">C-03</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">03</span>
-        </div>
-        <h3>工具调用篇：函数调用与工具生态</h3>
-        <p>从基础函数调用到完整工具生态系统的实现路径。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/03-tool-use.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/03-tool-use.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="c-4">
-        <div class="meta">
-          <span class="card-index">C-04</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">04</span>
-        </div>
-        <h3>多模态篇：视觉、文档、图表理解</h3>
-        <p>图像、PDF、表单处理等多模态场景实践。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/04-multimodal.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/04-multimodal.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="c-5">
-        <div class="meta">
-          <span class="card-index">C-05</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">05</span>
-        </div>
-        <h3>Agent 模式篇：链式、并行、路由与编排</h3>
-        <p>各种 Agent 编排模式的适用场景与实现方法。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/05-agent-patterns.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/05-agent-patterns.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="c-6">
-        <div class="meta">
-          <span class="card-index">C-06</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">06</span>
-        </div>
-        <h3>Claude Agent SDK：把模式落成代理</h3>
-        <p>如何用 SDK 把理论模式工程化落地。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/06-claude-agent-sdk.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/06-claude-agent-sdk.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="c-7">
-        <div class="meta">
-          <span class="card-index">C-07</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">07</span>
-        </div>
-        <h3>响应工程篇：JSON、缓存、引用、评测</h3>
-        <p>提升稳定性、压缩成本、提升可控性。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/07-responses-and-performance.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/07-responses-and-performance.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="c-8">
-        <div class="meta">
-          <span class="card-index">C-08</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">08</span>
-        </div>
-        <h3>生态集成篇：LlamaIndex、Pinecone、MongoDB</h3>
-        <p>如何接入现成的向量数据库与生态工具。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/08-integrations.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/08-integrations.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="c-9">
-        <div class="meta">
-          <span class="card-index">C-09</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">09</span>
-        </div>
-        <h3>Skills 与微调：垂直化能力</h3>
-        <p>如何通过 Skills 扩展和微调构建垂直能力。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/09-skills-finetuning.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/09-skills-finetuning.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="c-10">
-        <div class="meta">
-          <span class="card-index">C-10</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">10</span>
-        </div>
-        <h3>完整索引：66 个 Recipes 逐条导读</h3>
-        <p>完整覆盖所有 66 个 recipe 的导读目录。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/10-full-inventory.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/10-full-inventory.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="c-11">
-        <div class="meta">
-          <span class="card-index">C-11</span>
-          <span class="badge source-Anthropic">Anthropic</span>
-          <span class="badge">11</span>
-        </div>
-        <h3>发布篇：GitHub Pages 部署</h3>
-        <p>如何把这套内容发布到 GitHub Pages。</p>
-        <div class="actions">
-          <a class="btn primary" href="./cookbooks-slides/11-github-pages-deploy.pptx">PPT</a>
-          <a class="btn" href="./cookbooks/11-github-pages-deploy.html">阅读全文</a>
-        </div>
-      </article>
-    </div>
-  </section>
-
-  <section id="tools-series" class="series-section">
-    <div class="section-header">
-      <div>
-        <p class="section-kicker">03 / Practical Utilities</p>
-        <h2 class="section-title">工具教程</h2>
-        <p class="section-desc">把最实际的开发连接问题讲清楚，适合在工程准备阶段快速查阅。</p>
-      </div>
-      <p class="section-note">当系统设计聊得太高空时，回到这里会提醒人一件事：真正的第一步，常常只是先把服务器连上。</p>
-    </div>
-
-    <div class="grid cols-2 archive-grid">
-      <article class="card archive-card" id="t-1">
-        <div class="meta">
-          <span class="card-index">T-01</span>
-          <span class="badge source-Tools">工具教程</span>
-          <span class="badge">2026-03-27</span>
-        </div>
-        <h3>服务器连接指南</h3>
-        <p>详细介绍使用 XShell、xftp 以及 VSCode Remote-SSH 连接远程服务器的完整步骤。</p>
-        <div class="actions">
-          <a class="btn primary" href="./articles/server-connection-guide.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="t-2">
-        <div class="meta">
-          <span class="card-index">T-02</span>
-          <span class="badge source-Tools">Claude Code</span>
-          <span class="badge">2026-03-30</span>
-        </div>
-        <h3>Claude Code 15 条高频实战技巧整理</h3>
-        <p>把 Boris 最新分享的 15 条 Claude Code 用法，重组为跨端接力、自动化、前端验证、worktree 并行与自定义 agent 五个工作流主题。</p>
-        <div class="actions">
-          <a class="btn primary" href="./articles/claude-code-boris-15-tips.html">阅读全文</a>
-          <a class="btn" href="https://x.com/AlchainHust/status/2038478220136194536">查看原帖</a>
-        </div>
-      </article>
-    </div>
-  </section>
-
-  <section id="papers-series" class="series-section">
-    <div class="section-header">
-      <div>
-        <p class="section-kicker">04 / Research Shelf</p>
-        <h2 class="section-title">论文阅读</h2>
-        <p class="section-desc">研究区刻意保持更像论文索引页的气质，用来把工程直觉延展到图像生成与流匹配问题。</p>
-      </div>
-      <p class="section-note">这里不需要被包装成营销式首页。更重要的是清楚、克制，以及让方法论之间的关系一眼可见。</p>
-    </div>
-
-    <div class="grid cols-2 archive-grid">
-      <article class="card archive-card" id="p-1">
-        <div class="meta">
-          <span class="card-index">P-01</span>
-          <span class="badge source-Research">cs.CV</span>
-          <span class="badge">2025-08-29</span>
-          <span class="badge">Flow Matching</span>
-        </div>
-        <h3>Temporal Flow Matching：4D 纵向医学影像预测</h3>
-        <p>一种统一的生成轨迹方法，用于从稀疏、不规则的纵向医学影像数据中预测未来图像，并在三个数据集上建立新的 state-of-the-art。</p>
-        <div class="actions">
-          <a class="btn primary" href="./papers/temporal-flow-matching.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="p-2">
-        <div class="meta">
-          <span class="card-index">P-02</span>
-          <span class="badge source-Research">cs.CV</span>
-          <span class="badge">2025-07-19</span>
-          <span class="badge">GAN / Diffusion</span>
-        </div>
-        <h3>MRI 图像翻译基准评测：GAN vs Diffusion vs Flow Matching</h3>
-        <p>对 T1w 到 T2w MRI 图像翻译任务进行基准评测，Pix2Pix 在结构保真度和效率上均优于扩散模型和流匹配方法。</p>
-        <div class="actions">
-          <a class="btn primary" href="./papers/mri-translation-benchmark.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="p-3">
-        <div class="meta">
-          <span class="card-index">P-03</span>
-          <span class="badge source-Research">cs.CV</span>
-          <span class="badge">2025-11-25</span>
-          <span class="badge">Rectified Flow</span>
-        </div>
-        <h3>TReFT：一步式图像翻译的修正流模型</h3>
-        <p>通过在 t=1 处直接预测目标图像来“驯服”修正流模型，实现高质量一步式图像翻译。</p>
-        <div class="actions">
-          <a class="btn primary" href="./papers/treft-rectified-flow.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="p-4">
-        <div class="meta">
-          <span class="card-index">P-04</span>
-          <span class="badge source-Research">cs.CV</span>
-          <span class="badge">2026-03-20</span>
-          <span class="badge">Rectified Flow</span>
-        </div>
-        <h3>I2I-RFR：图像翻译的修正流重构</h3>
-        <p>将标准 I2I 回归网络重新表述为连续时间传输模型，插件式设计只需扩展输入通道，1 步推理即可完成高质量翻译。</p>
-        <div class="actions">
-          <a class="btn primary" href="./papers/i2i-rectified-flow-reformulation.html">阅读全文</a>
-        </div>
-      </article>
-
-      <article class="card archive-card" id="p-5">
-        <div class="meta">
-          <span class="card-index">P-05</span>
-          <span class="badge source-Research">eess.IV</span>
-          <span class="badge">2025-10-21</span>
-          <span class="badge">Medical Imaging</span>
-        </div>
-        <h3>Regression is all you need：医疗图像翻译里别把写实噪声当成进步</h3>
-        <p>YODA 这篇论文最尖锐的地方，不是又做出一个更强 diffusion，而是系统地论证：在强条件医疗图像翻译里，回归采样往往比昂贵扩散更快、更稳，也更保真。</p>
-        <div class="actions">
-          <a class="btn primary" href="./papers/regression-is-all-you-need-medical-image-translation.html">阅读全文</a>
-        </div>
-      </article>
-    </div>
-  </section>
-</main>
-
-<footer class="footer">
-  <p>本站内容为中文注释与读后整理，不是逐字转载。目标不是把材料堆满，而是让它们更容易被进入、串联和复用。</p>
-  <p>站点技术：静态 HTML + GitHub Pages · <a href="https://github.com/mathhyphen/markdown-pages">查看源码</a></p>
-</footer>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const groups = [
-    {
-      section: document.getElementById('signal-board'),
-      navLink: document.querySelector('.top-nav a[href="#signal-board"]')
-    },
-    {
-      section: document.getElementById('harness-series'),
-      navLink: document.querySelector('.top-nav a[href="#harness-series"]')
-    },
-    {
-      section: document.getElementById('cookbooks-series'),
-      navLink: document.querySelector('.top-nav a[href="#cookbooks-series"]')
-    },
-    {
-      section: document.getElementById('tools-series'),
-      navLink: document.querySelector('.top-nav a[href="#tools-series"]')
-    },
-    {
-      section: document.getElementById('papers-series'),
-      navLink: document.querySelector('.top-nav a[href="#papers-series"]')
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + activeId) {
+          link.classList.add('active');
+        }
+      });
     }
-  ];
 
-  const allNavLinks = Array.from(document.querySelectorAll('.top-nav a'));
-  const scrollOffset = 180;
-
-  function setActiveGroup(activeIndex) {
-    allNavLinks.forEach(function (link) {
-      link.classList.remove('active');
-    });
-
-    const activeGroup = groups[activeIndex];
-    if (activeGroup && activeGroup.navLink) {
-      activeGroup.navLink.classList.add('active');
-    }
-  }
-
-  function updateActiveGroup() {
-    const scrollPos = window.scrollY + scrollOffset;
-    let activeIndex = 0;
-
-    groups.forEach(function (group, index) {
-      if (group.section && scrollPos >= group.section.offsetTop) {
-        activeIndex = index;
-      }
-    });
-
-    setActiveGroup(activeIndex);
-  }
-
-  document.querySelectorAll('a[href^="#"]').forEach(function (link) {
-    link.addEventListener('click', function (event) {
-      const target = document.querySelector(this.getAttribute('href'));
-      if (!target) {
-        return;
-      }
-      event.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
-
-  window.addEventListener('scroll', updateActiveGroup, { passive: true });
-  updateActiveGroup();
-});
-</script>
-
+    window.addEventListener('scroll', highlightActive, { passive: true });
+    highlightActive();
+  </script>
 </body>
 </html>
