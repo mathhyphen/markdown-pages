@@ -6,428 +6,935 @@
   <title>从泄露源码到完整复刻：一个项目如何深度解构 Claude Code | AI 技术阅读站</title>
   <meta name="description" content="深度解析 instructkr/claw-code 项目——一个因 Claude Code 源码泄露而诞生的深度复刻，揭示 Agent Harness 的核心设计逻辑">
   <link rel="stylesheet" href="../assets/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    .article-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
-    .badge { padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
-    .badge-source { background: #6366f1; color: white; }
-    .badge-source-instructkr { background: #10b981; color: white; }
-    .badge-type { background: #374151; color: white; }
-    .badge-date { background: #6b7280; color: white; }
-    .toc { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 24px 0; }
-    .toc h4 { margin-top: 0; }
-    .toc ul { margin: 0; padding-left: 20px; }
-    .toc li { margin: 6px 0; }
-    .diagram { background: #1f2937; color: #e5e7eb; padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; font-family: monospace; font-size: 0.85rem; line-height: 1.6; }
-    .component-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .component-table th, .component-table td { border: 1px solid #e5e7eb; padding: 12px; text-align: left; }
-    .component-table th { background: #f9fafb; font-weight: 600; }
-    .component-table tr:hover { background: #f9fafb; }
-    .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 24px 0; }
-    .pros, .cons { padding: 20px; border-radius: 8px; }
-    .pros { background: #ecfdf5; border: 1px solid #10b981; }
-    .cons { background: #fef2f2; border: 1px solid #ef4444; }
-    .pros h4, .cons h4 { margin-top: 0; }
-    .pros ul, .cons ul { margin: 0; padding-left: 20px; }
-    .pros li, .cons li { margin: 8px 0; }
-    .highlight-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 16px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
-    .architecture-layer { margin: 24px 0; padding: 20px; background: #f9fafb; border-radius: 8px; }
-    .layer-title { font-size: 1.1rem; font-weight: 700; color: #1f2937; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
-    .code-block { background: #1f2937; color: #e5e7eb; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: monospace; font-size: 0.85rem; margin: 16px 0; }
-    h2 { margin-top: 40px; }
-    h3 { margin-top: 28px; color: #374151; }
-    @media (max-width: 768px) {
-      .pros-cons { grid-template-columns: 1fr; }
+    :root {
+      --bg-primary: #fafbfc;
+      --bg-secondary: #ffffff;
+      --bg-sidebar: #f6f8fa;
+      --text-primary: #1f2328;
+      --text-secondary: #656d76;
+      --text-muted: #8b949e;
+      --accent-blue: #0969da;
+      --accent-green: #1a7f37;
+      --accent-purple: #8250df;
+      --accent-orange: #bf8700;
+      --border-color: #d0d7de;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .article-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 0;
+      max-width: 1400px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    /* Left Sidebar */
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      padding: 28px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-brand a {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .sidebar-brand a:hover {
+      color: var(--accent-blue);
+    }
+
+    .toc-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .toc-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .toc-nav a {
+      display: block;
+      padding: 8px 12px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .toc-nav a:hover {
+      background: rgba(9, 105, 218, 0.08);
+      color: var(--accent-blue);
+      border-left-color: var(--accent-blue);
+    }
+
+    .toc-nav a.active {
+      background: rgba(9, 105, 218, 0.12);
+      color: var(--accent-blue);
+      font-weight: 600;
+      border-left-color: var(--accent-blue);
+    }
+
+    .toc-nav .section-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      padding: 16px 12px 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Main Content */
+    .main-content {
+      padding: 48px 60px;
+      max-width: 900px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+
+    .breadcrumb a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    .breadcrumb span {
+      color: var(--text-secondary);
+    }
+
+    /* Article Header */
+    .article-header {
+      margin-bottom: 40px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .article-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .badge-source { background: #dcf0e7; border-color: #a7d9c2; color: #1a7f37; }
+    .badge-date { background: #f6f8fa; }
+
+    .article-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 0 0 16px;
+      color: var(--text-primary);
+    }
+
+    .article-lead {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      margin: 0;
+      line-height: 1.7;
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 48px;
+      scroll-margin-top: 24px;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 28px 0 14px;
+      color: var(--text-primary);
+    }
+
+    p {
+      margin: 0 0 16px;
+      color: var(--text-secondary);
+    }
+
+    strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88em;
+      background: var(--bg-sidebar);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      color: var(--accent-purple);
+    }
+
+    ul, ol {
+      margin: 0 0 16px;
+      padding-left: 24px;
+      color: var(--text-secondary);
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    /* Highlight Box */
+    .highlight-box {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--accent-blue);
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+
+    .highlight-box strong {
+      color: var(--accent-blue);
+    }
+
+    /* Architecture Layers */
+    .layer-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .layer-card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .layer-card .layer-num {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      background: var(--accent-blue);
+      color: white;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 24px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-right: 10px;
+    }
+
+    .layer-card .layer-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
+
+    .layer-card p {
+      margin: 8px 0 0 34px;
+      font-size: 0.9rem;
+    }
+
+    /* Component Table */
+    .component-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.9rem;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .component-table th {
+      background: var(--bg-sidebar);
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .component-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .component-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .component-table tr:hover td {
+      background: rgba(9, 105, 218, 0.03);
+    }
+
+    .component-table code {
+      font-size: 0.82em;
+    }
+
+    /* Pros/Cons */
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 24px 0;
+    }
+
+    .card-pros, .card-cons {
+      padding: 20px 24px;
+      border-radius: var(--radius-md);
+    }
+
+    .card-pros {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 1px solid #86efac;
+    }
+
+    .card-cons {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border: 1px solid #fca5a5;
+    }
+
+    .card-pros h4, .card-cons h4 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .card-pros h4 { color: var(--accent-green); }
+    .card-cons h4 { color: #dc2626; }
+
+    .card-pros ul, .card-cons ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .card-pros li, .card-cons li {
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    /* Flow Diagrams - SVG based */
+    .flow-diagram {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin: 24px 0;
+      overflow-x: auto;
+    }
+
+    .flow-diagram svg {
+      display: block;
+      margin: 0 auto;
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Session Flow */
+    .session-flow {
+      margin: 24px 0;
+    }
+
+    .session-flow .flow-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .flow-box {
+      background: var(--bg-sidebar);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-align: center;
+      min-width: 140px;
+    }
+
+    .flow-box.highlight {
+      background: #dbeafe;
+      border-color: #93c5fd;
+      color: var(--accent-blue);
+    }
+
+    .flow-box.persist {
+      background: #fef3c7;
+      border-color: #fcd34d;
+      color: #b45309;
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+    }
+
+    .flow-label {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    /* Conclusion */
+    .conclusion-box {
+      background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+      border: 1px solid #fde047;
+      border-left: 4px solid #ca8a04;
+      padding: 20px 24px;
+      margin: 24px 0;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+
+    .conclusion-box strong {
+      color: #a16207;
+    }
+
+    .ref-links {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .ref-links h4 {
+      margin: 0 0 12px;
+      font-size: 0.95rem;
+    }
+
+    .ref-links ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .ref-links li {
+      margin-bottom: 8px;
+    }
+
+    .ref-links a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .ref-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 60px;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .article-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 16px;
+      }
+
+      .toc-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .toc-nav a {
+        padding: 6px 10px;
+        border-left: none;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+      }
+
+      .toc-nav a:hover, .toc-nav a.active {
+        border-left: 1px solid var(--accent-blue);
+      }
+
+      .main-content {
+        padding: 24px 20px;
+      }
+
+      .pros-cons {
+        grid-template-columns: 1fr;
+      }
+
+      .article-title {
+        font-size: 1.7rem;
+      }
     }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand-lockup">
-        <a class="brand" href="../index.html">AI 技术阅读站</a>
-        <span class="edition-chip">Annotated Edition</span>
+  <div class="article-layout">
+    <!-- Left Sidebar / TOC -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <a href="../index.html">← 返回首页</a>
       </div>
-      <div class="top-actions">
-        <nav class="top-nav">
-          <a href="../index.html#signal-board">入口导航</a>
-          <a href="../index.html#harness-series">Harness 系列</a>
-          <a href="../index.html#papers-series">论文阅读</a>
-        </nav>
-      </div>
-    </div>
-  </header>
+      <div class="toc-title">目录</div>
+      <nav class="toc-nav">
+        <a href="#overview">1. 项目概述</a>
+        <a href="#architecture">2. 核心架构</a>
+        <a href="#components">3. 关键组件</a>
+        <a href="#session">4. 会话持久化</a>
+        <a href="#bootstrap">5. 引导初始化</a>
+        <a href="#parity">6. Parity Audit</a>
+        <a href="#pros-cons">7. 优缺点</a>
+        <a href="#conclusion">8. 总结</a>
+      </nav>
+    </aside>
 
-  <main class="content-container" style="max-width: 860px; margin: 0 auto; padding: 40px 20px;">
-    <nav style="margin-bottom: 24px; color: #6b7280; font-size: 0.9rem;">
-      <a href="../index.html">首页</a> /
-      <a href="../index.html#harness-series">Harness</a> /
-      <span>Claw Code 架构解析</span>
-    </nav>
+    <!-- Main Content -->
+    <main class="main-content">
+      <nav class="breadcrumb">
+        <a href="../index.html">首页</a>
+        <span>/</span>
+        <a href="../index.html#harness-series">Harness</a>
+        <span>/</span>
+        <span>Claw Code 架构解析</span>
+      </nav>
 
-    <article>
-      <header style="margin-bottom: 32px;">
-        <div class="article-meta">
-          <span class="badge badge-source-instructkr">instructkr/claw-code</span>
-          <span class="badge badge-type">Clean-Room Implementation</span>
-          <span class="badge badge-date">2026-04-01</span>
-        </div>
-        <h1 style="font-size: 2rem; line-height: 1.3; margin: 12px 0;">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</h1>
-        <p class="lead" style="font-size: 1.15rem; color: #4b5563; margin: 0;">
-          Claude Code 源码泄露引发关注后，社区没有停留在围观层面。本文深度解析 instructkr/claw-code 项目如何从零复刻这个 Agent Harness，从架构设计到工程细节，揭示其完整的设计逻辑。
-        </p>
-      </header>
+      <article>
+        <header class="article-header">
+          <div class="article-meta">
+            <span class="badge badge-source">instructkr/claw-code</span>
+            <span class="badge">深度复刻</span>
+            <span class="badge badge-date">2026-04-01</span>
+          </div>
+          <h1 class="article-title">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</h1>
+          <p class="article-lead">Claude Code 源码泄露引发关注后，社区没有停留在围观层面。本文深度解析 instructkr/claw-code 项目如何从零复刻这个 Agent Harness，从架构设计到工程细节，揭示其完整的设计逻辑。</p>
+        </header>
 
-      <details class="toc" open style="position: static; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-        <summary style="font-weight: 700; font-size: 0.95rem; color: #334155; cursor: pointer; user-select: none; list-style: none; display: flex; align-items: center; gap: 8px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-          <span>目录</span>
-        </summary>
-        <nav style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
-          <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 24px;">
-            <li style="margin: 0;"><a href="#overview" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">1. 项目概述</a></li>
-            <li style="margin: 0;"><a href="#architecture" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">2. 核心架构</a></li>
-            <li style="margin: 0;"><a href="#components" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">3. 关键组件详解</a></li>
-            <li style="margin: 0;"><a href="#session" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">4. 会话持久化机制</a></li>
-            <li style="margin: 0;"><a href="#bootstrap" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">5. 引导与初始化</a></li>
-            <li style="margin: 0;"><a href="#parity" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">6. Parity Audit 系统</a></li>
-            <li style="margin: 0;"><a href="#pros-cons" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">7. 优缺点分析</a></li>
-            <li style="margin: 0;"><a href="#conclusion" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">8. 总结</a></li>
-          </ul>
-        </nav>
-      </details>
+        <section id="overview">
+          <h2>1. 项目概述</h2>
+          <p><strong>Claw Code</strong> 是对原始 TypeScript 版 Claude Code Agent Harness 的深度复写实现。当 Claude Code 源码疑似泄露后，<code>instructkr</code> 团队选择了一条独特的路径——不是直接 fork 或复制，而是重新理解、重新设计这个 Agent Harness 的核心逻辑。</p>
 
-      <section id="overview">
-        <h2>1. 项目概述</h2>
-        <p>
-          <strong>Claw Code</strong> 是对原始 TypeScript 版 Claude Code Agent Harness 的深度复写实现。
-          当 Claude Code 源码疑似泄露后，<code>instructkr</code> 团队选择了一条独特的路径——不是直接 fork 或复制，
-          而是重新理解、重新设计这个 Agent Harness 的核心逻辑。
-        </p>
-
-        <div class="highlight-box">
-          <strong>背景：</strong>2025年底，Claude Code 源码疑似泄露引发了社区广泛讨论。
-          instructkr/claw-code 项目正是在这个背景下诞生，目标是深度解析 Agent Harness 的工程设计，而非简单的代码复制。
-          项目当前正在向高性能 Rust 运行时过渡（位于 <code>dev/rust</code> 分支）。
-        </div>
-
-        <h3>1.1 开发策略：OmX 编排</h3>
-        <p>
-          重写过程采用 <code>oh-my-codex</code> (OmX) 工作流驱动：
-        </p>
-        <ul>
-          <li><strong>$team 模式</strong>：并行评审，允许多个执行单元同时工作</li>
-          <li><strong>$ralph 模式</strong>：持久执行循环，配合架构级验证实现渐进式开发</li>
-        </ul>
-
-        <h3>1.2 架构关系图</h3>
-        <div class="diagram">
-<pre>
-┌─────────────────────────────────────────────────────────────────┐
-│              Natural Language Space (Context)                     │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
-│  │ System Prompt │───▶│   User Task   │───▶│Tool Response │      │
-│  └──────────────┘    └──────────────┘    └──────────────┘      │
-│         │                   │                    │               │
-└─────────┼───────────────────┼────────────────────┼───────────────┘
-          │                   ▼                    │
-          │         ┌──────────────────┐         │
-          │         │  QueryEnginePort │◀────────┘
-          │         └────────┬─────────┘
-          │                  │
-          ▼                  ▼
-┌─────────────────────────────────────────────────┐
-│           Harness Runtime Layer                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────┐ │
-│  │PortRuntime  │  │Tool Registry│  │ Command │ │
-│  │(Orchestrator)│  │ & Permission│  │Registry │ │
-│  └─────────────┘  └─────────────┘  └─────────┘ │
-└─────────────────────────────────────────────────┘
-          │
-          ▼
-┌─────────────────────────────────────────────────┐
-│        Reference: TypeScript Claude Code         │
-│              (tools_snapshot.json)                │
-└─────────────────────────────────────────────────┘
-</pre>
-        </div>
-      </section>
-
-      <section id="architecture">
-        <h2>2. 核心架构</h2>
-        <p>
-          Claw Code 采用分层架构，从上到下分为：自然语言空间、执行运行时层、命令工具层和引导初始化层。
-        </p>
-
-        <div class="architecture-layer">
-          <div class="layer-title">Layer 1: CLI 入口与数据模型</div>
-          <p>最顶层是用户交互入口点，包含主入口 (<code>src/main.py</code>) 和核心数据结构 (<code>src/models.py</code>)。</p>
-        </div>
-
-        <div class="architecture-layer">
-          <div class="layer-title">Layer 2: Port 与 Context 管理</div>
-          <p>Port Manifest (<code>src/port_manifest.py</code>) 和 Context (<code>src/context.py</code>) 负责管理端口抽象和运行时上下文。</p>
-        </div>
-
-        <div class="architecture-layer">
-          <div class="layer-title">Layer 3: 运行时与执行引擎</div>
-          <p>PortRuntime (<code>src/runtime.py</code>) 和 QueryEnginePort (<code>src/query_engine.py</code>) 构成核心执行引擎。</p>
-        </div>
-
-        <div class="architecture-layer">
-          <div class="layer-title">Layer 4: 命令与工具注册表</div>
-          <p>Command Registry (<code>src/commands.py</code>)、Tool Registry (<code>src/tools.py</code>) 和 Permission System (<code>src/permissions.py</code>)。</p>
-        </div>
-
-        <div class="architecture-layer">
-          <div class="layer-title">Layer 5: 引导与初始化</div>
-          <p>Setup (<code>src/setup.py</code>)、Prefetch (<code>src/prefetch.py</code>) 和 Bootstrap Graph (<code>src/bootstrap_graph.py</code>)。</p>
-        </div>
-      </section>
-
-      <section id="components">
-        <h2>3. 关键组件详解</h2>
-
-        <h3>3.1 PortRuntime：高层编排层</h3>
-        <p>
-          <code>PortRuntime</code> 是 Claw Code 环境的中央编排层，负责管理执行循环、路由用户查询到适当的处理程序，并协调工具执行。
-        </p>
-
-        <h3>3.2 QueryEnginePort：会话生命周期</h3>
-        <p>
-          <code>QueryEnginePort</code> 负责维护对话历史、管理消息历史，并通过 <code>from_saved_session()</code> 方法支持会话恢复。
-        </p>
-
-        <h3>3.3 ToolRegistry：工具快照系统</h3>
-        <p>
-          Claw Code 维护一个 <code>tools_snapshot.json</code> 文件，包含超过 100 个工具的元数据。
-          工具发现函数支持：
-        </p>
-        <ul>
-          <li><code>get_tool(name)</code>：大小写不敏感的工具查找</li>
-          <li><code>find_tools(query, limit)</code>：模糊搜索</li>
-          <li><code>tool_names()</code>：列出所有注册工具</li>
-        </ul>
-
-        <h3>3.4 ToolPermissionContext：权限过滤</h3>
-        <p>
-          工具访问通过 <code>ToolPermissionContext</code> 控制，支持：
-        </p>
-        <ul>
-          <li><strong>deny_names</strong>：显式禁止的工具名集合</li>
-          <li><strong>deny_prefixes</strong>：前缀匹配禁止</li>
-        </ul>
-
-        <h3>3.5 命令注册表</h3>
-        <p>
-          <code>CommandRegistry</code> 管理可用命令快照，通过 <code>load_command_snapshot()</code> 从 JSON 文件加载命令定义。
-        </p>
-
-        <h3>3.6 组件关系表</h3>
-        <table class="component-table">
-          <thead>
-            <tr>
-              <th>组件</th>
-              <th>文件</th>
-              <th>职责</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>PortRuntime</td>
-              <td>src/runtime.py</td>
-              <td>中央编排器，管理执行循环和查询路由</td>
-            </tr>
-            <tr>
-              <td>QueryEnginePort</td>
-              <td>src/query_engine.py</td>
-              <td>对话历史、会话生命周期、消息管理</td>
-            </tr>
-            <tr>
-              <td>ToolRegistry</td>
-              <td>src/tools.py</td>
-              <td>工具发现、快照加载、元数据管理</td>
-            </tr>
-            <tr>
-              <td>CommandRegistry</td>
-              <td>src/commands.py</td>
-              <td>命令定义加载和执行</td>
-            </tr>
-            <tr>
-              <td>ToolPermissionContext</td>
-              <td>src/permissions.py</td>
-              <td>工具访问权限过滤</td>
-            </tr>
-            <tr>
-              <td>PortManifest</td>
-              <td>src/port_manifest.py</td>
-              <td>端口抽象定义和管理</td>
-            </tr>
-            <tr>
-              <td>RuntimeContext</td>
-              <td>src/context.py</td>
-              <td>运行时上下文传递</td>
-            </tr>
-            <tr>
-              <td>SessionStore</td>
-              <td>src/session_store.py</td>
-              <td>会话持久化到文件系统</td>
-            </tr>
-            <tr>
-              <td>TranscriptStore</td>
-              <td>src/transcript.py</td>
-              <td>对话记录追加和刷新</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section id="session">
-        <h2>4. 会话持久化机制</h2>
-        <p>
-          Claw Code 确保执行状态在 CLI 调用之间持久化，由 <code>TranscriptStore</code> 和 <code>session_store.py</code> 协同完成。
-        </p>
-
-        <h3>4.1 持久化架构</h3>
-        <div class="diagram">
-<pre>
-In-Memory State          Serialization          Filesystem
-┌─────────────────┐      ┌──────────────┐      ┌──────────────────┐
-│ QueryEnginePort │─────▶│TranscriptStore│────▶│ StoredSession     │
-│                 │ flush │              │ save │ (Dataclass)      │
-└─────────────────┘      └──────────────┘      └────────┬─────────┘
-                              ▲                         │
-                              │                         ▼
-                         entries                  .port_sessions/*.json
-</pre>
-        </div>
-
-        <h3>4.2 会话恢复流程</h3>
-        <ol>
-          <li><strong>Transcript 管理</strong>：<code>TranscriptStore</code> 处理消息追加和"刷新"</li>
-          <li><strong>磁盘 I/O</strong>：<code>save_session()</code> 将 <code>StoredSession</code> 写入 <code>.port_sessions/</code> 目录</li>
-          <li><strong>恢复</strong>：通过 <code>QueryEnginePort.from_saved_session(session_id)</code> 重新加载消息历史</li>
-        </ol>
-      </section>
-
-      <section id="bootstrap">
-        <h2>5. 引导与初始化</h2>
-
-        <h3>5.1 七阶段引导图</h3>
-        <p>
-          启动过程被概念化为一个七阶段管道，由 <code>BootstrapGraph</code> 管理，确保依赖关系被正确遵守。
-        </p>
-
-        <h3>5.2 系统初始化消息</h3>
-        <p>
-          <code>build_system_init_message()</code> 函数作为整个启动状态的聚合器，
-          将 <code>SetupReport</code>、已加载命令名称列表和可用工具条目组合成单个 Markdown 格式字符串。
-        </p>
-
-        <h3>5.3 延迟初始化</h3>
-        <p>
-          <code>DeferredInitResult</code> 实现信任 gating 的插件/技能/MCP 初始化，
-          允许在验证通过后才加载扩展功能。
-        </p>
-      </section>
-
-      <section id="parity">
-        <h2>6. Parity Audit 系统</h2>
-        <p>
-          这是 Claw Code 区别于普通重写的关键特性——内置的等效性审计工具。
-        </p>
-
-        <div class="highlight-box">
-          <strong>Parity Audit 目的：</strong>测量 Python 工作空间与原始 TypeScript 快照在文件表面、命令和工具方面的匹配程度。
-        </div>
-
-        <h3>6.1 审计范围</h3>
-        <ul>
-          <li><strong>文件表面审计</strong>：检查文件结构是否与原版一致</li>
-          <li><strong>命令审计</strong>：验证命令定义完整性</li>
-          <li><strong>工具审计</strong>：确认 100+ 工具的映射状态</li>
-        </ul>
-
-        <h3>6.2 引用数据快照</h3>
-        <p>
-          <code>src/reference_data/</code> 目录包含：
-        </p>
-        <ul>
-          <li><code>tools_snapshot.json</code>：100+ 工具元数据</li>
-          <li><code>commands_snapshot.json</code>：命令定义快照</li>
-          <li><code>files_surface.json</code>：文件表面结构</li>
-        </ul>
-      </section>
-
-      <section id="pros-cons">
-        <h2>7. 优缺点分析</h2>
-
-        <div class="pros-cons">
-          <div class="pros">
-            <h4>优势</h4>
-            <ul>
-              <li><strong>深度复刻设计</strong>：避免直接复制，在理解原版基础上重新实现</li>
-              <li><strong>架构一致性</strong>：通过 Parity Audit 确保与原版功能对等</li>
-              <li><strong>多语言支持</strong>：Python 实现更易于 Python 生态集成</li>
-              <li><strong>持久会话</strong>：支持跨 CLI 调用的状态恢复</li>
-              <li><strong>权限系统</strong>：细粒度的工具访问控制</li>
-              <li><strong>Rust 迁移路径</strong>：dev/rust 分支提供性能升级路径</li>
-              <li><strong>OmX 工作流</strong>：规范的开发流程保证质量</li>
-            </ul>
+          <div class="highlight-box">
+            <strong>背景：</strong>2025年底，Claude Code 源码疑似泄露引发了社区广泛讨论。instructkr/claw-code 项目正是在这个背景下诞生，目标是深度解析 Agent Harness 的工程设计，而非简单的代码复制。项目当前正在向高性能 Rust 运行时过渡（位于 <code>dev/rust</code> 分支）。
           </div>
 
-          <div class="cons">
-            <h4>劣势</h4>
+          <h3>1.1 开发策略：OmX 编排</h3>
+          <p>重写过程采用 <code>oh-my-codex</code> (OmX) 工作流驱动：</p>
+          <ul>
+            <li><strong>$team 模式</strong>：并行评审，允许多个执行单元同时工作</li>
+            <li><strong>$ralph 模式</strong>：持久执行循环，配合架构级验证实现渐进式开发</li>
+          </ul>
+
+          <h3>1.2 架构关系图</h3>
+          <div class="flow-diagram">
+            <svg width="600" height="320" viewBox="0 0 600 320">
+              <!-- Natural Language Space -->
+              <rect x="180" y="10" width="240" height="70" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+              <text x="300" y="35" text-anchor="middle" font-size="11" fill="#4338ca" font-weight="600">Natural Language Space</text>
+              <rect x="200" y="45" width="80" height="26" rx="4" fill="#c7d2fe"/>
+              <text x="240" y="63" text-anchor="middle" font-size="9" fill="#4338ca">System Prompt</text>
+              <rect x="290" y="45" width="80" height="26" rx="4" fill="#c7d2fe"/>
+              <text x="330" y="63" text-anchor="middle" font-size="9" fill="#4338ca">User Task</text>
+              <rect x="380" y="45" width="80" height="26" rx="4" fill="#c7d2fe"/>
+              <text x="420" y="63" text-anchor="middle" font-size="9" fill="#4338ca">Tool Response</text>
+
+              <!-- Arrows down -->
+              <line x1="240" y1="71" x2="240" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
+              <line x1="330" y1="71" x2="330" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
+              <line x1="420" y1="71" x2="420" y2="95" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
+
+              <!-- QueryEnginePort -->
+              <rect x="220" y="100" width="160" height="50" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+              <text x="300" y="130" text-anchor="middle" font-size="12" fill="#1d4ed8" font-weight="600">QueryEnginePort</text>
+
+              <!-- Arrows to runtime -->
+              <line x1="300" y1="150" x2="300" y2="175" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)"/>
+
+              <!-- Harness Runtime Layer -->
+              <rect x="100" y="180" width="400" height="80" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+              <text x="300" y="200" text-anchor="middle" font-size="11" fill="#15803d" font-weight="600">Harness Runtime Layer</text>
+              <rect x="120" y="210" width="110" height="40" rx="6" fill="#bbf7d0"/>
+              <text x="175" y="234" text-anchor="middle" font-size="9" fill="#166534">PortRuntime</text>
+              <rect x="245" y="210" width="110" height="40" rx="6" fill="#bbf7d0"/>
+              <text x="300" y="234" text-anchor="middle" font-size="9" fill="#166534">Tool Registry</text>
+              <rect x="370" y="210" width="110" height="40" rx="6" fill="#bbf7d0"/>
+              <text x="425" y="234" text-anchor="middle" font-size="9" fill="#166534">Command Reg</text>
+
+              <!-- Arrow down -->
+              <line x1="300" y1="260" x2="300" y2="280" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow)"/>
+
+              <!-- Reference -->
+              <rect x="180" y="285" width="240" height="30" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="300" y="305" text-anchor="middle" font-size="10" fill="#b45309">Reference: tools_snapshot.json</text>
+
+              <!-- Arrow marker -->
+              <defs>
+                <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L9,3 z" fill="#6366f1"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+        </section>
+
+        <section id="architecture">
+          <h2>2. 核心架构</h2>
+          <p>Claw Code 采用分层架构，从上到下分为：自然语言空间、执行运行时层、命令工具层和引导初始化层。</p>
+
+          <div class="layer-card">
+            <span class="layer-num">1</span>
+            <span class="layer-name">CLI 入口与数据模型</span>
+            <p>最顶层是用户交互入口点，包含主入口 (<code>src/main.py</code>) 和核心数据结构 (<code>src/models.py</code>)。</p>
+          </div>
+
+          <div class="layer-card">
+            <span class="layer-num">2</span>
+            <span class="layer-name">Port 与 Context 管理</span>
+            <p>Port Manifest (<code>src/port_manifest.py</code>) 和 Context (<code>src/context.py</code>) 负责管理端口抽象和运行时上下文。</p>
+          </div>
+
+          <div class="layer-card">
+            <span class="layer-num">3</span>
+            <span class="layer-name">运行时与执行引擎</span>
+            <p>PortRuntime (<code>src/runtime.py</code>) 和 QueryEnginePort (<code>src/query_engine.py</code>) 构成核心执行引擎。</p>
+          </div>
+
+          <div class="layer-card">
+            <span class="layer-num">4</span>
+            <span class="layer-name">命令与工具注册表</span>
+            <p>Command Registry (<code>src/commands.py</code>)、Tool Registry (<code>src/tools.py</code>) 和 Permission System (<code>src/permissions.py</code>)。</p>
+          </div>
+
+          <div class="layer-card">
+            <span class="layer-num">5</span>
+            <span class="layer-name">引导与初始化</span>
+            <p>Setup (<code>src/setup.py</code>)、Prefetch (<code>src/prefetch.py</code>) 和 Bootstrap Graph (<code>src/bootstrap_graph.py</code>)。</p>
+          </div>
+        </section>
+
+        <section id="components">
+          <h2>3. 关键组件详解</h2>
+
+          <h3>3.1 PortRuntime：高层编排层</h3>
+          <p><code>PortRuntime</code> 是 Claw Code 环境的中央编排层，负责管理执行循环、路由用户查询到适当的处理程序，并协调工具执行。</p>
+
+          <h3>3.2 QueryEnginePort：会话生命周期</h3>
+          <p><code>QueryEnginePort</code> 负责维护对话历史、管理消息历史，并通过 <code>from_saved_session()</code> 方法支持会话恢复。</p>
+
+          <h3>3.3 ToolRegistry：工具快照系统</h3>
+          <p>Claw Code 维护一个 <code>tools_snapshot.json</code> 文件，包含超过 100 个工具的元数据。工具发现函数支持：</p>
+          <ul>
+            <li><code>get_tool(name)</code>：大小写不敏感的工具查找</li>
+            <li><code>find_tools(query, limit)</code>：模糊搜索</li>
+            <li><code>tool_names()</code>：列出所有注册工具</li>
+          </ul>
+
+          <h3>3.4 组件关系表</h3>
+          <table class="component-table">
+            <thead>
+              <tr>
+                <th>组件</th>
+                <th>文件</th>
+                <th>职责</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>PortRuntime</strong></td>
+                <td><code>src/runtime.py</code></td>
+                <td>中央编排器，管理执行循环和查询路由</td>
+              </tr>
+              <tr>
+                <td><strong>QueryEnginePort</strong></td>
+                <td><code>src/query_engine.py</code></td>
+                <td>对话历史、会话生命周期、消息管理</td>
+              </tr>
+              <tr>
+                <td><strong>ToolRegistry</strong></td>
+                <td><code>src/tools.py</code></td>
+                <td>工具发现、快照加载、元数据管理</td>
+              </tr>
+              <tr>
+                <td><strong>CommandRegistry</strong></td>
+                <td><code>src/commands.py</code></td>
+                <td>命令定义加载和执行</td>
+              </tr>
+              <tr>
+                <td><strong>ToolPermissionContext</strong></td>
+                <td><code>src/permissions.py</code></td>
+                <td>工具访问权限过滤</td>
+              </tr>
+              <tr>
+                <td><strong>SessionStore</strong></td>
+                <td><code>src/session_store.py</code></td>
+                <td>会话持久化到文件系统</td>
+              </tr>
+              <tr>
+                <td><strong>TranscriptStore</strong></td>
+                <td><code>src/transcript.py</code></td>
+                <td>对话记录追加和刷新</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="session">
+          <h2>4. 会话持久化机制</h2>
+          <p>Claw Code 确保执行状态在 CLI 调用之间持久化，由 <code>TranscriptStore</code> 和 <code>session_store.py</code> 协同完成。</p>
+
+          <h3>4.1 持久化流程</h3>
+          <div class="flow-diagram">
+            <svg width="550" height="200" viewBox="0 0 550 200">
+              <!-- QueryEnginePort -->
+              <rect x="20" y="60" width="120" height="60" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+              <text x="80" y="85" text-anchor="middle" font-size="10" fill="#1d4ed8" font-weight="600">QueryEnginePort</text>
+              <text x="80" y="100" text-anchor="middle" font-size="8" fill="#3b82f6">In-Memory State</text>
+
+              <!-- Arrow -->
+              <text x="150" y="95" text-anchor="middle" font-size="16" fill="#3b82f6">→</text>
+
+              <!-- TranscriptStore -->
+              <rect x="170" y="60" width="120" height="60" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="230" y="85" text-anchor="middle" font-size="10" fill="#b45309" font-weight="600">TranscriptStore</text>
+              <text x="230" y="100" text-anchor="middle" font-size="8" fill="#f59e0b">Serialization</text>
+
+              <!-- Arrow -->
+              <text x="300" y="95" text-anchor="middle" font-size="16" fill="#f59e0b">→</text>
+
+              <!-- StoredSession -->
+              <rect x="320" y="60" width="120" height="60" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+              <text x="380" y="85" text-anchor="middle" font-size="10" fill="#15803d" font-weight="600">StoredSession</text>
+              <text x="380" y="100" text-anchor="middle" font-size="8" fill="#22c55e">Dataclass</text>
+
+              <!-- Arrow -->
+              <text x="450" y="95" text-anchor="middle" font-size="16" fill="#22c55e">→</text>
+
+              <!-- FileSystem -->
+              <rect x="470" y="60" width="70" height="60" rx="8" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2"/>
+              <text x="505" y="85" text-anchor="middle" font-size="10" fill="#7c3aed" font-weight="600">File</text>
+              <text x="505" y="100" text-anchor="middle" font-size="8" fill="#8b5cf6">System</text>
+
+              <!-- Labels -->
+              <text x="80" y="145" text-anchor="middle" font-size="8" fill="#6b7280">flush_transcript()</text>
+              <text x="230" y="145" text-anchor="middle" font-size="8" fill="#6b7280">entries</text>
+              <text x="380" y="145" text-anchor="middle" font-size="8" fill="#6b7280">save_session()</text>
+              <text x="505" y="145" text-anchor="middle" font-size="8" fill="#6b7280">.port_sessions/</text>
+
+              <!-- Recovery path -->
+              <path d="M 505 120 L 505 170 L 80 170 L 80 130" fill="none" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="4"/>
+              <text x="290" y="185" text-anchor="middle" font-size="8" fill="#8b5cf6">from_saved_session(session_id) ← Recovery</text>
+            </svg>
+          </div>
+
+          <h3>4.2 会话恢复流程</h3>
+          <ol>
+            <li><strong>Transcript 管理</strong>：<code>TranscriptStore</code> 处理消息追加和"刷新"</li>
+            <li><strong>磁盘 I/O</strong>：<code>save_session()</code> 将 <code>StoredSession</code> 写入 <code>.port_sessions/</code> 目录</li>
+            <li><strong>恢复</strong>：通过 <code>QueryEnginePort.from_saved_session(session_id)</code> 重新加载消息历史</li>
+          </ol>
+        </section>
+
+        <section id="bootstrap">
+          <h2>5. 引导与初始化</h2>
+
+          <h3>5.1 七阶段引导图</h3>
+          <p>启动过程被概念化为一个七阶段管道，由 <code>BootstrapGraph</code> 管理，确保依赖关系被正确遵守。</p>
+
+          <h3>5.2 系统初始化消息</h3>
+          <p><code>build_system_init_message()</code> 函数作为整个启动状态的聚合器，将 <code>SetupReport</code>、已加载命令名称列表和可用工具条目组合成单个 Markdown 格式字符串。</p>
+
+          <h3>5.3 延迟初始化</h3>
+          <p><code>DeferredInitResult</code> 实现信任 gating 的插件/技能/MCP 初始化，允许在验证通过后才加载扩展功能。</p>
+        </section>
+
+        <section id="parity">
+          <h2>6. Parity Audit 系统</h2>
+          <p>这是 Claw Code 区别于普通重写的关键特性——内置的等效性审计工具。</p>
+
+          <div class="highlight-box">
+            <strong>Parity Audit 目的：</strong>测量 Python 工作空间与原始 TypeScript 快照在文件表面、命令和工具方面的匹配程度。
+          </div>
+
+          <h3>6.1 审计范围</h3>
+          <ul>
+            <li><strong>文件表面审计</strong>：检查文件结构是否与原版一致</li>
+            <li><strong>命令审计</strong>：验证命令定义完整性</li>
+            <li><strong>工具审计</strong>：确认 100+ 工具的映射状态</li>
+          </ul>
+
+          <h3>6.2 引用数据快照</h3>
+          <p><code>src/reference_data/</code> 目录包含：</p>
+          <ul>
+            <li><code>tools_snapshot.json</code>：100+ 工具元数据</li>
+            <li><code>commands_snapshot.json</code>：命令定义快照</li>
+            <li><code>files_surface.json</code>：文件表面结构</li>
+          </ul>
+        </section>
+
+        <section id="pros-cons">
+          <h2>7. 优缺点分析</h2>
+
+          <div class="pros-cons">
+            <div class="card-pros">
+              <h4>优势</h4>
+              <ul>
+                <li><strong>深度复刻设计</strong>：避免直接复制，在理解原版基础上重新实现</li>
+                <li><strong>架构一致性</strong>：通过 Parity Audit 确保与原版功能对等</li>
+                <li><strong>多语言支持</strong>：Python 实现更易于 Python 生态集成</li>
+                <li><strong>持久会话</strong>：支持跨 CLI 调用的状态恢复</li>
+                <li><strong>权限系统</strong>：细粒度的工具访问控制</li>
+                <li><strong>Rust 迁移路径</strong>：dev/rust 分支提供性能升级路径</li>
+              </ul>
+            </div>
+
+            <div class="card-cons">
+              <h4>劣势</h4>
+              <ul>
+                <li><strong>性能限制</strong>：Python 实现相比 TypeScript 原版可能有性能差距</li>
+                <li><strong>维护成本</strong>：需要同步原版 Claude Code 的更新</li>
+                <li><strong>功能覆盖</strong>：重写过程中可能遗漏原版某些边界情况</li>
+                <li><strong>社区规模</strong>：相比官方实现，社区支持和文档较少</li>
+                <li><strong>复杂度</strong>：Parity Audit 系统增加了额外维护负担</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="conclusion">
+          <h2>8. 总结</h2>
+          <p>Claw Code 代表了一种独特的 Agent Harness 工程方法——当 Claude Code 源码泄露引发关注后，社区没有停留在围观层面，而是从零深度理解其架构设计。</p>
+
+          <p>其核心价值在于：</p>
+          <ul>
+            <li><strong>揭示设计逻辑：</strong>提供了 Claude Code 内部工作原理的详细文档</li>
+            <li><strong>工程严谨性：</strong>通过 Parity Audit 系统确保与原版的功能等效性</li>
+            <li><strong>生态贡献：</strong>为 Python 生态提供原生集成能力，降低参与门槛</li>
+            <li><strong>性能演进：</strong>通过 Rust 迁移路径提供性能升级方向</li>
+          </ul>
+
+          <div class="conclusion-box">
+            <strong>启示：</strong>源码泄露固然引发关注，但真正有价值的是像 Claw Code 这样，用工程方法深入理解、设计和演进这个系统。
+          </div>
+
+          <div class="ref-links">
+            <h4>参考链接</h4>
             <ul>
-              <li><strong>性能限制</strong>：Python 实现相比 TypeScript 原版可能有性能差距</li>
-              <li><strong>维护成本</strong>：需要同步原版 Claude Code 的更新</li>
-              <li><strong>功能覆盖</strong>：重写过程中可能遗漏原版某些边界情况</li>
-              <li><strong>社区规模</strong>：相比官方实现，社区支持和文档较少</li>
-              <li><strong>复杂度</strong>：Parity Audit 系统增加了额外维护负担</li>
-              <li><strong>Rust 迁移期</strong>：双轨并行可能造成短期维护压力</li>
+              <li><a href="https://github.com/instructkr/claw-code" target="_blank">GitHub: instructkr/claw-code →</a></li>
+              <li><a href="https://github.com/instructkr/claw-code/tree/dev/rust" target="_blank">Rust 运行时分支 →</a></li>
             </ul>
           </div>
-        </div>
-      </section>
+        </section>
+      </article>
+    </main>
+  </div>
 
-      <section id="conclusion">
-        <h2>8. 总结</h2>
-        <p>
-          Claw Code 代表了一种独特的 Agent Harness 工程方法——当 Claude Code 源码泄露引发关注后，
-          社区没有停留在围观层面，而是从零深度理解其架构设计。
-        </p>
-
-        <p>
-          其核心价值在于：
-        </p>
-        <ul>
-          <li><strong>揭示设计逻辑：</strong>提供了 Claude Code 内部工作原理的详细文档</li>
-          <li><strong>工程严谨性：</strong>通过 Parity Audit 系统确保与原版的功能等效性</li>
-          <li><strong>生态贡献：</strong>为 Python 生态提供原生集成能力，降低参与门槛</li>
-          <li><strong>性能演进：</strong>通过 Rust 迁移路径提供性能升级方向</li>
-        </ul>
-
-        <p>
-          对于 Agent 工程研究者，Claw Code 是一个极好的学习资源——它教会我们如何系统性地理解一个复杂系统；
-          对于开发者，它提供了构建 Agent 系统的参考架构；对于生态贡献者，它是一个开放的实验场。
-        </p>
-
-        <div class="highlight-box">
-          <strong>启示：</strong>源码泄露固然引发关注，但真正有价值的是像 Claw Code 这样，用工程方法深入理解、设计和演进这个系统。
-        </div>
-
-        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-          <h4>参考链接</h4>
-          <ul style="padding-left: 20px;">
-            <li><a href="https://github.com/instructkr/claw-code">GitHub: instructkr/claw-code</a></li>
-            <li><a href="https://github.com/instructkr/claw-code/tree/dev/rust">Rust 运行时分支</a></li>
-          </ul>
-        </div>
-      </section>
-    </article>
-  </main>
-
-  <footer style="text-align: center; padding: 40px 20px; color: #6b7280; font-size: 0.9rem;">
-    <p>AI 技术阅读站 | Annotated Reading Room for Agent Builders</p>
+  <footer>
+    AI 技术阅读站 | Annotated Reading Room for Agent Builders
   </footer>
+
+  <script>
+    // Highlight active TOC on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.toc-nav a');
+
+    function highlightActiveLink() {
+      const scrollPos = window.scrollY + 100;
+
+      sections.forEach(section => {
+        const top = section.offsetTop;
+        const height = section.offsetHeight;
+        const id = section.getAttribute('id');
+
+        if (scrollPos >= top && scrollPos < top + height) {
+          navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${id}`) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+    }
+
+    window.addEventListener('scroll', highlightActiveLink);
+    highlightActiveLink();
+  </script>
 </body>
 </html>
