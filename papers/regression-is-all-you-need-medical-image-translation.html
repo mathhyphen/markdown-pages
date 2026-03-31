@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regression is all you need for medical image translation | 论文解读</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: #11172a;
+            --panel-2: #171f36;
+            --text: #edf2ff;
+            --muted: #b8c2e8;
+            --line: rgba(255,255,255,0.10);
+            --accent: #8fb5ff;
+            --accent-2: #b5f0ff;
+            --good: #c9ffe0;
+            --bad: #ffd1d0;
+            --warn: #ffe7b8;
+            --shadow: 0 20px 60px rgba(0,0,0,0.25);
+            --radius: 22px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+        }
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(12px);
+            background: rgba(8, 14, 28, 0.72);
+            border-bottom: 1px solid var(--line);
+            padding: 14px 20px;
+        }
+        .topbar-inner {
+            max-width: 1080px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+        .back-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .back-link {
+            color: var(--accent-2);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .top-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            color: var(--text);
+            text-decoration: none;
+            background: rgba(255,255,255,0.04);
+            font-size: 14px;
+        }
+        .btn:hover { background: rgba(255,255,255,0.08); }
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 40px 20px 80px;
+        }
+        .paper-header {
+            margin-bottom: 34px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--line);
+        }
+        .paper-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--line);
+        }
+        .paper-title {
+            font-size: clamp(28px, 5vw, 44px);
+            margin: 0 0 14px;
+            line-height: 1.14;
+            letter-spacing: -0.02em;
+        }
+        .paper-subtitle {
+            color: var(--muted);
+            font-size: 18px;
+            margin: 0 0 18px;
+        }
+        .authors {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .authors strong { color: var(--text); }
+        .abstract,
+        .card,
+        .figure-card,
+        .result-box,
+        .conclusion,
+        .source-box {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .abstract,
+        .card,
+        .result-box,
+        .conclusion,
+        .source-box {
+            padding: 24px;
+        }
+        .abstract h3,
+        .section h2,
+        .section h3,
+        .figure-caption strong {
+            color: var(--accent-2);
+        }
+        .abstract h3 {
+            margin: 0 0 12px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .abstract p { margin: 0; color: #dce6ff; }
+        .section { margin: 38px 0; }
+        .section h2 {
+            font-size: 24px;
+            margin: 0 0 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--line);
+        }
+        .section h3 {
+            font-size: 18px;
+            margin: 22px 0 12px;
+        }
+        .card {
+            margin: 14px 0;
+        }
+        .card h4,
+        .result-box h4,
+        .conclusion h4 {
+            margin: 0 0 10px;
+            font-size: 17px;
+            color: var(--text);
+        }
+        .card p,
+        .result-box p,
+        .conclusion p,
+        .source-box p {
+            margin: 0;
+            color: var(--muted);
+        }
+        .summary-grid,
+        .pros-cons,
+        .metric-grid {
+            display: grid;
+            gap: 16px;
+        }
+        .summary-grid,
+        .pros-cons {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+        .metric-grid {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            margin-top: 18px;
+        }
+        .metric-card {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+        }
+        .metric-card .label {
+            display: block;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+        .metric-card strong {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+        .metric-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .figure-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 18px;
+        }
+        .figure-card {
+            overflow: hidden;
+        }
+        .figure-card img {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #fff;
+        }
+        .figure-caption {
+            padding: 18px 20px 20px;
+        }
+        .figure-caption p {
+            margin: 8px 0 0;
+            color: var(--muted);
+        }
+        .pros,
+        .cons {
+            padding: 22px;
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            background: var(--panel);
+        }
+        .pros {
+            box-shadow: inset 0 0 0 1px rgba(120,255,180,0.06);
+        }
+        .cons {
+            box-shadow: inset 0 0 0 1px rgba(255,120,120,0.06);
+        }
+        .pros h3 { color: var(--good); }
+        .cons h3 { color: var(--bad); }
+        ul.flat-list {
+            margin: 0;
+            padding-left: 18px;
+        }
+        ul.flat-list li {
+            margin: 10px 0;
+            color: var(--muted);
+        }
+        .result-box {
+            margin: 16px 0;
+        }
+        .result-box .good { color: var(--good); font-weight: 600; }
+        .result-box .warn { color: var(--warn); font-weight: 600; }
+        .conclusion {
+            background: linear-gradient(135deg, rgba(80,220,140,0.10), rgba(80,220,140,0.04));
+            border-color: rgba(80,220,140,0.25);
+        }
+        .source-box a,
+        a.inline-link {
+            color: var(--accent-2);
+        }
+        .footer {
+            border-top: 1px solid var(--line);
+            padding: 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 60px;
+        }
+        @media (max-width: 720px) {
+            .topbar-inner {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+            .container {
+                padding: 28px 16px 64px;
+            }
+            .paper-title {
+                font-size: 32px;
+            }
+            .abstract,
+            .card,
+            .result-box,
+            .conclusion,
+            .source-box {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="back-links">
+            <a class="back-link" href="../index.html">返回首页</a>
+            <a class="back-link" href="../index.html#papers-series">返回 paper 板块</a>
+        </div>
+        <div class="top-actions">
+            <a class="btn" href="https://arxiv.org/abs/2505.02048" target="_blank" rel="noopener">arXiv 摘要</a>
+            <a class="btn" href="https://arxiv.org/pdf/2505.02048" target="_blank" rel="noopener">PDF</a>
+            <a class="btn" href="https://github.com/Deep-MI/YODA" target="_blank" rel="noopener">代码</a>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <div class="paper-header">
+        <div class="paper-meta">
+            <span class="badge">eess.IV</span>
+            <span class="badge">2025-05-04 提交</span>
+            <span class="badge">2025-10-21 v3</span>
+            <span class="badge">Medical Image Translation</span>
+            <span class="badge">Diffusion vs Regression</span>
+        </div>
+        <h1 class="paper-title">Regression is all you need for medical image translation</h1>
+        <p class="paper-subtitle">医疗图像翻译里，扩散模型真的比回归更好吗？这篇论文的答案几乎是“没必要神化扩散”。</p>
+        <p class="authors"><strong>作者：</strong>Sebastian Rassmann, David Kügler, Christian Ewert, Martin Reuter</p>
+    </div>
+
+    <div class="abstract">
+        <h3>摘要速览</h3>
+        <p>论文提出 YODA，一套面向医疗图像翻译的 2.5D diffusion 框架，但它最激进的结论反而不是“我们做了个更强的扩散模型”，而是：在强条件的医疗图像翻译任务里，扩散迭代往往只是在复制噪声、提升写实感，却没有带来更多医学信息；直接采用回归式的一步预测，常常更快、也更准。作者还提出 ExpA 采样去平均扩散样本，进一步证明扩散样本在大量平均之后，会逐渐逼近回归输出。</p>
+    </div>
+
+    <div class="section">
+        <h2>1. 这篇论文真正想挑战什么</h2>
+        <div class="summary-grid">
+            <div class="card">
+                <h4>核心主张</h4>
+                <p>自然图像生成追求 realism，但医疗图像翻译更该追求 fidelity。对 MRI 到 FLAIR、MRI 到 CT 这类任务来说，复制采集噪声和“看起来像真图”并不等于保留了更多医学信息。</p>
+            </div>
+            <div class="card">
+                <h4>论文的锋利之处</h4>
+                <p>它不是只和一些旧 baseline 比 PSNR，而是直接质疑整个社区把 GAN / diffusion 从自然图像经验硬套到医疗翻译上的默认前提。</p>
+            </div>
+            <div class="card">
+                <h4>作者给出的证据链</h4>
+                <p>五个数据集、多个对比方法、下游任务验证、资源消耗对比，再加上对 diffusion 样本平均过程的分析，构成了一条很完整的论证链。</p>
+            </div>
+        </div>
+
+        <div class="metric-grid">
+            <div class="metric-card">
+                <span class="label">RS 脑 MRI 测试集</span>
+                <strong>97.31 SSIM</strong>
+                <p>YODA regression sampling 在 required test set 上达到 33.66 dB PSNR。</p>
+            </div>
+            <div class="metric-card">
+                <span class="label">推理代价</span>
+                <strong>20 秒 vs 2.5 小时</strong>
+                <p>表 I 里，YODA 回归采样对比 ExpA NEx=10 的时间差非常夸张。</p>
+            </div>
+            <div class="metric-card">
+                <span class="label">资源开销</span>
+                <strong>670 GPUh</strong>
+                <p>表 IV 中大版 YODA 的训练代价低于多种 diffusion / bridge 基线。</p>
+            </div>
+            <div class="metric-card">
+                <span class="label">Gold Atlas 细节</span>
+                <strong>结论没那么绝对</strong>
+                <p>在 MRI 到 CT 上，ExpA NEx=10 有小幅优势，但测试集只有 4 个病例。</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. 方法怎么拆</h2>
+        <div class="card">
+            <h4>YODA 本体</h4>
+            <p>YODA 是一个 2.5D diffusion framework。它利用正交切片做体数据建模，试图在 3D 一致性和可训练性之间找折中。这部分是工程设计。</p>
+        </div>
+        <div class="card">
+            <h4>真正重要的是 regression sampling</h4>
+            <p>作者发现：DM 在最开始那一步已经给出了很接近目标的预测，后面的迭代 refinement 主要在往图里重新注入看起来更“真实”的噪声。因此他们直接保留这一步预测，把后续 refinement 砍掉，作为 regression sampling。</p>
+        </div>
+        <div class="card">
+            <h4>ExpA sampling 的作用</h4>
+            <p>为了更公平地比较 diffusion 和 regression，作者让扩散模型多次采样后做平均，称为 Expectation-Approximation。这个设计很妙，因为它把“扩散样本平均后越来越像回归结果”这件事显性化了。</p>
+        </div>
+        <div class="card">
+            <h4>为什么这个思路有说服力</h4>
+            <p>它并没有凭一句“医疗任务不需要 realism”就直接下结论，而是通过图像质量指标、下游分割任务、噪声分析和资源成本一起证明：在强条件医疗翻译中，真实感和信息保真度并不是同一个目标。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>3. 两张最关键的图</h2>
+        <div class="figure-grid">
+            <div class="figure-card">
+                <img src="../assets/images/paper-yoda-fig1.png" alt="YODA paper figure 1">
+                <div class="figure-caption">
+                    <strong>图 1：为什么医疗图像翻译和自然图像生成不是一回事</strong>
+                    <p>这张图是全文灵魂。左边说明医疗图像在强条件下更像围绕无噪声真值的单峰分布，右边说明自然图像生成更像多模态分布。于是，对医疗翻译来说，平均到期望值是有意义的；对自然图像生成来说，平均反而会产生无意义的模糊叠加。</p>
+                </div>
+            </div>
+            <div class="figure-card">
+                <img src="../assets/images/paper-yoda-fig4.png" alt="YODA paper figure 4">
+                <div class="figure-caption">
+                    <strong>图 4：可视化结果直接支撑作者主张</strong>
+                    <p>在 RS 和 BraTS 的例子里，diffusion 结果更像采集图像，但 regression 结果对病灶与解剖结构的保持更稳定，同时少了 Salt-and-Pepper 一类伪纹理。这个图和表格结果一起，构成“少写实、多保真”的核心证据。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>4. 这篇论文的优点</h2>
+        <div class="pros-cons">
+            <div class="pros">
+                <h3>优点</h3>
+                <ul class="flat-list">
+                    <li>问题定义非常强。它不是“再造一个更大的 diffusion”，而是重新审视医疗翻译里到底该优化什么目标。</li>
+                    <li>证据比较完整。除了 SSIM、PSNR、FID，还引入了 WMH 分割、glioma segmentation、全脑分割、骨骼与肌肉分割等下游任务，这让结论更像医学影像论文，而不是纯视觉指标论文。</li>
+                    <li>效率论证很扎实。表 I 里 regression sampling 约 20 秒，而 ExpA NEx=10 需要约 2.5 小时；表 IV 也给了训练资源对比，这比只谈“我们更快”可信得多。</li>
+                    <li>ExpA 是一个很聪明的分析工具。它不只是一个采样技巧，更像是拿来“证明 diffusion 在干什么”的诊断器。</li>
+                    <li>外部泛化意识较好。作者在 Rhineland Study 外还看了 MBB、BraTS、IXI 和 Gold Atlas，不是只在一个自家数据集上讲故事。</li>
+                    <li>论文本身有工程诚意。代码仓库公开，2.5D 设计也明显在努力处理医疗体数据里常见的算力与切片一致性矛盾。</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h3>缺点</h3>
+                <ul class="flat-list">
+                    <li>结论的适用范围其实很窄，主要针对“强条件、配对数据、医学信息保真优先”的医疗图像翻译任务，不应直接外推到弱条件生成、数据增强、inpainting 或自然图像场景。</li>
+                    <li>Gold Atlas 的 MRI 到 CT 实验测试集只有 4 个病例，作者自己也承认 diffusion 在这里有轻微优势，因此“回归全面胜出”在这类任务上证据还不够强。</li>
+                    <li>虽然论文挑战的是 diffusion / GAN 的整体叙事，但其分析基础仍主要建立在 DDPM family 上。作者也明确写到，对 score-based 和 flow matching 是否同样成立，仍需未来验证。</li>
+                    <li>方法训练仍依赖 paired data。作者在讨论里提到未来可能扩展到 unpaired MIT，但目前这还不是一个现成答案。</li>
+                    <li>BraTS 数据本身有质量和配准问题，作者用它解释部分例外现象是合理的，但这也意味着一些结论对数据质量比较敏感。</li>
+                    <li>YODA 本质上仍然是 diffusion 框架上做的“回归式截断”，因此它并不是在证明所有简单回归网络天然更强，而是在证明该任务里迭代扩散 refinement 的边际收益很可疑。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>5. 我会如何评价这篇论文</h2>
+        <div class="result-box">
+            <h4>最有价值的地方</h4>
+            <p>它把一个很多人“隐约觉得不对劲”的现象，变成了可度量、可视化、可比较的结论：医疗翻译里 diffusion 的很多 realism，可能只是噪声复制，而不是信息增益。</p>
+        </div>
+        <div class="result-box">
+            <h4>最值得保留的审慎</h4>
+            <p class="warn">这不是“回归永远比扩散好”的通用定理，而更像“在强条件医学翻译里，别把自然图像生成的审美指标错当成医学信息质量”。</p>
+        </div>
+        <div class="result-box">
+            <h4>如果站在工程角度</h4>
+            <p>这篇论文非常值得看，因为它会直接影响模型选择与评估 protocol：与其盲目堆更复杂的 generative machinery，不如先问清楚任务到底需要 realism 还是 fidelity，需不需要下游任务验证，以及 compute 花得到底值不值。</p>
+        </div>
+        <div class="result-box">
+            <h4>如果站在研究角度</h4>
+            <p>它最像一篇“领域纠偏”论文。不是靠一个新 trick 赢一点点指标，而是试图把医疗图像翻译从“谁更像真图”拉回“谁保留了更多医学信息”这个更正确的评价中心。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>6. 最后结论</h2>
+        <div class="conclusion">
+            <h4>一句话总结</h4>
+            <p>这篇论文的最大贡献，不是 YODA 本身，而是它非常系统地说明了：在医疗图像翻译里，昂贵的扩散迭代往往只是在购买“更像噪声真图的外观”，而不一定购买到“更多有用医学信息”。如果你的任务是强条件医学翻译，这篇 paper 值得放进必读清单；如果你的任务更接近开放式生成，就要谨慎使用它的结论边界。</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>7. 来源</h2>
+        <div class="source-box">
+            <p><strong>论文标题：</strong>Regression is all you need for medical image translation</p>
+            <p><strong>arXiv：</strong><a class="inline-link" href="https://arxiv.org/abs/2505.02048" target="_blank" rel="noopener">https://arxiv.org/abs/2505.02048</a></p>
+            <p><strong>PDF：</strong><a class="inline-link" href="https://arxiv.org/pdf/2505.02048" target="_blank" rel="noopener">https://arxiv.org/pdf/2505.02048</a></p>
+            <p><strong>alphaXiv 全文 markdown fallback：</strong><a class="inline-link" href="https://alphaxiv.org/abs/2505.02048.md" target="_blank" rel="noopener">https://alphaxiv.org/abs/2505.02048.md</a></p>
+            <p><strong>代码仓库：</strong><a class="inline-link" href="https://github.com/Deep-MI/YODA" target="_blank" rel="noopener">https://github.com/Deep-MI/YODA</a></p>
+            <p style="margin-top:12px;">说明：本页基于论文原文、arXiv 摘要和 alphaXiv 提供的全文 markdown 进行整理。优缺点部分属于本站的审查性总结，不是论文作者的自述。</p>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    本页为中文论文导读与审查摘要，不是原文翻译。图片来自论文 PDF 页面裁切，仅用于导读展示。
+</div>
+</body>
+</html>
