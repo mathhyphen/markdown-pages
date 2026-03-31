@@ -3,562 +3,518 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI 技术阅读站 | Annotated Reading Room for Agent Builders</title>
-  <meta name="description" content="把 AI Agent、Harness Engineering、Claude Cookbooks、工具教程与论文整理成一间可导航的中文研究阅读室。">
+  <title>AI 技术阅读站 | Neural Reading Room</title>
+  <meta name="description" content="AI Agent、Harness Engineering、Claude Cookbooks 与论文的神经网络式导航阅读室。">
   <link rel="stylesheet" href="./assets/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-primary: #fafbfc;
-      --bg-secondary: #ffffff;
-      --bg-sidebar: #f6f8fa;
-      --text-primary: #1f2328;
-      --text-secondary: #656d76;
-      --text-muted: #8b949e;
-      --accent-blue: #0969da;
-      --accent-green: #1a7f37;
-      --accent-purple: #8250df;
-      --accent-orange: #bf8700;
-      --border-color: #d0d7de;
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-      --radius-sm: 6px;
-      --radius-md: 10px;
+      --bg-dark: #0a0a0f;
+      --bg-card: rgba(15, 15, 25, 0.8);
+      --bg-sidebar: rgba(10, 10, 20, 0.95);
+      --accent-cyan: #00f5ff;
+      --accent-magenta: #ff00aa;
+      --accent-blue: #0080ff;
+      --accent-purple: #8b5cf6;
+      --text-primary: #e4e4e7;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --border-glow: rgba(0, 245, 255, 0.3);
+      --shadow-glow: 0 0 30px rgba(0, 245, 255, 0.15);
     }
 
-    * { box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-primary);
+      background: var(--bg-dark);
       color: var(--text-primary);
-      line-height: 1.7;
-      margin: 0;
-    }
-
-    .home-layout {
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 0;
-      max-width: 1800px;
-      margin: 0 auto;
+      line-height: 1.6;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    /* Left Sidebar */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background:
+        linear-gradient(90deg, rgba(0, 245, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(rgba(0, 245, 255, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(0, 128, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(255, 0, 170, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(0, 245, 255, 0.04) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+      animation: orbDrift 20s ease-in-out infinite;
+    }
+
+    @keyframes orbDrift {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(2%, 1%) rotate(1deg); }
+      66% { transform: translate(-1%, 2%) rotate(-1deg); }
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
     .sidebar {
       position: sticky;
       top: 0;
       height: 100vh;
       background: var(--bg-sidebar);
-      border-right: 1px solid var(--border-color);
-      padding: 24px 16px;
-      overflow-y: auto;
+      border-right: 1px solid rgba(0, 245, 255, 0.15);
+      padding: 32px 20px;
       display: flex;
       flex-direction: column;
+      backdrop-filter: blur(20px);
     }
 
-    .sidebar-brand {
-      padding-bottom: 16px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--border-color);
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 1px; height: 100%;
+      background: linear-gradient(180deg, var(--accent-cyan), transparent 50%);
+      opacity: 0.5;
     }
 
-    .sidebar-brand a {
+    .brand {
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .brand a {
       color: var(--text-primary);
       text-decoration: none;
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 1.1rem;
       display: block;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
     }
 
-    .sidebar-brand a:hover {
-      color: var(--accent-blue);
+    .brand a:hover {
+      color: var(--accent-cyan);
+      text-shadow: 0 0 20px var(--accent-cyan);
     }
 
-    .sidebar-brand .subtitle {
-      font-size: 0.75rem;
+    .brand .tagline {
+      font-size: 0.72rem;
       color: var(--text-muted);
-      margin-top: 4px;
+      font-family: 'Space Mono', monospace;
     }
 
-    .toc-title {
-      font-size: 0.7rem;
-      font-weight: 600;
+    .nav-title {
+      font-size: 0.65rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      margin-bottom: 10px;
+      letter-spacing: 0.15em;
+      color: var(--accent-cyan);
+      margin-bottom: 16px;
+      font-family: 'Space Mono', monospace;
     }
 
-    .toc-nav {
+    .nav-list {
+      list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 4px;
     }
 
-    .toc-nav a {
+    .nav-list a {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
+      gap: 12px;
+      padding: 12px 14px;
       color: var(--text-secondary);
       text-decoration: none;
-      font-size: 0.88rem;
-      border-radius: var(--radius-sm);
-      transition: all 0.15s ease;
-      border-left: 3px solid transparent;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
     }
 
-    .toc-nav a:hover {
-      background: rgba(9, 105, 218, 0.08);
-      color: var(--accent-blue);
-      border-left-color: var(--accent-blue);
+    .nav-list a:hover {
+      background: rgba(0, 245, 255, 0.08);
+      border-color: rgba(0, 245, 255, 0.2);
+      color: var(--text-primary);
     }
 
-    .toc-nav a.active {
-      background: rgba(9, 105, 218, 0.12);
-      color: var(--accent-blue);
-      font-weight: 600;
-      border-left-color: var(--accent-blue);
+    .nav-list a.active {
+      background: rgba(0, 245, 255, 0.12);
+      border-color: rgba(0, 245, 255, 0.4);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
     }
 
-    .toc-nav .nav-icon {
-      font-size: 0.8rem;
-    }
+    .nav-icon { font-size: 1.1rem; width: 24px; text-align: center; }
 
-    /* Main Content */
-    .main-content {
-      padding: 32px 60px;
+    .main {
+      padding: 40px 48px;
       max-width: 1400px;
     }
 
-    /* Hero Section */
-    .hero {
-      margin-bottom: 40px;
-      padding-bottom: 32px;
-      border-bottom: 1px solid var(--border-color);
+    .recent {
+      margin-bottom: 48px;
+      animation: fadeInUp 0.6s ease-out;
     }
 
-    .hero-kicker {
-      font-size: 0.8rem;
-      color: var(--accent-blue);
-      font-weight: 600;
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .recent-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .recent-header h2 {
+      font-size: 0.75rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
+      letter-spacing: 0.12em;
+      color: var(--accent-cyan);
+      font-family: 'Space Mono', monospace;
     }
 
-    .hero-title {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin: 0 0 12px;
-      color: var(--text-primary);
-      line-height: 1.3;
+    .recent-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent-cyan), transparent);
+      opacity: 0.3;
     }
 
-    .hero-lead {
-      font-size: 1rem;
-      color: var(--text-secondary);
-      margin: 0 0 20px;
-      max-width: 600px;
-    }
-
-    .hero-actions {
+    .update-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(0, 245, 255, 0.2);
+      border-radius: 16px;
+      padding: 24px 28px;
       display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.15s ease;
-    }
-
-    .btn-primary {
-      background: var(--accent-blue);
-      color: white;
-      border: 1px solid var(--accent-blue);
-    }
-
-    .btn-primary:hover {
-      background: #0860ca;
-    }
-
-    .btn-secondary {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-    }
-
-    .btn-secondary:hover {
-      background: var(--bg-sidebar);
-    }
-
-    .hero-stats {
-      display: flex;
-      gap: 32px;
-    }
-
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .stat-value {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-
-    .stat-label {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    /* Recent Updates Section */
-    .recent-updates {
-      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-      border: 1px solid #fcd34d;
-      border-radius: var(--radius-md);
-      padding: 20px 24px;
-      margin-bottom: 36px;
-    }
-
-    .recent-updates h3 {
-      margin: 0 0 14px;
-      font-size: 1rem;
-      font-weight: 700;
-      color: #92400e;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .recent-updates h3::before {
-      content: "🆕";
-    }
-
-    .update-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .update-item {
-      display: flex;
+      gap: 20px;
       align-items: flex-start;
-      gap: 12px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .update-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px; height: 100%;
+      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-magenta));
+    }
+
+    .update-card:hover {
+      border-color: rgba(0, 245, 255, 0.5);
+      box-shadow: var(--shadow-glow);
+      transform: translateX(4px);
     }
 
     .update-badge {
       flex-shrink: 0;
-      padding: 2px 8px;
-      border-radius: 4px;
+      padding: 6px 12px;
+      background: rgba(0, 245, 255, 0.1);
+      border: 1px solid rgba(0, 245, 255, 0.3);
+      border-radius: 6px;
       font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .update-content h3 {
+      font-size: 1.05rem;
       font-weight: 600;
-      background: #fef3c7;
-      border: 1px solid #f59e0b;
-      color: #b45309;
+      margin-bottom: 6px;
     }
 
-    .update-content {
-      flex: 1;
-    }
-
-    .update-content a {
-      color: var(--accent-blue);
+    .update-content h3 a {
+      color: var(--text-primary);
       text-decoration: none;
-      font-weight: 500;
-      font-size: 0.9rem;
+      transition: color 0.2s;
     }
 
-    .update-content a:hover {
-      text-decoration: underline;
-    }
+    .update-content h3 a:hover { color: var(--accent-cyan); }
 
     .update-content p {
-      margin: 2px 0 0;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-    }
-
-    /* Section Headers */
-    .section-header {
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid var(--border-color);
-    }
-
-    .section-kicker {
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent-blue);
-      margin: 0 0 4px;
-    }
-
-    .section-title {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin: 0 0 8px;
-      color: var(--text-primary);
-    }
-
-    .section-desc {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-secondary);
       margin: 0;
     }
 
-    /* Series Section */
-    .series-section {
-      margin-bottom: 48px;
+    .section {
+      margin-bottom: 52px;
+      animation: fadeInUp 0.6s ease-out;
+      animation-fill-mode: both;
     }
 
-    /* Cards Grid */
-    .cards-grid {
+    .section:nth-child(2) { animation-delay: 0.1s; }
+    .section:nth-child(3) { animation-delay: 0.2s; }
+    .section:nth-child(4) { animation-delay: 0.3s; }
+    .section:nth-child(5) { animation-delay: 0.4s; }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .section-index {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent-magenta);
+      font-weight: 700;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .section-desc {
+      margin-left: auto;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .cards {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 16px;
     }
 
     .card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 18px 20px;
-      transition: box-shadow 0.2s ease;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 20px 22px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, transparent 40%, rgba(0, 245, 255, 0.03));
+      pointer-events: none;
     }
 
     .card:hover {
-      box-shadow: var(--shadow-md);
+      border-color: rgba(0, 245, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), var(--shadow-glow);
+      transform: translateY(-2px);
     }
 
     .card-meta {
       display: flex;
+      align-items: center;
       gap: 8px;
+      margin-bottom: 12px;
       flex-wrap: wrap;
-      margin-bottom: 10px;
     }
 
     .card-index {
-      font-size: 0.72rem;
-      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
       color: var(--text-muted);
+      font-weight: 700;
     }
 
     .badge {
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 4px;
-      font-size: 0.72rem;
+      font-size: 0.65rem;
       font-weight: 600;
-      background: var(--bg-sidebar);
-      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: var(--text-secondary);
     }
 
-    .badge-source-OpenAI { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
-    .badge-source-Anthropic { background: #f3e8ff; border-color: #c084fc; color: #7c3aed; }
-    .badge-source-Microsoft { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
-    .badge-source-Research { background: #fef3c7; border-color: #fcd34d; color: #b45309; }
-    .badge-source-instructkr { background: #dcf0e7; border-color: #a7d9c2; color: #1a7f37; }
-    .badge-source-Tools { background: #fef3c7; border-color: #fcd34d; color: #b45309; }
+    .badge-OpenAI { background: rgba(0, 245, 255, 0.1); border-color: rgba(0, 245, 255, 0.3); color: var(--accent-cyan); }
+    .badge-Anthropic { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.4); color: var(--accent-purple); }
+    .badge-Microsoft { background: rgba(0, 128, 255, 0.1); border-color: rgba(0, 128, 255, 0.3); color: var(--accent-blue); }
+    .badge-DeepMind { background: rgba(255, 0, 170, 0.1); border-color: rgba(255, 0, 170, 0.3); color: var(--accent-magenta); }
+    .badge-arXiv { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.15); color: var(--text-secondary); }
+    .badge-instructkr { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #10b981; }
+    .badge-Tools { background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); color: #fbbf24; }
+    .badge-Research { background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); color: #fbbf24; }
 
     .card h4 {
-      margin: 0 0 8px;
       font-size: 0.95rem;
       font-weight: 600;
-      color: var(--text-primary);
+      margin-bottom: 8px;
       line-height: 1.4;
     }
 
     .card h4 a {
-      color: inherit;
+      color: var(--text-primary);
       text-decoration: none;
+      transition: color 0.2s;
     }
 
-    .card h4 a:hover {
-      color: var(--accent-blue);
-    }
+    .card h4 a:hover { color: var(--accent-cyan); }
 
     .card p {
-      margin: 0 0 12px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: var(--text-secondary);
+      margin: 0 0 14px;
       line-height: 1.5;
     }
 
     .card-actions {
       display: flex;
-      gap: 8px;
+      gap: 10px;
     }
 
     .card-actions a {
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.8rem;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
       font-weight: 600;
       text-decoration: none;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
     }
 
     .card-actions .primary {
-      background: var(--accent-blue);
-      color: white;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #0a0a0f;
+      border: none;
     }
 
     .card-actions .primary:hover {
-      background: #0860ca;
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.4);
+      transform: scale(1.02);
     }
 
     .card-actions .secondary {
-      background: var(--bg-sidebar);
+      background: rgba(255, 255, 255, 0.06);
       color: var(--text-secondary);
-      border: 1px solid var(--border-color);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .card-actions .secondary:hover {
-      background: #eaeef2;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
-    /* Footer */
     footer {
       text-align: center;
-      padding: 32px 20px;
+      padding: 40px 20px;
       color: var(--text-muted);
-      font-size: 0.8rem;
-      border-top: 1px solid var(--border-color);
-      margin-top: 48px;
+      font-size: 0.78rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+      z-index: 1;
     }
 
     footer a {
-      color: var(--accent-blue);
+      color: var(--accent-cyan);
       text-decoration: none;
     }
 
-    footer a:hover {
-      text-decoration: underline;
-    }
+    footer a:hover { text-decoration: underline; }
 
-    /* Responsive */
-    @media (max-width: 900px) {
-      .home-layout {
-        grid-template-columns: 1fr;
-      }
-
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
       .sidebar {
         position: static;
         height: auto;
         border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        padding: 16px;
+        border-bottom: 1px solid rgba(0, 245, 255, 0.15);
+        padding: 20px;
       }
-
-      .toc-nav {
+      .nav-list {
         flex-direction: row;
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 8px;
       }
-
-      .toc-nav a {
-        padding: 6px 12px;
-        border-left: none;
-        border: 1px solid var(--border-color);
+      .nav-list a {
+        padding: 8px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
       }
-
-      .toc-nav a:hover, .toc-nav a.active {
-        border-left: 1px solid var(--accent-blue);
-      }
-
-      .main-content {
-        padding: 24px 16px;
-      }
-
-      .cards-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .hero-stats {
-        flex-wrap: wrap;
-        gap: 20px;
-      }
+      .main { padding: 24px 20px; }
+      .cards { grid-template-columns: 1fr; }
+      .section-desc { display: none; }
+      .update-card { flex-direction: column; gap: 12px; }
     }
   </style>
 </head>
 <body>
-  <div class="home-layout">
-    <!-- Left Sidebar -->
+  <div class="layout">
     <aside class="sidebar">
-      <div class="sidebar-brand">
+      <div class="brand">
         <a href="./index.html">AI 技术阅读站</a>
-        <div class="subtitle">Annotated Reading Room</div>
+        <span class="tagline">Neural Reading Room</span>
       </div>
-
-      <div class="toc-title">导航</div>
-      <nav class="toc-nav">
-        <a href="#recent" class="active"><span class="nav-icon">📌</span>最近更新</a>
-        <a href="#harness-series"><span class="nav-icon">⚙️</span>Harness 工程</a>
-        <a href="#cookbooks-series"><span class="nav-icon">📚</span>Cookbooks</a>
-        <a href="#tools-series"><span class="nav-icon">🔧</span>工具教程</a>
-        <a href="#papers-series"><span class="nav-icon">📄</span>论文阅读</a>
-      </nav>
+      <div class="nav-title">导航 Navigation</div>
+      <ul class="nav-list">
+        <li><a href="#recent" class="active"><span class="nav-icon">🆕</span>最近更新</a></li>
+        <li><a href="#harness"><span class="nav-icon">⚙️</span>Harness 工程</a></li>
+        <li><a href="#cookbooks"><span class="nav-icon">📚</span>Cookbooks</a></li>
+        <li><a href="#tools"><span class="nav-icon">🔧</span>工具教程</a></li>
+        <li><a href="#papers"><span class="nav-icon">📄</span>论文阅读</a></li>
+      </ul>
     </aside>
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <!-- Recent Updates -->
-      <section class="recent-updates" id="recent">
-        <h3>最近更新</h3>
-        <ul class="update-list">
-          <li class="update-item">
-            <span class="update-badge">H-12</span>
-            <div class="update-content">
-              <a href="./articles/claw-code-architecture.html">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</a>
-              <p>深度解析 instructkr/claw-code 项目，揭示 Agent Harness 的核心设计逻辑</p>
-            </div>
-          </li>
-          <li class="update-item">
-            <span class="update-badge">T-02</span>
-            <div class="update-content">
-              <a href="./articles/claude-code-boris-15-tips.html">Claude Code 15 条高频实战技巧整理</a>
-              <p>跨端接力、自动化、前端验证、worktree 并行与自定义 agent 五个工作流</p>
-            </div>
-          </li>
-          <li class="update-item">
-            <span class="update-badge">P-05</span>
-            <div class="update-content">
-              <a href="./papers/regression-is-all-you-need-medical-image-translation.html">Regression is all you need</a>
-              <p>YODA 论文导读：强条件医疗图像翻译里，回归采样往往比昂贵扩散更快、更稳</p>
-            </div>
-          </li>
-        </ul>
+    <main class="main">
+      <section class="recent" id="recent">
+        <div class="recent-header">
+          <h2>最近更新 Latest</h2>
+        </div>
+        <article class="update-card">
+          <span class="update-badge">H-12</span>
+          <div class="update-content">
+            <h3><a href="./articles/claw-code-architecture.html">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</a></h3>
+            <p>深度解析 instructkr/claw-code 项目，揭示 Agent Harness 的核心设计逻辑</p>
+          </div>
+        </article>
       </section>
 
-      <!-- Harness Series -->
-      <section class="series-section" id="harness-series">
+      <section class="section" id="harness">
         <div class="section-header">
-          <div class="section-kicker">01 / Runtime Studies</div>
+          <span class="section-index">01 / Runtime</span>
           <h2 class="section-title">Harness Engineering</h2>
-          <p class="section-desc">OpenAI、Anthropic、Microsoft、Google DeepMind 的 agent 工程文章汇成一个运行时资料库。</p>
+          <span class="section-desc">Agent 工程的核心架构与设计模式</span>
         </div>
-
-        <div class="cards-grid">
+        <div class="cards">
           <article class="card">
             <div class="card-meta">
               <span class="card-index">H-12</span>
-              <span class="badge badge-source-instructkr">instructkr</span>
+              <span class="badge badge-instructkr">instructkr</span>
               <span class="badge">2026-04-01</span>
             </div>
             <h4><a href="./articles/claw-code-architecture.html">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</a></h4>
@@ -568,11 +524,10 @@
               <a href="https://github.com/instructkr/claw-code" class="secondary">查看源码</a>
             </div>
           </article>
-
           <article class="card">
             <div class="card-meta">
               <span class="card-index">H-09</span>
-              <span class="badge badge-source-Anthropic">Anthropic</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
               <span class="badge">2026-03-24</span>
             </div>
             <h4><a href="./articles/harness-design-long-running-apps.html">Harness Design：三代理架构驱动的长时间应用开发</a></h4>
@@ -581,25 +536,22 @@
               <a href="./articles/harness-design-long-running-apps.html" class="primary">阅读全文</a>
             </div>
           </article>
-
           <article class="card">
             <div class="card-meta">
               <span class="card-index">H-11</span>
-              <span class="badge">arXiv</span>
+              <span class="badge badge-arXiv">arXiv</span>
               <span class="badge">2026-03-26</span>
             </div>
             <h4><a href="./articles/natural-language-agent-harnesses.html">Natural-Language Agent Harnesses</a></h4>
             <p>把高层 harness 逻辑从 controller code 里抽出来，表达成可编辑自然语言。</p>
             <div class="card-actions">
               <a href="./articles/natural-language-agent-harnesses.html" class="primary">阅读全文</a>
-              <a href="https://arxiv.org/abs/2603.25723" class="secondary">arXiv</a>
             </div>
           </article>
-
           <article class="card">
             <div class="card-meta">
               <span class="card-index">H-10</span>
-              <span class="badge">Google DeepMind</span>
+              <span class="badge badge-DeepMind">Google DeepMind</span>
               <span class="badge">2026-02-10</span>
             </div>
             <h4><a href="./articles/autoharness-deepmind.html">AutoHarness：让 LLM 自动合成 code harness</a></h4>
@@ -608,48 +560,20 @@
               <a href="./articles/autoharness-deepmind.html" class="primary">阅读全文</a>
             </div>
           </article>
-
-          <article class="card">
-            <div class="card-meta">
-              <span class="card-index">H-03</span>
-              <span class="badge badge-source-OpenAI">OpenAI</span>
-              <span class="badge">2026-03-11</span>
-            </div>
-            <h4><a href="./articles/responses-computer-environment.html">Responses API：Agent 化的关键一跃</a></h4>
-            <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
-            <div class="card-actions">
-              <a href="./articles/responses-computer-environment.html" class="primary">阅读全文</a>
-            </div>
-          </article>
-
-          <article class="card">
-            <div class="card-meta">
-              <span class="card-index">H-05</span>
-              <span class="badge badge-source-Anthropic">Anthropic</span>
-              <span class="badge">2025-11-26</span>
-            </div>
-            <h4><a href="./articles/anthropic-long-running-harnesses.html">Long Running Agents：长时间运行的 agent</a></h4>
-            <p>长任务失败往往不是因为模型短期不会做，而是无法在多轮执行中保持稳定状态。</p>
-            <div class="card-actions">
-              <a href="./articles/anthropic-long-running-harnesses.html" class="primary">阅读全文</a>
-            </div>
-          </article>
         </div>
       </section>
 
-      <!-- Cookbooks Series -->
-      <section class="series-section" id="cookbooks-series">
+      <section class="section" id="cookbooks">
         <div class="section-header">
-          <div class="section-kicker">02 / Structured Learning</div>
+          <span class="section-index">02 / Learning</span>
           <h2 class="section-title">Claude Cookbooks 中文导读</h2>
-          <p class="section-desc">从能力地图到模式设计，再到集成与部署，这一栏更适合系统补课和快速备课。</p>
+          <span class="section-desc">系统补课与快速备课</span>
         </div>
-
-        <div class="cards-grid">
+        <div class="cards">
           <article class="card">
             <div class="card-meta">
               <span class="card-index">C-01</span>
-              <span class="badge badge-source-Anthropic">Anthropic</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
             </div>
             <h4><a href="./cookbooks/01-repo-overview.html">仓库总览：Cookbooks 到底在教什么</a></h4>
             <p>建立对整个仓库的认知地图，理解 66 个 recipes 的分类与重点。</p>
@@ -657,11 +581,10 @@
               <a href="./cookbooks/01-repo-overview.html" class="primary">阅读全文</a>
             </div>
           </article>
-
           <article class="card">
             <div class="card-meta">
               <span class="card-index">C-05</span>
-              <span class="badge badge-source-Anthropic">Anthropic</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
             </div>
             <h4><a href="./cookbooks/05-agent-patterns.html">Agent 模式篇：链式、并行、路由与编排</a></h4>
             <p>各种 Agent 编排模式的适用场景与实现方法。</p>
@@ -669,59 +592,32 @@
               <a href="./cookbooks/05-agent-patterns.html" class="primary">阅读全文</a>
             </div>
           </article>
-
-          <article class="card">
-            <div class="card-meta">
-              <span class="card-index">C-06</span>
-              <span class="badge badge-source-Anthropic">Anthropic</span>
-            </div>
-            <h4><a href="./cookbooks/06-claude-agent-sdk.html">Claude Agent SDK：把模式落成代理</a></h4>
-            <p>如何用 SDK 把理论模式工程化落地。</p>
-            <div class="card-actions">
-              <a href="./cookbooks/06-claude-agent-sdk.html" class="primary">阅读全文</a>
-            </div>
-          </article>
-
-          <article class="card">
-            <div class="card-meta">
-              <span class="card-index">C-07</span>
-              <span class="badge badge-source-Anthropic">Anthropic</span>
-            </div>
-            <h4><a href="./cookbooks/07-responses-and-performance.html">响应工程篇：JSON、缓存、引用、评测</a></h4>
-            <p>提升稳定性、压缩成本、提升可控性。</p>
-            <div class="card-actions">
-              <a href="./cookbooks/07-responses-and-performance.html" class="primary">阅读全文</a>
-            </div>
-          </article>
         </div>
       </section>
 
-      <!-- Tools Series -->
-      <section class="series-section" id="tools-series">
+      <section class="section" id="tools">
         <div class="section-header">
-          <div class="section-kicker">03 / Practical Utilities</div>
+          <span class="section-index">03 / Tools</span>
           <h2 class="section-title">工具教程</h2>
-          <p class="section-desc">把最实际的开发连接问题讲清楚，适合在工程准备阶段快速查阅。</p>
+          <span class="section-desc">开发连接与实战技巧</span>
         </div>
-
-        <div class="cards-grid">
+        <div class="cards">
           <article class="card">
             <div class="card-meta">
               <span class="card-index">T-02</span>
-              <span class="badge badge-source-Tools">Claude Code</span>
+              <span class="badge badge-Tools">Claude Code</span>
               <span class="badge">2026-03-30</span>
             </div>
             <h4><a href="./articles/claude-code-boris-15-tips.html">Claude Code 15 条高频实战技巧整理</a></h4>
-            <p>跨端接力、自动化、前端验证、worktree 并行与自定义 agent 五个工作流主题。</p>
+            <p>跨端接力、自动化，前端验证、worktree 并行与自定义 agent 五个工作流主题。</p>
             <div class="card-actions">
               <a href="./articles/claude-code-boris-15-tips.html" class="primary">阅读全文</a>
             </div>
           </article>
-
           <article class="card">
             <div class="card-meta">
               <span class="card-index">T-01</span>
-              <span class="badge badge-source-Tools">工具教程</span>
+              <span class="badge badge-Tools">工具教程</span>
               <span class="badge">2026-03-27</span>
             </div>
             <h4><a href="./articles/server-connection-guide.html">服务器连接指南</a></h4>
@@ -733,61 +629,29 @@
         </div>
       </section>
 
-      <!-- Papers Series -->
-      <section class="series-section" id="papers-series">
+      <section class="section" id="papers">
         <div class="section-header">
-          <div class="section-kicker">04 / Research Shelf</div>
+          <span class="section-index">04 / Research</span>
           <h2 class="section-title">论文阅读</h2>
-          <p class="section-desc">研究区刻意保持更像论文索引页的气质，用来把工程直觉延展到图像生成与流匹配问题。</p>
+          <span class="section-desc">Flow Matching 与图像生成研究</span>
         </div>
-
-        <div class="cards-grid">
+        <div class="cards">
           <article class="card">
             <div class="card-meta">
-              <span class="card-index">P-01</span>
-              <span class="badge badge-source-Research">cs.CV</span>
-              <span class="badge">2025-08-29</span>
-              <span class="badge">Flow Matching</span>
+              <span class="card-index">P-05</span>
+              <span class="badge badge-Research">Medical Imaging</span>
+              <span class="badge">2025-10-21</span>
             </div>
-            <h4><a href="./papers/temporal-flow-matching.html">Temporal Flow Matching：4D 纵向医学影像预测</a></h4>
-            <p>一种统一的生成轨迹方法，用于从稀疏、不规则的纵向医学影像数据中预测未来图像。</p>
+            <h4><a href="./papers/regression-is-all-you-need-medical-image-translation.html">Regression is all you need</a></h4>
+            <p>YODA 论文导读：强条件医疗图像翻译里，回归采样往往比昂贵扩散更快、更稳。</p>
             <div class="card-actions">
-              <a href="./papers/temporal-flow-matching.html" class="primary">阅读全文</a>
+              <a href="./papers/regression-is-all-you-need-medical-image-translation.html" class="primary">阅读全文</a>
             </div>
           </article>
-
-          <article class="card">
-            <div class="card-meta">
-              <span class="card-index">P-02</span>
-              <span class="badge badge-source-Research">cs.CV</span>
-              <span class="badge">2025-07-19</span>
-              <span class="badge">GAN / Diffusion</span>
-            </div>
-            <h4><a href="./papers/mri-translation-benchmark.html">MRI 图像翻译基准评测：GAN vs Diffusion vs Flow Matching</a></h4>
-            <p>对 T1w 到 T2w MRI 图像翻译任务进行基准评测，Pix2Pix 在结构保真度和效率上均优于扩散模型。</p>
-            <div class="card-actions">
-              <a href="./papers/mri-translation-benchmark.html" class="primary">阅读全文</a>
-            </div>
-          </article>
-
-          <article class="card">
-            <div class="card-meta">
-              <span class="card-index">P-03</span>
-              <span class="badge badge-source-Research">cs.CV</span>
-              <span class="badge">2025-11-25</span>
-              <span class="badge">Rectified Flow</span>
-            </div>
-            <h4><a href="./papers/treft-rectified-flow.html">TReFT：一步式图像翻译的修正流模型</a></h4>
-            <p>通过在 t=1 处直接预测目标图像来"驯服"修正流模型，实现高质量一步式图像翻译。</p>
-            <div class="card-actions">
-              <a href="./papers/treft-rectified-flow.html" class="primary">阅读全文</a>
-            </div>
-          </article>
-
           <article class="card">
             <div class="card-meta">
               <span class="card-index">P-04</span>
-              <span class="badge badge-source-Research">Rectified Flow</span>
+              <span class="badge badge-Research">Rectified Flow</span>
               <span class="badge">2026-03-20</span>
             </div>
             <h4><a href="./papers/i2i-rectified-flow-reformulation.html">I2I-RFR：图像翻译的修正流重构</a></h4>
@@ -796,49 +660,29 @@
               <a href="./papers/i2i-rectified-flow-reformulation.html" class="primary">阅读全文</a>
             </div>
           </article>
-
-          <article class="card">
-            <div class="card-meta">
-              <span class="card-index">P-05</span>
-              <span class="badge badge-source-Research">Medical Imaging</span>
-              <span class="badge">2025-10-21</span>
-            </div>
-            <h4><a href="./papers/regression-is-all-you-need-medical-image-translation.html">Regression is all you need</a></h4>
-            <p>YODA 论文导读：强条件医疗图像翻译里，回归采样往往比昂贵扩散更快、更稳，也更保真。</p>
-            <div class="card-actions">
-              <a href="./papers/regression-is-all-you-need-medical-image-translation.html" class="primary">阅读全文</a>
-            </div>
-          </article>
         </div>
       </section>
     </main>
   </div>
 
   <footer>
-    <p>本站内容为中文注释与读后整理，不是逐字转载。目标不是把材料堆满，而是让它们更容易被进入、串联和复用。</p>
+    <p>AI 技术阅读站 · Neural Reading Room · 2026</p>
     <p>站点技术：静态 HTML + GitHub Pages · <a href="https://github.com/mathhyphen/markdown-pages">查看源码</a></p>
   </footer>
 
   <script>
-    // TOC active state on scroll
-    const sections = document.querySelectorAll('.series-section[id]');
-    const navLinks = document.querySelectorAll('.toc-nav a');
+    const sections = document.querySelectorAll('.section[id]');
+    const navLinks = document.querySelectorAll('.nav-list a');
 
     function highlightActive() {
       const scrollPos = window.scrollY + 200;
-
       let activeId = 'recent';
       sections.forEach(section => {
-        if (scrollPos >= section.offsetTop) {
-          activeId = section.id;
-        }
+        if (scrollPos >= section.offsetTop) activeId = section.id;
       });
-
       navLinks.forEach(link => {
         link.classList.remove('active');
-        if (link.getAttribute('href') === '#' + activeId) {
-          link.classList.add('active');
-        }
+        if (link.getAttribute('href') === '#' + activeId) link.classList.add('active');
       });
     }
 
