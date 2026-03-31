@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>从泄露源码到完整复刻：一个项目如何深度解构 Claude Code | AI 技术阅读站</title>
-  <meta name="description" content="深度解析 instructkr/claw-code 项目——一个因 Claude Code 源码泄露而诞生的清洁室重写，揭示 Agent Harness 的核心设计逻辑">
+  <meta name="description" content="深度解析 instructkr/claw-code 项目——一个因 Claude Code 源码泄露而诞生的深度复刻，揭示 Agent Harness 的核心设计逻辑">
   <link rel="stylesheet" href="../assets/style.css">
   <style>
     .article-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
@@ -94,14 +94,14 @@
       <section id="overview">
         <h2>1. 项目概述</h2>
         <p>
-          <strong>Claw Code</strong> 是对原始 TypeScript 版 Claude Code Agent Harness 的清洁室（Clean-Room）Python 重写实现。
+          <strong>Claw Code</strong> 是对原始 TypeScript 版 Claude Code Agent Harness 的深度复写实现。
           当 Claude Code 源码疑似泄露后，<code>instructkr</code> 团队选择了一条独特的路径——不是直接 fork 或复制，
           而是重新理解、重新设计这个 Agent Harness 的核心逻辑。
         </p>
 
         <div class="highlight-box">
           <strong>背景：</strong>2025年底，Claude Code 源码疑似泄露引发了社区广泛讨论。
-          Claw Code 项目正是在这个背景下诞生，目标是深度解析 Agent Harness 的工程设计，而非简单的代码复制。
+          instructkr/claw-code 项目正是在这个背景下诞生，目标是深度解析 Agent Harness 的工程设计，而非简单的代码复制。
           项目当前正在向高性能 Rust 运行时过渡（位于 <code>dev/rust</code> 分支）。
         </div>
 
@@ -360,7 +360,7 @@ In-Memory State          Serialization          Filesystem
           <div class="pros">
             <h4>优势</h4>
             <ul>
-              <li><strong>清洁室设计</strong>：避免直接复制，在理解原版基础上重新实现</li>
+              <li><strong>深度复刻设计</strong>：避免直接复制，在理解原版基础上重新实现</li>
               <li><strong>架构一致性</strong>：通过 Parity Audit 确保与原版功能对等</li>
               <li><strong>多语言支持</strong>：Python 实现更易于 Python 生态集成</li>
               <li><strong>持久会话</strong>：支持跨 CLI 调用的状态恢复</li>
@@ -388,7 +388,7 @@ In-Memory State          Serialization          Filesystem
         <h2>8. 总结</h2>
         <p>
           Claw Code 代表了一种独特的 Agent Harness 工程方法——当 Claude Code 源码泄露引发关注后，
-          社区没有停留在围观层面，而是用清洁室方法深入理解其架构设计。
+          社区没有停留在围观层面，而是从零深度理解其架构设计。
         </p>
 
         <p>
