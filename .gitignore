@@ -1,0 +1,9 @@
+
+# Playwright test artifacts
+.playwright-mcp/
+
+# Temp files
+__x_article_raw.html
+*.png
+tmp/
+ai-news-daily/
