@@ -77,19 +77,24 @@
         </p>
       </header>
 
-      <div class="toc">
-        <h4>目录</h4>
-        <ul>
-          <li><a href="#overview">1. 项目概述</a></li>
-          <li><a href="#architecture">2. 核心架构</a></li>
-          <li><a href="#components">3. 关键组件详解</a></li>
-          <li><a href="#session">4. 会话持久化机制</a></li>
-          <li><a href="#bootstrap">5. 引导与初始化</a></li>
-          <li><a href="#parity">6. Parity Audit 系统</a></li>
-          <li><a href="#pros-cons">7. 优缺点分析</a></li>
-          <li><a href="#conclusion">8. 总结</a></li>
-        </ul>
-      </div>
+      <details class="toc" open style="position: static; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <summary style="font-weight: 700; font-size: 0.95rem; color: #334155; cursor: pointer; user-select: none; list-style: none; display: flex; align-items: center; gap: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <span>目录</span>
+        </summary>
+        <nav style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+          <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 24px;">
+            <li style="margin: 0;"><a href="#overview" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">1. 项目概述</a></li>
+            <li style="margin: 0;"><a href="#architecture" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">2. 核心架构</a></li>
+            <li style="margin: 0;"><a href="#components" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">3. 关键组件详解</a></li>
+            <li style="margin: 0;"><a href="#session" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">4. 会话持久化机制</a></li>
+            <li style="margin: 0;"><a href="#bootstrap" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">5. 引导与初始化</a></li>
+            <li style="margin: 0;"><a href="#parity" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">6. Parity Audit 系统</a></li>
+            <li style="margin: 0;"><a href="#pros-cons" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">7. 优缺点分析</a></li>
+            <li style="margin: 0;"><a href="#conclusion" style="display: block; padding: 6px 0; color: #475569; text-decoration: none; font-size: 0.9rem; transition: color 0.15s;">8. 总结</a></li>
+          </ul>
+        </nav>
+      </details>
 
       <section id="overview">
         <h2>1. 项目概述</h2>
