@@ -502,6 +502,20 @@
             <p>深度解析 instructkr/claw-code 项目，揭示 Agent Harness 的核心设计逻辑</p>
           </div>
         </article>
+        <article class="update-card">
+          <span class="update-badge">T-02</span>
+          <div class="update-content">
+            <h3><a href="./articles/claude-code-boris-15-tips.html">Claude Code 15 条高频实战技巧整理</a></h3>
+            <p>跨端接力、自动化、前端验证、worktree 并行与自定义 agent 五个工作流</p>
+          </div>
+        </article>
+        <article class="update-card">
+          <span class="update-badge">P-05</span>
+          <div class="update-content">
+            <h3><a href="./papers/regression-is-all-you-need-medical-image-translation.html">Regression is all you need</a></h3>
+            <p>YODA 论文导读：强条件医疗图像翻译里，回归采样往往比昂贵扩散更快、更稳</p>
+          </div>
+        </article>
       </section>
 
       <section class="section" id="harness">
@@ -513,15 +527,98 @@
         <div class="cards">
           <article class="card">
             <div class="card-meta">
-              <span class="card-index">H-12</span>
-              <span class="badge badge-instructkr">instructkr</span>
-              <span class="badge">2026-04-01</span>
+              <span class="card-index">H-01</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-02-11</span>
             </div>
-            <h4><a href="./articles/claw-code-architecture.html">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</a></h4>
-            <p>Claude Code 源码泄露后，instructkr 团队选择从零理解其架构设计，复刻出完整的 Agent Harness 工程逻辑。</p>
+            <h4><a href="./articles/harness-engineering.html">Harness Engineering：Agent First 世界里的工程生产力</a></h4>
+            <p>当代码主要由 agent 产出时，工程团队真正要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
             <div class="card-actions">
-              <a href="./articles/claw-code-architecture.html" class="primary">阅读全文</a>
-              <a href="https://github.com/instructkr/claw-code" class="secondary">查看源码</a>
+              <a href="./articles/harness-engineering.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-02</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-02-04</span>
+            </div>
+            <h4><a href="./articles/unlocking-codex-harness.html">Unlocking the Codex Harness：App Server 多客户端架构</a></h4>
+            <p>同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
+            <div class="card-actions">
+              <a href="./articles/unlocking-codex-harness.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-03</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-03-11</span>
+            </div>
+            <h4><a href="./articles/responses-computer-environment.html">Responses API：Agent 化的关键一跃</a></h4>
+            <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
+            <div class="card-actions">
+              <a href="./articles/responses-computer-environment.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-04</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-01-23</span>
+            </div>
+            <h4><a href="./articles/unrolling-codex-agent-loop.html">Unrolling the Codex Agent Loop：可靠性细节</a></h4>
+            <p>从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率的运行时细节。</p>
+            <div class="card-actions">
+              <a href="./articles/unrolling-codex-agent-loop.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-05</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2025-11-26</span>
+            </div>
+            <h4><a href="./articles/anthropic-long-running-harnesses.html">Long Running Agents：长时间运行的 agent</a></h4>
+            <p>长任务失败往往不是因为模型短期不会做，而是无法在多轮、多小时执行中保持稳定状态。</p>
+            <div class="card-actions">
+              <a href="./articles/anthropic-long-running-harnesses.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-06</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2025-09-29</span>
+            </div>
+            <h4><a href="./articles/anthropic-context-engineering.html">Context Engineering：上下文不是越多越好</a></h4>
+            <p>真正的问题从来不是"有没有上下文"，而是"给模型的 token 是否在当前时刻最值得占用注意力"。</p>
+            <div class="card-actions">
+              <a href="./articles/anthropic-context-engineering.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-07</span>
+              <span class="badge badge-Microsoft">Microsoft</span>
+              <span class="badge">2025-12-26</span>
+            </div>
+            <h4><a href="./articles/azure-sre-agent-context-engineering.html">Azure SRE Agent：工具收敛的生产经验</a></h4>
+            <p>微软在构建 Azure SRE Agent 时发现，复杂问题常常要靠删减、收敛和外化状态来解决。</p>
+            <div class="card-actions">
+              <a href="./articles/azure-sre-agent-context-engineering.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-08</span>
+              <span class="badge badge-arXiv">OpenAI Cookbook</span>
+              <span class="badge">2025-10-07</span>
+            </div>
+            <h4><a href="./articles/plans-md-multi-hour-problem-solving.html">PLANS.md：活计划支撑数小时执行</a></h4>
+            <p>把"计划"从一次性草稿变成贯穿执行全程的活文档，支撑 agent 在多小时任务里持续推进。</p>
+            <div class="card-actions">
+              <a href="./articles/plans-md-multi-hour-problem-solving.html" class="primary">阅读全文</a>
             </div>
           </article>
           <article class="card">
@@ -538,6 +635,18 @@
           </article>
           <article class="card">
             <div class="card-meta">
+              <span class="card-index">H-10</span>
+              <span class="badge badge-DeepMind">Google DeepMind</span>
+              <span class="badge">2026-02-10</span>
+            </div>
+            <h4><a href="./articles/autoharness-deepmind.html">AutoHarness：让 LLM 自动合成 code harness</a></h4>
+            <p>DeepMind 把 harness 从人工手写推进到自动合成：先解决非法动作与环境约束，再进一步把策略编译成代码外壳。</p>
+            <div class="card-actions">
+              <a href="./articles/autoharness-deepmind.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
               <span class="card-index">H-11</span>
               <span class="badge badge-arXiv">arXiv</span>
               <span class="badge">2026-03-26</span>
@@ -550,18 +659,17 @@
           </article>
           <article class="card">
             <div class="card-meta">
-              <span class="card-index">H-10</span>
-              <span class="badge badge-DeepMind">Google DeepMind</span>
-              <span class="badge">2026-02-10</span>
+              <span class="card-index">H-12</span>
+              <span class="badge badge-instructkr">instructkr</span>
+              <span class="badge">2026-04-01</span>
             </div>
-            <h4><a href="./articles/autoharness-deepmind.html">AutoHarness：让 LLM 自动合成 code harness</a></h4>
-            <p>DeepMind 把 harness 从人工手写推进到自动合成，先解决非法动作与环境约束。</p>
+            <h4><a href="./articles/claw-code-architecture.html">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</a></h4>
+            <p>Claude Code 源码泄露后，instructkr 团队选择从零理解其架构设计，复刻出完整的 Agent Harness 工程逻辑。</p>
             <div class="card-actions">
-              <a href="./articles/autoharness-deepmind.html" class="primary">阅读全文</a>
+              <a href="./articles/claw-code-architecture.html" class="primary">阅读全文</a>
+              <a href="https://github.com/instructkr/claw-code" class="secondary">查看源码</a>
             </div>
-          </article>
-        </div>
-      </section>
+          </article></div></section>
 
       <section class="section" id="cookbooks">
         <div class="section-header">
@@ -572,28 +680,149 @@
         <div class="cards">
           <article class="card">
             <div class="card-meta">
-              <span class="card-index">C-01</span>
-              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="card-index">H-01</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-02-11</span>
             </div>
-            <h4><a href="./cookbooks/01-repo-overview.html">仓库总览：Cookbooks 到底在教什么</a></h4>
-            <p>建立对整个仓库的认知地图，理解 66 个 recipes 的分类与重点。</p>
+            <h4><a href="./articles/harness-engineering.html">Harness Engineering：Agent First 世界里的工程生产力</a></h4>
+            <p>当代码主要由 agent 产出时，工程团队真正要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
             <div class="card-actions">
-              <a href="./cookbooks/01-repo-overview.html" class="primary">阅读全文</a>
+              <a href="./articles/harness-engineering.html" class="primary">阅读全文</a>
             </div>
           </article>
           <article class="card">
             <div class="card-meta">
-              <span class="card-index">C-05</span>
-              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="card-index">H-02</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-02-04</span>
             </div>
-            <h4><a href="./cookbooks/05-agent-patterns.html">Agent 模式篇：链式、并行、路由与编排</a></h4>
-            <p>各种 Agent 编排模式的适用场景与实现方法。</p>
+            <h4><a href="./articles/unlocking-codex-harness.html">Unlocking the Codex Harness：App Server 多客户端架构</a></h4>
+            <p>同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
             <div class="card-actions">
-              <a href="./cookbooks/05-agent-patterns.html" class="primary">阅读全文</a>
+              <a href="./articles/unlocking-codex-harness.html" class="primary">阅读全文</a>
             </div>
           </article>
-        </div>
-      </section>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-03</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-03-11</span>
+            </div>
+            <h4><a href="./articles/responses-computer-environment.html">Responses API：Agent 化的关键一跃</a></h4>
+            <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
+            <div class="card-actions">
+              <a href="./articles/responses-computer-environment.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-04</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-01-23</span>
+            </div>
+            <h4><a href="./articles/unrolling-codex-agent-loop.html">Unrolling the Codex Agent Loop：可靠性细节</a></h4>
+            <p>从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率的运行时细节。</p>
+            <div class="card-actions">
+              <a href="./articles/unrolling-codex-agent-loop.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-05</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2025-11-26</span>
+            </div>
+            <h4><a href="./articles/anthropic-long-running-harnesses.html">Long Running Agents：长时间运行的 agent</a></h4>
+            <p>长任务失败往往不是因为模型短期不会做，而是无法在多轮、多小时执行中保持稳定状态。</p>
+            <div class="card-actions">
+              <a href="./articles/anthropic-long-running-harnesses.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-06</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2025-09-29</span>
+            </div>
+            <h4><a href="./articles/anthropic-context-engineering.html">Context Engineering：上下文不是越多越好</a></h4>
+            <p>真正的问题从来不是"有没有上下文"，而是"给模型的 token 是否在当前时刻最值得占用注意力"。</p>
+            <div class="card-actions">
+              <a href="./articles/anthropic-context-engineering.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-07</span>
+              <span class="badge badge-Microsoft">Microsoft</span>
+              <span class="badge">2025-12-26</span>
+            </div>
+            <h4><a href="./articles/azure-sre-agent-context-engineering.html">Azure SRE Agent：工具收敛的生产经验</a></h4>
+            <p>微软在构建 Azure SRE Agent 时发现，复杂问题常常要靠删减、收敛和外化状态来解决。</p>
+            <div class="card-actions">
+              <a href="./articles/azure-sre-agent-context-engineering.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-08</span>
+              <span class="badge badge-arXiv">OpenAI Cookbook</span>
+              <span class="badge">2025-10-07</span>
+            </div>
+            <h4><a href="./articles/plans-md-multi-hour-problem-solving.html">PLANS.md：活计划支撑数小时执行</a></h4>
+            <p>把"计划"从一次性草稿变成贯穿执行全程的活文档，支撑 agent 在多小时任务里持续推进。</p>
+            <div class="card-actions">
+              <a href="./articles/plans-md-multi-hour-problem-solving.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-09</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2026-03-24</span>
+            </div>
+            <h4><a href="./articles/harness-design-long-running-apps.html">Harness Design：三代理架构驱动的长时间应用开发</a></h4>
+            <p>GAN 启发的三代理架构让 Claude 在前端设计和全栈开发中实现多小时稳定运行。</p>
+            <div class="card-actions">
+              <a href="./articles/harness-design-long-running-apps.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-10</span>
+              <span class="badge badge-DeepMind">Google DeepMind</span>
+              <span class="badge">2026-02-10</span>
+            </div>
+            <h4><a href="./articles/autoharness-deepmind.html">AutoHarness：让 LLM 自动合成 code harness</a></h4>
+            <p>DeepMind 把 harness 从人工手写推进到自动合成：先解决非法动作与环境约束，再进一步把策略编译成代码外壳。</p>
+            <div class="card-actions">
+              <a href="./articles/autoharness-deepmind.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-11</span>
+              <span class="badge badge-arXiv">arXiv</span>
+              <span class="badge">2026-03-26</span>
+            </div>
+            <h4><a href="./articles/natural-language-agent-harnesses.html">Natural-Language Agent Harnesses</a></h4>
+            <p>把高层 harness 逻辑从 controller code 里抽出来，表达成可编辑自然语言。</p>
+            <div class="card-actions">
+              <a href="./articles/natural-language-agent-harnesses.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-12</span>
+              <span class="badge badge-instructkr">instructkr</span>
+              <span class="badge">2026-04-01</span>
+            </div>
+            <h4><a href="./articles/claw-code-architecture.html">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</a></h4>
+            <p>Claude Code 源码泄露后，instructkr 团队选择从零理解其架构设计，复刻出完整的 Agent Harness 工程逻辑。</p>
+            <div class="card-actions">
+              <a href="./articles/claw-code-architecture.html" class="primary">阅读全文</a>
+              <a href="https://github.com/instructkr/claw-code" class="secondary">查看源码</a>
+            </div>
+          </article></div></section>
 
       <section class="section" id="tools">
         <div class="section-header">
@@ -604,30 +833,149 @@
         <div class="cards">
           <article class="card">
             <div class="card-meta">
-              <span class="card-index">T-02</span>
-              <span class="badge badge-Tools">Claude Code</span>
-              <span class="badge">2026-03-30</span>
+              <span class="card-index">H-01</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-02-11</span>
             </div>
-            <h4><a href="./articles/claude-code-boris-15-tips.html">Claude Code 15 条高频实战技巧整理</a></h4>
-            <p>跨端接力、自动化，前端验证、worktree 并行与自定义 agent 五个工作流主题。</p>
+            <h4><a href="./articles/harness-engineering.html">Harness Engineering：Agent First 世界里的工程生产力</a></h4>
+            <p>当代码主要由 agent 产出时，工程团队真正要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
             <div class="card-actions">
-              <a href="./articles/claude-code-boris-15-tips.html" class="primary">阅读全文</a>
+              <a href="./articles/harness-engineering.html" class="primary">阅读全文</a>
             </div>
           </article>
           <article class="card">
             <div class="card-meta">
-              <span class="card-index">T-01</span>
-              <span class="badge badge-Tools">工具教程</span>
-              <span class="badge">2026-03-27</span>
+              <span class="card-index">H-02</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-02-04</span>
             </div>
-            <h4><a href="./articles/server-connection-guide.html">服务器连接指南</a></h4>
-            <p>详细介绍使用 XShell、xftp 以及 VSCode Remote-SSH 连接远程服务器的完整步骤。</p>
+            <h4><a href="./articles/unlocking-codex-harness.html">Unlocking the Codex Harness：App Server 多客户端架构</a></h4>
+            <p>同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
             <div class="card-actions">
-              <a href="./articles/server-connection-guide.html" class="primary">阅读全文</a>
+              <a href="./articles/unlocking-codex-harness.html" class="primary">阅读全文</a>
             </div>
           </article>
-        </div>
-      </section>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-03</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-03-11</span>
+            </div>
+            <h4><a href="./articles/responses-computer-environment.html">Responses API：Agent 化的关键一跃</a></h4>
+            <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
+            <div class="card-actions">
+              <a href="./articles/responses-computer-environment.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-04</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-01-23</span>
+            </div>
+            <h4><a href="./articles/unrolling-codex-agent-loop.html">Unrolling the Codex Agent Loop：可靠性细节</a></h4>
+            <p>从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率的运行时细节。</p>
+            <div class="card-actions">
+              <a href="./articles/unrolling-codex-agent-loop.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-05</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2025-11-26</span>
+            </div>
+            <h4><a href="./articles/anthropic-long-running-harnesses.html">Long Running Agents：长时间运行的 agent</a></h4>
+            <p>长任务失败往往不是因为模型短期不会做，而是无法在多轮、多小时执行中保持稳定状态。</p>
+            <div class="card-actions">
+              <a href="./articles/anthropic-long-running-harnesses.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-06</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2025-09-29</span>
+            </div>
+            <h4><a href="./articles/anthropic-context-engineering.html">Context Engineering：上下文不是越多越好</a></h4>
+            <p>真正的问题从来不是"有没有上下文"，而是"给模型的 token 是否在当前时刻最值得占用注意力"。</p>
+            <div class="card-actions">
+              <a href="./articles/anthropic-context-engineering.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-07</span>
+              <span class="badge badge-Microsoft">Microsoft</span>
+              <span class="badge">2025-12-26</span>
+            </div>
+            <h4><a href="./articles/azure-sre-agent-context-engineering.html">Azure SRE Agent：工具收敛的生产经验</a></h4>
+            <p>微软在构建 Azure SRE Agent 时发现，复杂问题常常要靠删减、收敛和外化状态来解决。</p>
+            <div class="card-actions">
+              <a href="./articles/azure-sre-agent-context-engineering.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-08</span>
+              <span class="badge badge-arXiv">OpenAI Cookbook</span>
+              <span class="badge">2025-10-07</span>
+            </div>
+            <h4><a href="./articles/plans-md-multi-hour-problem-solving.html">PLANS.md：活计划支撑数小时执行</a></h4>
+            <p>把"计划"从一次性草稿变成贯穿执行全程的活文档，支撑 agent 在多小时任务里持续推进。</p>
+            <div class="card-actions">
+              <a href="./articles/plans-md-multi-hour-problem-solving.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-09</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2026-03-24</span>
+            </div>
+            <h4><a href="./articles/harness-design-long-running-apps.html">Harness Design：三代理架构驱动的长时间应用开发</a></h4>
+            <p>GAN 启发的三代理架构让 Claude 在前端设计和全栈开发中实现多小时稳定运行。</p>
+            <div class="card-actions">
+              <a href="./articles/harness-design-long-running-apps.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-10</span>
+              <span class="badge badge-DeepMind">Google DeepMind</span>
+              <span class="badge">2026-02-10</span>
+            </div>
+            <h4><a href="./articles/autoharness-deepmind.html">AutoHarness：让 LLM 自动合成 code harness</a></h4>
+            <p>DeepMind 把 harness 从人工手写推进到自动合成：先解决非法动作与环境约束，再进一步把策略编译成代码外壳。</p>
+            <div class="card-actions">
+              <a href="./articles/autoharness-deepmind.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-11</span>
+              <span class="badge badge-arXiv">arXiv</span>
+              <span class="badge">2026-03-26</span>
+            </div>
+            <h4><a href="./articles/natural-language-agent-harnesses.html">Natural-Language Agent Harnesses</a></h4>
+            <p>把高层 harness 逻辑从 controller code 里抽出来，表达成可编辑自然语言。</p>
+            <div class="card-actions">
+              <a href="./articles/natural-language-agent-harnesses.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-12</span>
+              <span class="badge badge-instructkr">instructkr</span>
+              <span class="badge">2026-04-01</span>
+            </div>
+            <h4><a href="./articles/claw-code-architecture.html">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</a></h4>
+            <p>Claude Code 源码泄露后，instructkr 团队选择从零理解其架构设计，复刻出完整的 Agent Harness 工程逻辑。</p>
+            <div class="card-actions">
+              <a href="./articles/claw-code-architecture.html" class="primary">阅读全文</a>
+              <a href="https://github.com/instructkr/claw-code" class="secondary">查看源码</a>
+            </div>
+          </article></div></section>
 
       <section class="section" id="papers">
         <div class="section-header">
@@ -638,30 +986,149 @@
         <div class="cards">
           <article class="card">
             <div class="card-meta">
-              <span class="card-index">P-05</span>
-              <span class="badge badge-Research">Medical Imaging</span>
-              <span class="badge">2025-10-21</span>
+              <span class="card-index">H-01</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-02-11</span>
             </div>
-            <h4><a href="./papers/regression-is-all-you-need-medical-image-translation.html">Regression is all you need</a></h4>
-            <p>YODA 论文导读：强条件医疗图像翻译里，回归采样往往比昂贵扩散更快、更稳。</p>
+            <h4><a href="./articles/harness-engineering.html">Harness Engineering：Agent First 世界里的工程生产力</a></h4>
+            <p>当代码主要由 agent 产出时，工程团队真正要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
             <div class="card-actions">
-              <a href="./papers/regression-is-all-you-need-medical-image-translation.html" class="primary">阅读全文</a>
+              <a href="./articles/harness-engineering.html" class="primary">阅读全文</a>
             </div>
           </article>
           <article class="card">
             <div class="card-meta">
-              <span class="card-index">P-04</span>
-              <span class="badge badge-Research">Rectified Flow</span>
-              <span class="badge">2026-03-20</span>
+              <span class="card-index">H-02</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-02-04</span>
             </div>
-            <h4><a href="./papers/i2i-rectified-flow-reformulation.html">I2I-RFR：图像翻译的修正流重构</a></h4>
-            <p>将标准 I2I 回归网络重新表述为连续时间传输模型，1 步推理即可完成高质量翻译。</p>
+            <h4><a href="./articles/unlocking-codex-harness.html">Unlocking the Codex Harness：App Server 多客户端架构</a></h4>
+            <p>同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
             <div class="card-actions">
-              <a href="./papers/i2i-rectified-flow-reformulation.html" class="primary">阅读全文</a>
+              <a href="./articles/unlocking-codex-harness.html" class="primary">阅读全文</a>
             </div>
           </article>
-        </div>
-      </section>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-03</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-03-11</span>
+            </div>
+            <h4><a href="./articles/responses-computer-environment.html">Responses API：Agent 化的关键一跃</a></h4>
+            <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
+            <div class="card-actions">
+              <a href="./articles/responses-computer-environment.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-04</span>
+              <span class="badge badge-OpenAI">OpenAI</span>
+              <span class="badge">2026-01-23</span>
+            </div>
+            <h4><a href="./articles/unrolling-codex-agent-loop.html">Unrolling the Codex Agent Loop：可靠性细节</a></h4>
+            <p>从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率的运行时细节。</p>
+            <div class="card-actions">
+              <a href="./articles/unrolling-codex-agent-loop.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-05</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2025-11-26</span>
+            </div>
+            <h4><a href="./articles/anthropic-long-running-harnesses.html">Long Running Agents：长时间运行的 agent</a></h4>
+            <p>长任务失败往往不是因为模型短期不会做，而是无法在多轮、多小时执行中保持稳定状态。</p>
+            <div class="card-actions">
+              <a href="./articles/anthropic-long-running-harnesses.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-06</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2025-09-29</span>
+            </div>
+            <h4><a href="./articles/anthropic-context-engineering.html">Context Engineering：上下文不是越多越好</a></h4>
+            <p>真正的问题从来不是"有没有上下文"，而是"给模型的 token 是否在当前时刻最值得占用注意力"。</p>
+            <div class="card-actions">
+              <a href="./articles/anthropic-context-engineering.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-07</span>
+              <span class="badge badge-Microsoft">Microsoft</span>
+              <span class="badge">2025-12-26</span>
+            </div>
+            <h4><a href="./articles/azure-sre-agent-context-engineering.html">Azure SRE Agent：工具收敛的生产经验</a></h4>
+            <p>微软在构建 Azure SRE Agent 时发现，复杂问题常常要靠删减、收敛和外化状态来解决。</p>
+            <div class="card-actions">
+              <a href="./articles/azure-sre-agent-context-engineering.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-08</span>
+              <span class="badge badge-arXiv">OpenAI Cookbook</span>
+              <span class="badge">2025-10-07</span>
+            </div>
+            <h4><a href="./articles/plans-md-multi-hour-problem-solving.html">PLANS.md：活计划支撑数小时执行</a></h4>
+            <p>把"计划"从一次性草稿变成贯穿执行全程的活文档，支撑 agent 在多小时任务里持续推进。</p>
+            <div class="card-actions">
+              <a href="./articles/plans-md-multi-hour-problem-solving.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-09</span>
+              <span class="badge badge-Anthropic">Anthropic</span>
+              <span class="badge">2026-03-24</span>
+            </div>
+            <h4><a href="./articles/harness-design-long-running-apps.html">Harness Design：三代理架构驱动的长时间应用开发</a></h4>
+            <p>GAN 启发的三代理架构让 Claude 在前端设计和全栈开发中实现多小时稳定运行。</p>
+            <div class="card-actions">
+              <a href="./articles/harness-design-long-running-apps.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-10</span>
+              <span class="badge badge-DeepMind">Google DeepMind</span>
+              <span class="badge">2026-02-10</span>
+            </div>
+            <h4><a href="./articles/autoharness-deepmind.html">AutoHarness：让 LLM 自动合成 code harness</a></h4>
+            <p>DeepMind 把 harness 从人工手写推进到自动合成：先解决非法动作与环境约束，再进一步把策略编译成代码外壳。</p>
+            <div class="card-actions">
+              <a href="./articles/autoharness-deepmind.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-11</span>
+              <span class="badge badge-arXiv">arXiv</span>
+              <span class="badge">2026-03-26</span>
+            </div>
+            <h4><a href="./articles/natural-language-agent-harnesses.html">Natural-Language Agent Harnesses</a></h4>
+            <p>把高层 harness 逻辑从 controller code 里抽出来，表达成可编辑自然语言。</p>
+            <div class="card-actions">
+              <a href="./articles/natural-language-agent-harnesses.html" class="primary">阅读全文</a>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-meta">
+              <span class="card-index">H-12</span>
+              <span class="badge badge-instructkr">instructkr</span>
+              <span class="badge">2026-04-01</span>
+            </div>
+            <h4><a href="./articles/claw-code-architecture.html">从泄露源码到完整复刻：一个项目如何深度解构 Claude Code</a></h4>
+            <p>Claude Code 源码泄露后，instructkr 团队选择从零理解其架构设计，复刻出完整的 Agent Harness 工程逻辑。</p>
+            <div class="card-actions">
+              <a href="./articles/claw-code-architecture.html" class="primary">阅读全文</a>
+              <a href="https://github.com/instructkr/claw-code" class="secondary">查看源码</a>
+            </div>
+          </article></div></section>
     </main>
   </div>
 
