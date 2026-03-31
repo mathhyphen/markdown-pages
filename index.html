@@ -6,65 +6,37 @@
   <title>AI 技术阅读站 | Neural Reading Room</title>
   <meta name="description" content="AI Agent、Harness Engineering、Claude Cookbooks 与论文的神经网络式导航阅读室。">
   <link rel="stylesheet" href="./assets/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #0a0a0f;
-      --bg-card: rgba(15, 15, 25, 0.8);
-      --bg-sidebar: rgba(10, 10, 20, 0.95);
-      --accent-cyan: #00f5ff;
-      --accent-magenta: #ff00aa;
-      --accent-blue: #0080ff;
-      --accent-purple: #8b5cf6;
-      --text-primary: #e4e4e7;
-      --text-secondary: #a1a1aa;
-      --text-muted: #71717a;
-      --border-glow: rgba(0, 245, 255, 0.3);
-      --shadow-glow: 0 0 30px rgba(0, 245, 255, 0.15);
+      --bg-primary: #FAFAF8;
+      --bg-secondary: #F5F5F0;
+      --bg-card: #FFFFFF;
+      --bg-sidebar: #FFFFFF;
+      --accent-blue: #2563EB;
+      --accent-purple: #7C3AED;
+      --accent-teal: #0D9488;
+      --accent-gold: #B45309;
+      --text-primary: #1A1A1A;
+      --text-secondary: #525252;
+      --text-muted: #737373;
+      --border-light: rgba(0, 0, 0, 0.08);
+      --border-medium: rgba(0, 0, 0, 0.12);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.08);
+      --shadow-hover: 0 12px 40px rgba(37, 99, 235, 0.12);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-dark);
+      background: var(--bg-primary);
       color: var(--text-primary);
       line-height: 1.6;
       min-height: 100vh;
       overflow-x: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background:
-        linear-gradient(90deg, rgba(0, 245, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(rgba(0, 245, 255, 0.03) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      top: -50%; left: -50%;
-      width: 200%; height: 200%;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(0, 128, 255, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 80% 80%, rgba(255, 0, 170, 0.06) 0%, transparent 40%),
-        radial-gradient(circle at 50% 50%, rgba(0, 245, 255, 0.04) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: 0;
-      animation: orbDrift 20s ease-in-out infinite;
-    }
-
-    @keyframes orbDrift {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      33% { transform: translate(2%, 1%) rotate(1deg); }
-      66% { transform: translate(-1%, 2%) rotate(-1deg); }
     }
 
     .layout {
@@ -80,47 +52,38 @@
       top: 0;
       height: 100vh;
       background: var(--bg-sidebar);
-      border-right: 1px solid rgba(0, 245, 255, 0.15);
+      border-right: 1px solid var(--border-light);
       padding: 32px 20px;
       display: flex;
       flex-direction: column;
-      backdrop-filter: blur(20px);
-    }
-
-    .sidebar::before {
-      content: '';
-      position: absolute;
-      top: 0; right: 0;
-      width: 1px; height: 100%;
-      background: linear-gradient(180deg, var(--accent-cyan), transparent 50%);
-      opacity: 0.5;
+      box-shadow: 2px 0 20px rgba(0, 0, 0, 0.03);
     }
 
     .brand {
       margin-bottom: 40px;
       padding-bottom: 24px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid var(--border-light);
     }
 
     .brand a {
       color: var(--text-primary);
       text-decoration: none;
       font-weight: 700;
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       display: block;
       margin-bottom: 6px;
       letter-spacing: -0.02em;
+      transition: color 0.2s;
     }
 
     .brand a:hover {
-      color: var(--accent-cyan);
-      text-shadow: 0 0 20px var(--accent-cyan);
+      color: var(--accent-blue);
     }
 
     .brand .tagline {
       font-size: 0.72rem;
       color: var(--text-muted);
-      font-family: 'Space Mono', monospace;
+      font-style: italic;
     }
 
     .nav-title {
@@ -128,9 +91,8 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.15em;
-      color: var(--accent-cyan);
+      color: var(--accent-blue);
       margin-bottom: 16px;
-      font-family: 'Space Mono', monospace;
     }
 
     .nav-list {
@@ -149,21 +111,21 @@
       text-decoration: none;
       border-radius: 10px;
       border: 1px solid transparent;
-      transition: all 0.3s ease;
+      transition: all 0.25s ease;
       font-size: 0.9rem;
     }
 
     .nav-list a:hover {
-      background: rgba(0, 245, 255, 0.08);
-      border-color: rgba(0, 245, 255, 0.2);
+      background: rgba(37, 99, 235, 0.06);
+      border-color: rgba(37, 99, 235, 0.15);
       color: var(--text-primary);
     }
 
     .nav-list a.active {
-      background: rgba(0, 245, 255, 0.12);
-      border-color: rgba(0, 245, 255, 0.4);
-      color: var(--accent-cyan);
-      box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+      background: rgba(37, 99, 235, 0.1);
+      border-color: rgba(37, 99, 235, 0.3);
+      color: var(--accent-blue);
+      font-weight: 500;
     }
 
     .nav-icon { font-size: 1.1rem; width: 24px; text-align: center; }
@@ -171,6 +133,7 @@
     .main {
       padding: 40px 48px;
       max-width: 1400px;
+      background: var(--bg-primary);
     }
 
     .recent {
@@ -195,28 +158,27 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      color: var(--accent-cyan);
-      font-family: 'Space Mono', monospace;
+      color: var(--accent-blue);
     }
 
     .recent-header::after {
       content: '';
       flex: 1;
       height: 1px;
-      background: linear-gradient(90deg, var(--accent-cyan), transparent);
-      opacity: 0.3;
+      background: linear-gradient(90deg, var(--accent-blue), transparent);
+      opacity: 0.2;
     }
 
     .update-card {
       background: var(--bg-card);
-      border: 1px solid rgba(0, 245, 255, 0.2);
+      border: 1px solid var(--border-light);
       border-radius: 16px;
       padding: 24px 28px;
       display: flex;
       gap: 20px;
       align-items: flex-start;
       transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-sm);
       position: relative;
       overflow: hidden;
     }
@@ -226,25 +188,24 @@
       position: absolute;
       top: 0; left: 0;
       width: 4px; height: 100%;
-      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-magenta));
+      background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
     }
 
     .update-card:hover {
-      border-color: rgba(0, 245, 255, 0.5);
-      box-shadow: var(--shadow-glow);
+      border-color: rgba(37, 99, 235, 0.3);
+      box-shadow: var(--shadow-hover);
       transform: translateX(4px);
     }
 
     .update-badge {
       flex-shrink: 0;
       padding: 6px 12px;
-      background: rgba(0, 245, 255, 0.1);
-      border: 1px solid rgba(0, 245, 255, 0.3);
+      background: rgba(37, 99, 235, 0.08);
+      border: 1px solid rgba(37, 99, 235, 0.2);
       border-radius: 6px;
       font-size: 0.72rem;
       font-weight: 700;
-      color: var(--accent-cyan);
-      font-family: 'Space Mono', monospace;
+      color: var(--accent-blue);
     }
 
     .update-content h3 {
@@ -259,7 +220,7 @@
       transition: color 0.2s;
     }
 
-    .update-content h3 a:hover { color: var(--accent-cyan); }
+    .update-content h3 a:hover { color: var(--accent-blue); }
 
     .update-content p {
       font-size: 0.85rem;
@@ -284,13 +245,12 @@
       gap: 16px;
       margin-bottom: 24px;
       padding-bottom: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid var(--border-light);
     }
 
     .section-index {
-      font-family: 'Space Mono', monospace;
       font-size: 0.7rem;
-      color: var(--accent-magenta);
+      color: var(--accent-purple);
       font-weight: 700;
     }
 
@@ -314,28 +274,19 @@
 
     .card {
       background: var(--bg-card);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-light);
       border-radius: 14px;
       padding: 20px 22px;
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
-      backdrop-filter: blur(10px);
-    }
-
-    .card::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: linear-gradient(135deg, transparent 40%, rgba(0, 245, 255, 0.03));
-      pointer-events: none;
+      box-shadow: var(--shadow-sm);
     }
 
     .card:hover {
-      border-color: rgba(0, 245, 255, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), var(--shadow-glow);
-      transform: translateY(-2px);
+      border-color: rgba(37, 99, 235, 0.25);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-3px);
     }
 
     .card-meta {
@@ -347,10 +298,9 @@
     }
 
     .card-index {
-      font-family: 'Space Mono', monospace;
       font-size: 0.68rem;
       color: var(--text-muted);
-      font-weight: 700;
+      font-weight: 600;
     }
 
     .badge {
@@ -358,19 +308,19 @@
       border-radius: 4px;
       font-size: 0.65rem;
       font-weight: 600;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
       color: var(--text-secondary);
     }
 
-    .badge-OpenAI { background: rgba(0, 245, 255, 0.1); border-color: rgba(0, 245, 255, 0.3); color: var(--accent-cyan); }
-    .badge-Anthropic { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.4); color: var(--accent-purple); }
-    .badge-Microsoft { background: rgba(0, 128, 255, 0.1); border-color: rgba(0, 128, 255, 0.3); color: var(--accent-blue); }
-    .badge-DeepMind { background: rgba(255, 0, 170, 0.1); border-color: rgba(255, 0, 170, 0.3); color: var(--accent-magenta); }
-    .badge-arXiv { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.15); color: var(--text-secondary); }
-    .badge-instructkr { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #10b981; }
-    .badge-Tools { background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); color: #fbbf24; }
-    .badge-Research { background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); color: #fbbf24; }
+    .badge-OpenAI { background: rgba(37, 99, 235, 0.08); border-color: rgba(37, 99, 235, 0.2); color: var(--accent-blue); }
+    .badge-Anthropic { background: rgba(124, 58, 237, 0.08); border-color: rgba(124, 58, 237, 0.2); color: var(--accent-purple); }
+    .badge-Microsoft { background: rgba(13, 148, 136, 0.08); border-color: rgba(13, 148, 136, 0.2); color: var(--accent-teal); }
+    .badge-DeepMind { background: rgba(180, 83, 9, 0.08); border-color: rgba(180, 83, 9, 0.2); color: var(--accent-gold); }
+    .badge-arXiv { background: var(--bg-secondary); border-color: var(--border-medium); color: var(--text-secondary); }
+    .badge-instructkr { background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.2); color: #059669; }
+    .badge-Tools { background: rgba(180, 83, 9, 0.08); border-color: rgba(180, 83, 9, 0.2); color: var(--accent-gold); }
+    .badge-Research { background: rgba(180, 83, 9, 0.08); border-color: rgba(180, 83, 9, 0.2); color: var(--accent-gold); }
 
     .card h4 {
       font-size: 0.95rem;
@@ -385,7 +335,7 @@
       transition: color 0.2s;
     }
 
-    .card h4 a:hover { color: var(--accent-cyan); }
+    .card h4 a:hover { color: var(--accent-blue); }
 
     .card p {
       font-size: 0.82rem;
@@ -409,25 +359,26 @@
     }
 
     .card-actions .primary {
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-      color: #0a0a0f;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: #FFFFFF;
       border: none;
     }
 
     .card-actions .primary:hover {
-      box-shadow: 0 0 20px rgba(0, 245, 255, 0.4);
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
       transform: scale(1.02);
     }
 
     .card-actions .secondary {
-      background: rgba(255, 255, 255, 0.06);
+      background: var(--bg-secondary);
       color: var(--text-secondary);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-light);
     }
 
     .card-actions .secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
+      background: var(--bg-card);
+      border-color: var(--border-medium);
+      color: var(--text-primary);
     }
 
     footer {
@@ -435,13 +386,13 @@
       padding: 40px 20px;
       color: var(--text-muted);
       font-size: 0.78rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-top: 1px solid var(--border-light);
       position: relative;
       z-index: 1;
     }
 
     footer a {
-      color: var(--accent-cyan);
+      color: var(--accent-blue);
       text-decoration: none;
     }
 
@@ -453,8 +404,9 @@
         position: static;
         height: auto;
         border-right: none;
-        border-bottom: 1px solid rgba(0, 245, 255, 0.15);
+        border-bottom: 1px solid var(--border-light);
         padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
       }
       .nav-list {
         flex-direction: row;
@@ -463,7 +415,7 @@
       }
       .nav-list a {
         padding: 8px 14px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--border-light);
         border-radius: 20px;
       }
       .main { padding: 24px 20px; }
