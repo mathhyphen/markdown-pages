@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Code 架构深度解析 | AI 技术阅读站</title>
+  <meta name="description" content="基于 SinghCoder/claude-code 源码深度分析，揭示 Claude Code 的 Agent Harness 核心设计理念与工程实现">
+  <link rel="stylesheet" href="../assets/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #FAFAF8;
+      --bg-secondary: #F5F5F0;
+      --bg-card: #FFFFFF;
+      --accent-blue: #2563EB;
+      --accent-purple: #7C3AED;
+      --accent-teal: #0D9488;
+      --text-primary: #1A1A1A;
+      --text-secondary: #525252;
+      --text-muted: #737373;
+      --border-light: rgba(0, 0, 0, 0.08);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+      --shadow-hover: 0 12px 40px rgba(37, 99, 235, 0.12);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+    }
+
+    .article-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 0;
+      max-width: 1400px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border-light);
+      padding: 32px 20px;
+      overflow-y: auto;
+    }
+
+    .brand {
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .brand a {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: block;
+    }
+
+    .brand a:hover { color: var(--accent-blue); }
+
+    .brand .tagline {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .toc-title {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent-blue);
+      margin-bottom: 16px;
+    }
+
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .toc-list a {
+      display: block;
+      padding: 8px 12px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .toc-list a:hover {
+      background: rgba(37, 99, 235, 0.06);
+      color: var(--accent-blue);
+    }
+
+    .toc-list .sub {
+      padding-left: 24px;
+      font-size: 0.8rem;
+    }
+
+    .main {
+      padding: 40px 48px;
+      max-width: 900px;
+    }
+
+    .article-header {
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .article-header h1 {
+      font-family: 'Crimson Pro', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+
+    .article-header .meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .article-header .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--accent-blue);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-right: 12px;
+    }
+
+    h2 {
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 48px 0 20px;
+      color: var(--text-primary);
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+      color: var(--text-primary);
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--text-primary);
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--text-secondary);
+    }
+
+    .lead {
+      font-size: 1.15rem;
+      color: var(--text-primary);
+      line-height: 1.8;
+      margin-bottom: 32px;
+    }
+
+    ul, ol {
+      margin: 0 0 16px 24px;
+      color: var(--text-secondary);
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    code {
+      background: var(--bg-secondary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.88em;
+    }
+
+    pre {
+      background: var(--bg-secondary);
+      padding: 16px 20px;
+      border-radius: 10px;
+      overflow-x: auto;
+      margin: 20px 0;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0;
+    }
+
+    .diagram pre {
+      background: var(--bg-secondary);
+      margin: 0;
+    }
+
+    .highlight-box {
+      background: rgba(37, 99, 235, 0.05);
+      border-left: 4px solid var(--accent-blue);
+      padding: 20px 24px;
+      margin: 24px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .highlight-box.warning {
+      background: rgba(180, 83, 9, 0.05);
+      border-left-color: var(--accent-gold);
+    }
+
+    .two-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 24px 0;
+    }
+
+    .column {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .column h4 {
+      margin-top: 0;
+      color: var(--accent-blue);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    tr:hover {
+      background: var(--bg-secondary);
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border-light);
+      margin-top: 60px;
+    }
+
+    footer a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    @media (max-width: 900px) {
+      .article-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-light);
+        padding: 20px;
+      }
+
+      .main {
+        padding: 24px 20px;
+      }
+
+      .two-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="article-layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <a href="../index.html">← 返回首页</a>
+        <span class="tagline">Neural Reading Room</span>
+      </div>
+      <div class="toc-title">目录</div>
+      <ul class="toc-list">
+        <li><a href="#overview">核心架构总览</a></li>
+        <li><a href="#query-loop" class="sub">Query Loop 工作流程</a></li>
+        <li><a href="#token-budget" class="sub">Token Budget 管理</a></li>
+        <li><a href="#compaction" class="sub">Compaction 四层策略</a></li>
+        <li><a href="#tool-pipeline">工具执行管道</a></li>
+        <li><a href="#permission">权限系统</a></li>
+        <li><a href="#multi-agent">多 Agent 系统</a></li>
+        <li><a href="#tui">Ink TUI 引擎</a></li>
+        <li><a href="#memory">记忆系统</a></li>
+        <li><a href="#mcp">MCP 协议支持</a></li>
+        <li><a href="#lessons">设计理念总结</a></li>
+      </ul>
+    </aside>
+
+    <main class="main">
+      <header class="article-header">
+        <span class="badge">架构解析</span>
+        <h1>Claude Code 架构深度解析</h1>
+        <p class="meta">基于 SinghCoder/claude-code 源码 | 51万行代码核心设计</p>
+      </header>
+
+      <p class="lead">
+        Claude Code 的核心竞争力不在于「模型有多强」，而在于「如何让模型在编程场景下持续、稳定、可控地发挥能力」。本文深入解析其 Agent Harness 的核心工程设计。
+      </p>
+
+      <section id="overview">
+        <h2>核心架构总览</h2>
+
+        <div class="diagram">
+          <pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                      Query Entry & Guard                           │
+├─────────────────────────────────────────────────────────────────┤
+│  User Input → messageQueueManager.enqueue()                      │
+│                    ↓                                              │
+│  processQueueIfReady() → QueryGuard.reserve()                    │
+│                    ↓                                              │
+│  QueryGuard.status: "dispatching" → executeQueuedInput()        │
+│                    ↓                                              │
+│  QueryGuard.status: "running" → queryLoop()                     │
+└─────────────────────────────────────────────────────────────────┘
+
+         queryLoop() ─────────────────────────────────────┐
+              ↓                                            │
+    normalizeMessagesForAPI() → Claude API                  │
+              ↓                                            │
+         Model Reasoning                                    │
+              ↓                                            │
+         runTools()                                        │
+              ↓                                            │
+    Context Full? → compact() ────────────────────────────┘</pre>
+        </div>
+
+        <p>Claude Code 的核心是一个<strong>有状态的持久化 Agentic Loop</strong>，而非一次性的代码生成器。</p>
+      </section>
+
+      <section id="query-loop">
+        <h2>Agentic Loop 核心机制</h2>
+
+        <h3>Query Loop 工作流程</h3>
+
+        <div class="diagram">
+          <pre>
+sequenceDiagram
+    participant QL as queryLoop (query.ts)
+    participant API as queryModel (claude.ts)
+    participant STE as StreamingToolExecutor
+    participant TR as Tool Registry
+
+    QL->>API: Send Messages + System Prompt
+    API-->>QL: Stream TextBlock
+    API-->>STE: Stream ToolUseBlock (partial)
+    STE->>STE: Buffer & Parse JSON
+    API-->>QL: Stream StopReason: tool_use
+    QL->>STE: execute()
+    STE->>TR: findToolByName()
+    TR-->>STE: Tool Instance
+    STE->>STE: validate & run()
+    STE-->>QL: ToolResultBlock
+    QL->>QL: Loop back to API with Results</pre>
+        </div>
+
+        <h3 id="token-budget">Token Budget 管理</h3>
+
+        <table>
+          <thead>
+            <tr><th>触发条件</th><th>策略</th><th>实现</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Budget 充足</td><td>提示 "Keep working"</td><td>COMPLETION_THRESHOLD (90%)</td></tr>
+            <tr><td>递减回报</td><td>强制停止</td><td>DIMINISHING_THRESHOLD</td></tr>
+            <tr><td>预算耗尽</td><td>注入 nudge messages</td><td>getBudgetContinuationMessage</td></tr>
+          </tbody>
+        </table>
+
+        <h3 id="compaction">Compaction 四层策略</h3>
+
+        <div class="two-columns">
+          <div class="column">
+            <h4>非破坏性</h4>
+            <ul>
+              <li><strong>Microcompact</strong>：折叠重复工具输出</li>
+              <li><strong>Autocompact</strong>：摘要历史</li>
+            </ul>
+          </div>
+          <div class="column">
+            <h4>破坏性</h4>
+            <ul>
+              <li><strong>History Snip</strong>：截断最旧消息</li>
+              <li><strong>Reactive</strong>：413 错误后触发</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <strong>核心洞察：</strong>Claude Code 的 Compaction 不是等 context 满了才救火，而是有多级预警机制主动管理。
+        </div>
+      </section>
+
+      <section id="tool-pipeline">
+        <h2>工具执行管道</h2>
+
+        <div class="diagram">
+          <pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                  Tool Execution Pipeline                         │
+├─────────────────────────────────────────────────────────────────┤
+│  Assistant Message (ToolUseBlock)                              │
+│                    ↓                                              │
+│  runToolUse() → PreHooks → Permission Check                    │
+│                    ↓                                              │
+│  ┌───────────────┬───────────────┐                              │
+│  │     Allow     │     Deny     │                              │
+│  └───────┬───────┴───────┬───────┘                              │
+│          ↓               ↓                                       │
+│      Tool.run()    processToolResultBlock                       │
+│          ↓                                                       │
+│      PostHooks                                                    │
+│          ↓                                                       │
+│  ToolResultBlockParam → Model                                   │
+└─────────────────────────────────────────────────────────────────┘</pre>
+        </div>
+
+        <h3>Hook 生命周期</h3>
+
+        <table>
+          <thead>
+            <tr><th>Hook 事件</th><th>时机</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>PreToolUse</td><td>权限检查前</td><td>修改输入或阻塞执行</td></tr>
+            <tr><td>PostToolUse</td><td>成功执行后</td><td>转换输出或触发副作用</td></tr>
+            <tr><td>PostToolUseFailure</td><td>执行抛出异常</td><td>错误处理</td></tr>
+            <tr><td>PermissionDenied</td><td>分类器拒绝后</td><td>通知外部系统</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="permission">
+        <h2>权限系统</h2>
+
+        <h3>五种权限模式</h3>
+
+        <table>
+          <thead>
+            <tr><th>模式</th><th>描述</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>default</code></td><td>标准交互模式，写操作需手动批准</td></tr>
+            <tr><td><code>plan</code></td><td>规划模式，大多数副作用工具禁用</td></tr>
+            <tr><td><code>auto</code></td><td>YOLO 分类器自动决定</td></tr>
+            <tr><td><code>acceptEdits</code></td><td>自动批准所有文件系统编辑</td></tr>
+            <tr><td><code>bypassPermissions</code></td><td><strong>危险</strong>：自动批准所有操作</td></tr>
+          </tbody>
+        </table>
+
+        <h3>YOLO 分类器 — Speculative Check</h3>
+
+        <div class="diagram">
+          <pre>
+useCanUseTool.tsx:126-135
+
+// 与 UI 渲染并行运行
+// 在用户看到确认框之前，分类器已经在后台判断
+// 可能直接自动批准，安全操作零感知延迟</pre>
+        </div>
+      </section>
+
+      <section id="multi-agent">
+        <h2>多 Agent 系统</h2>
+
+        <h3>Agent 类型</h3>
+
+        <table>
+          <thead>
+            <tr><th>类型</th><th>创建方式</th><th>上下文</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Fresh Subagent</td><td>指定 subagent_type</td><td>零上下文，继承环境</td></tr>
+            <tr><td>Forked Subagent</td><td>省略 subagent_type</td><td>复制当前会话状态</td></tr>
+            <tr><td>Resumed Agent</td><td>resumeAgent()</td><td>从持久化状态恢复</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Mailbox 通信机制</h3>
+
+        <p>Agent 之间不直接通信，而是通过 mailbox 文件异步协作：</p>
+
+        <div class="diagram">
+          <pre>
+SendMessageTool → teammate_mailbox.js → 文件持久化
+                                          ↓
+对方轮询 → 读取文件 + teammate_mailbox attachment → 通知</pre>
+        </div>
+
+        <div class="highlight-box">
+          <strong>优势：</strong>Agent 可以完全异步工作，不需要实时连接。父 Agent 终止时通过 AbortController 信号传播到所有子 Agent。
+        </div>
+      </section>
+
+      <section id="tui">
+        <h2>Ink TUI 渲染引擎</h2>
+
+        <h3>双缓冲 + Damage Tracking</h3>
+
+        <div class="diagram">
+          <pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                    Rendering Pipeline                            │
+├─────────────────────────────────────────────────────────────────┤
+│  Component Tree → React Reconciler → DOM Tree                     │
+│                    ↓                                              │
+│  Yoga Layout (Flexbox) → Renderer                               │
+│                    ↓                                              │
+│  LogUpdate (Diffing: frontFrame ↔ backFrame)                    │
+│                    ↓                                              │
+│  Optimizer (合并相邻 Patches) → Terminal (ANSI)                │
+└─────────────────────────────────────────────────────────────────┘</pre>
+        </div>
+
+        <h3>Yoga 布局引擎</h3>
+
+        <p>Claude Code 使用纯 TypeScript 实现的 Meta Yoga 布局引擎：</p>
+
+        <ul>
+          <li>CSS Flexbox 子集：flex-direction, flex-grow, align-items, justify-content</li>
+          <li>Measure Functions：文本节点动态高度计算</li>
+          <li>布局缓存优化：_hasL 单槽缓存</li>
+        </ul>
+
+        <div class="highlight-box">
+          <strong>为什么手感好：</strong>不是重新渲染整个屏幕，只计算「哪些部分变了」。diff 思维让每次按键都精准刷新，无闪烁。
+        </div>
+      </section>
+
+      <section id="memory">
+        <h2>记忆系统</h2>
+
+        <h3>四类记忆分类</h3>
+
+        <table>
+          <thead>
+            <tr><th>类型</th><th>用途</th><th>示例</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>user</code></td><td>用户信息</td><td>角色、偏好、专业水平</td></tr>
+            <tr><td><code>feedback</code></td><td>反馈</td><td>对 Agent 行为的指导</td></tr>
+            <tr><td><code>project</code></td><td>项目</td><td>Deadline、stakeholder</td></tr>
+            <tr><td><code>reference</code></td><td>参考</td><td>外部文档链接</td></tr>
+          </tbody>
+        </table>
+
+        <h3>MEMORY.md 索引限制</h3>
+
+        <ul>
+          <li>最多 <strong>200 行</strong> 或 <strong>25KB</strong></li>
+          <li>超限时追加 <code>> WARNING</code> 提示 Agent 精简</li>
+        </ul>
+
+        <div class="highlight-box warning">
+          <strong>重要洞察：</strong>RAG 不是堆砌所有信息，而是「精准提取 + 结构化索引 + 严格限制」。
+        </div>
+      </section>
+
+      <section id="mcp">
+        <h2>MCP 协议支持</h2>
+
+        <h3>四种传输类型</h3>
+
+        <table>
+          <thead>
+            <tr><th>传输</th><th>实现</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Stdio</td><td>StdioClientTransport</td><td>本地可执行服务器</td></tr>
+            <tr><td>SSE</td><td>SSEClientTransport</td><td>远程 Server-Sent Events</td></tr>
+            <tr><td>HTTP</td><td>StreamableHTTPClientTransport</td><td>标准 Web MCP</td></tr>
+            <tr><td>WebSocket</td><td>WebSocketTransport</td><td>全双工持久连接</td></tr>
+          </tbody>
+        </table>
+
+        <h3>输出持久化策略</h3>
+
+        <div class="diagram">
+          <pre>
+1. 大小估计 → getContentSizeEstimate()
+2. 超阈值 → truncateMcpContentIfNeeded()
+3. 二进制/大文本 → persistBinaryContent() / persistToolResult()
+4. 模型收到指针 + 访问说明，而非完整内容</pre>
+        </div>
+      </section>
+
+      <section id="lessons">
+        <h2>十大设计理念总结</h2>
+
+        <table>
+          <thead>
+            <tr><th>理念</th><th>核心价值</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Query Guard</strong></td><td>状态机防止并发请求混乱</td></tr>
+            <tr><td><strong>Streaming First</strong></td><td>延迟感知比实际延迟更重要</td></tr>
+            <tr><td><strong>Permission Gating</strong></td><td>安全要从第一天设计</td></tr>
+            <tr><td><strong>Token Budget</strong></td><td>资源限制要内置而非外挂</td></tr>
+            <tr><td><strong>Compaction</strong></td><td>主动管理，多级预警</td></tr>
+            <tr><td><strong>Memory Taxonomy</strong></td><td>结构化记忆 > 堆砌信息</td></tr>
+            <tr><td><strong>Hook Lifecycle</strong></td><td>扩展不靠修改核心代码</td></tr>
+            <tr><td><strong>Sidechain</strong></td><td>隔离关注点，防止 context 膨胀</td></tr>
+            <tr><td><strong>Mailbox</strong></td><td>异步解耦，分布式通信</td></tr>
+            <tr><td><strong>Damage Tracking</strong></td><td>diff 思维，极致性能</td></tr>
+          </tbody>
+        </table>
+
+        <div class="highlight-box">
+          <strong>工程哲学：</strong>Claude Code 的成功不在于使用了多强的模型，而在于对「如何让模型在编程场景下持续、稳定、可控地发挥能力」这件事的深刻理解和精密工程实现。
+        </div>
+      </section>
+
+      <footer>
+        <p>基于 <a href="https://github.com/SinghCoder/claude-code" target="_blank">SinghCoder/claude-code</a> 源码深度分析</p>
+        <p>通过 <a href="https://deepwiki.com" target="_blank">DeepWiki</a> 获取</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
