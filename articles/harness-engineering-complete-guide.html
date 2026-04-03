@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harness Engineering 完全指南 - 从入门到实践</title>
+    
+    <!-- MathJax -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(25, 25, 35, 0.7);
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.05), transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05), transparent 50%);
+            animation: bgShift 25s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-5%, -5%); }
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 40px; position: relative; z-index: 1; }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 100px 0 60px;
+        }
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-blue) 50%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(59,130,246,0.3)); }
+            to { filter: drop-shadow(0 0 40px rgba(139,92,246,0.4)); }
+        }
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            margin-bottom: 35px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .badge {
+            display: inline-block;
+            padding: 8px 18px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 10px 5px;
+        }
+
+        section { padding: 70px 0; }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 35px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .section-title::before {
+            content: '';
+            width: 6px; height: 45px;
+            background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 3px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            border-color: rgba(59,130,246,0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        h2 { font-size: 2rem; font-weight: 700; margin: 35px 0 20px; color: var(--text-primary); }
+        h3 { font-size: 1.5rem; font-weight: 600; margin: 30px 0 16px; color: var(--accent-cyan); }
+        p { margin-bottom: 1.5em; color: var(--text-secondary); font-size: 1.05rem; }
+        strong { color: var(--text-primary); font-weight: 600; }
+
+        /* Highlight Box */
+        .highlight {
+            background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
+            border-left: 4px solid var(--accent-blue);
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+        .highlight-success {
+            background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.1));
+            border-left-color: var(--accent-green);
+        }
+        .highlight-warning {
+            background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(239,68,68,0.1));
+            border-left-color: var(--accent-orange);
+        }
+
+        /* Evolution Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+            margin: 40px 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px; top: 0; bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -33px; top: 30px;
+            width: 16px; height: 16px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            border: 3px solid var(--bg-primary);
+        }
+        .timeline-year {
+            display: inline-block;
+            padding: 4px 14px;
+            background: var(--accent-blue);
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .timeline-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        /* Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin: 30px 0; }
+        .grid-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s ease;
+        }
+        .grid-item:hover {
+            border-color: var(--accent-blue);
+            background: rgba(59,130,246,0.05);
+            transform: translateY(-5px);
+        }
+        .grid-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .grid-item h4 { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+
+        /* Table */
+        table {
+            width: 100%; border-collapse: collapse;
+            margin: 25px 0; background: rgba(0,0,0,0.3);
+            border-radius: 12px; overflow: hidden;
+        }
+        thead { background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2)); }
+        th, td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { font-weight: 600; color: var(--text-primary); }
+        td { color: var(--text-secondary); }
+        tr:hover { background: rgba(59,130,246,0.05); }
+
+        /* Code */
+        pre {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+            margin: 25px 0;
+        }
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--accent-cyan);
+        }
+        pre code { color: var(--text-secondary); }
+
+        /* Practice Steps */
+        .practice-step {
+            background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,182,212,0.08));
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 16px;
+            padding: 35px;
+            margin: 25px 0;
+            position: relative;
+        }
+        .step-number {
+            position: absolute;
+            top: -18px; left: 30px;
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .step-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin-bottom: 15px;
+            margin-top: 8px;
+        }
+
+        /* Resource Links */
+        .resource-list {
+            list-style: none;
+            padding: 0;
+        }
+        .resource-list li {
+            padding: 15px 20px;
+            margin: 10px 0;
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .resource-list li:hover {
+            background: rgba(59,130,246,0.08);
+            border-left-color: var(--accent-cyan);
+            transform: translateX(5px);
+        }
+        .resource-list a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .resource-list a:hover { text-decoration: underline; }
+
+        footer {
+            text-align: center;
+            padding: 60px 0 40px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 80px;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 20px; }
+            .hero h1 { font-size: 2.5rem; }
+            .section-title { font-size: 1.8rem; }
+            .card { padding: 25px; }
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        html { scroll-behavior: smooth; }
+        ::selection { background: rgba(59,130,246,0.3); color: var(--text-primary); }
+    </style>
+</head>
+<body>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <span class="badge">🚀 2026年最新技术</span>
+        <span class="badge">📚 从零到实践</span>
+        <h1>Harness Engineering<br>完全实践指南</h1>
+        <p class="hero-subtitle">
+            从Prompt Engineering到Context Engineering，再到Harness Engineering——<br>
+            掌握AI时代最重要的系统设计能力，让LLM真正为你所用！
+        </p>
+    </div>
+</section>
+
+<!-- What is Harness Engineering -->
+<section id="what-is">
+    <div class="container">
+        <h2 class="section-title">🤔 什么是 Harness Engineering？</h2>
+        
+        <div class="card">
+            <h3>🐴 核心隐喻：驯马师的艺术</h3>
+            
+            <div class="highlight" style="margin-top: 25px;">
+                <p style="font-size: 1.15rem; margin-bottom: 0;">
+                    <strong style="color: var(--accent-cyan);">Agent = Model + Harness</strong><br><br>
+                    想象一匹<strong>骏马（Model）</strong>——它强大、快速，但不知道该往哪里跑。<br>
+                    而<strong>Harness（马具/缰绳）</strong>就是缰绳、马鞍、马蹄铁——<br>
+                    它们<strong>引导、约束、赋能</strong>这匹马朝着正确的方向前进。<br><br>
+                    <strong style="color: var(--accent-green);">你（Engineer）</strong>不是骑手，而是<strong>驯马师</strong>——<br>
+                    你不亲自奔跑，而是设计完美的马具系统。
+                </p>
+            </div>
+
+            <h3 style="margin-top: 40px;">📐 正式定义</h3>
+            <p><strong>Harness Engineering</strong> 是设计和实现系统的学科，这些系统能够：</p>
+            
+            <div class="grid" style="margin-top: 25px;">
+                <div class="grid-item">
+                    <div class="grid-icon">🔒</div>
+                    <h4>约束 (Constrain)</h4>
+                    <p>定义AI Agent能做什么、不能做什么。包括架构边界、依赖规则、安全护栏。</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">📋</div>
+                    <h4>告知 (Inform)</h4>
+                    <p>告诉Agent应该做什么。包括上下文工程、文档、提示词、工具描述。</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">🔄</div>
+                    <h4>反馈 (Feedback)</h4>
+                    <p>观察Agent行为并自我纠正。包括测试、评估、linting、监控。</p>
+                </div>
+            </div>
+
+            <div class="highlight highlight-warning" style="margin-top: 35px;">
+                <h3 style="color: var(--accent-orange); margin-top: 0;">⚠️ 为什么现在突然火了？</h3>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="padding: 8px 0;">💥 <strong>OpenAI Codex团队</strong>用AI写了<strong>超过100万行代码</strong>的生产应用，人类工程师<strong>零行代码</strong></li>
+                    <li style="padding: 8px 0;">🎯 <strong>TerminalBench 2.0证明</strong>：只改变Harness就能让排名从Top 30外跳到Top 5</li>
+                    <li style="padding: 8px 0;">🏆 <strong>Anthropic内部</strong>：Claude Code的<strong>~90%代码由Claude Code自己写</strong></li>
+                    <li style="padding: 8px 0;">📈 <strong>Meta-Harness论文</strong>：自动化Harness优化比手工设计提升<strong>7.7-37.6%</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Evolution Timeline -->
+<section id="evolution">
+    <div class="container">
+        <h2 class="section-title">📈 技术演进：从Prompt到Harness</h2>
+        
+        <div class="card">
+            <p style="font-size: 1.1rem;">这三个阶段代表了<strong>人类对AI影响力点不断后移</strong>的过程：</p>
+            
+            <div class="timeline">
+                <!-- Stage 1 -->
+                <div class="timeline-item">
+                    <span class="timeline-year">2022-2023</span>
+                    <div class="timeline-title">① Prompt Engineering（提示词工程）</div>
+                    <p><strong>影响点：</strong>单次对话的<strong>措辞</strong></p>
+                    <p><strong>核心问题：</strong>"我该怎么表达，AI才能理解？"</p>
+                    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 15px 0;">
+                    <p><strong>典型工作：</strong></p>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="padding: 5px 0;">• 设计Few-shot示例</li>
+                        <li style="padding: 5px 0;">• 调整指令措辞</li>
+                        <li style="padding: 5px 0;">• 使用思维链(CoT)技巧</li>
+                        <li style="padding: 5px 0;">• 优化输出格式</li>
+                    </ul>
+                    <div class="highlight" style="margin-top: 15px;">
+                        <p style="margin-bottom: 0;"><strong>局限性：</strong>每次都要重新提示，无法积累经验，上下文窗口受限。</p>
+                    </div>
+                </div>
+
+                <!-- Stage 2 -->
+                <div class="timeline-item">
+                    <span class="timeline-year">2024-2025</span>
+                    <div class="timeline-title">② Context Engineering（上下文工程）</div>
+                    <p><strong>影响点：</strong>AI能看到的<strong>信息</strong></p>
+                    <p><strong>核心问题：</strong>"AI需要知道什么才能做好工作？"</p>
+                    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 15px 0;">
+                    <p><strong>典型工作：</strong></p>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="padding: 5px 0;">• RAG检索增强生成</li>
+                        <li style="padding: 5px 0;">• 长上下文管理策略</li>
+                        <li style="padding: 5px 0;">• 记忆系统设计</li>
+                        <li style="padding: 5px 0;">• 文档和知识库组织</li>
+                    </ul>
+                    <div class="highlight" style="margin-top: 15px;">
+                        <p style="margin-bottom: 0;"><strong>代表框架：</strong>ACE (Agentic Context Engineering) —— 让LLM自动构建和演化"playbook"</p>
+                    </div>
+                </div>
+
+                <!-- Stage 3 -->
+                <div class="timeline-item">
+                    <span class="timeline-year">2025-2026 🌟</span>
+                    <div class="timeline-title">③ Harness Engineering（线束工程）⭐</div>
+                    <p><strong>影响点：</strong>AI运行的<strong>整个系统环境</strong></p>
+                    <p><strong>核心问题：</strong>"我需要搭建什么环境，才能让AI安全、高效、自主地工作？"</p>
+                    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 15px 0;">
+                    <p><strong>典型工作：</strong></p>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="padding: 5px 0;">• 多Agent协作架构</li>
+                        <li style="padding: 5px 0;">• 工具链和API集成</li>
+                        <li style="padding: 5px 0;">• 反馈循环和自纠正机制</li>
+                        <li style="padding: 5px 0;">• 测试、评估、监控体系</li>
+                        <li style="padding: 5px 0;">• 安全护栏和合规检查</li>
+                        <li style="padding: 5px 0;">• 成本控制和性能优化</li>
+                    </ul>
+                    <div class="highlight highlight-success" style="margin-top: 15px;">
+                        <p style="margin-bottom: 0;"><strong>核心理念：</strong>从"如何说" → "说什么" → "搭建什么舞台"</p>
+                    </div>
+                </div>
+            </div>
+
+            <table style="margin-top: 40px;">
+                <thead>
+                    <tr>
+                        <th>维度</th>
+                        <th>Prompt Eng.</th>
+                        <th>Context Eng.</th>
+                        <th>Harness Eng.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>关注点</strong></td>
+                        <td>单次对话</td>
+                        <td>信息组织</td>
+                        <td>完整系统</td>
+                    </tr>
+                    <tr>
+                        <td><strong>抽象层级</strong></td>
+                        <td>微观（词语）</td>
+                        <td>中观（文档）</td>
+                        <td>宏观（架构）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>可复用性</strong></td>
+                        <td>❌ 低</td>
+                        <td>⚠️ 中</td>
+                        <td>✅ 高</td>
+                    </tr>
+                    <tr>
+                        <td><strong>自主性</strong></td>
+                        <td>❌ 无</td>
+                        <td>⚠️ 有限</td>
+                        <td>✅ 强</td>
+                    </tr>
+                    <tr>
+                        <td><strong>复杂度</strong></td>
+                        <td>⭐</td>
+                        <td>⭐⭐⭐</td>
+                        <td>⭐⭐⭐⭐⭐</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Core Components -->
+<section id="components">
+    <div class="container">
+        <h2 class="section-title">🧩 Harness的核心组件</h2>
+        
+        <div class="card">
+            <p style="font-size: 1.1rem;">一个完整的Harness通常包含以下<strong>六大模块</strong>：</p>
+            
+            <div class="grid">
+                <div class="grid-item">
+                    <div class="grid-icon">📝</div>
+                    <h4>1. System Prompt（系统提示词）</h4>
+                    <p>定义Agent的角色、行为准则、输出格式。这是最基础的"人格设定"。</p>
+                    <pre style="margin-top: 15px;"><code># 示例：编码Agent的系统提示
+你是一个高级Python开发专家。
+规则：
+- 总是先写测试再写实现
+- 代码必须有类型注解
+- 遵循PEP 8规范</code></pre>
+                </div>
+
+                <div class="grid-item">
+                    <div class="grid-icon">🛠️</div>
+                    <h4>2. Tools & APIs（工具集）</h4>
+                    <p>Agent可以调用的外部功能。决定Agent的能力边界。</p>
+                    <pre style="margin-top: 15px;"><code># 示例：RAG Agent的工具
+tools = [
+    search_documents,
+    query_database,
+    run_code,
+    read_file,
+    write_file
+]</code></pre>
+                </div>
+
+                <div class="grid-item">
+                    <div class="grid-icon">🧠</div>
+                    <h4>3. Memory System（记忆系统）</h4>
+                    <p>短期工作记忆 + 长期知识库。解决"遗忘"问题。</p>
+                    <pre style="margin-top: 15px;"><code># 示例：分层记忆架构
+memory = {
+    "short_term": [],      # 当前会话
+    "working": {},         # 任务状态
+    "long_term": vector_db # 持久化知识
+}</code></pre>
+                </div>
+
+                <div class="grid-item">
+                    <div class="grid-icon">🔄</div>
+                    <h4>4. Feedback Loop（反馈循环）</h4>
+                    <p>前馈控制(Guide) + 反馈控制(Sensor)。让Agent自我纠错。</p>
+                    <pre style="margin-top: 15px;"><code># 示例：反馈机制
+def feedback_loop(output):
+    errors = lint_check(output)
+    tests = run_tests(output)
+    if errors or failed(tests):
+        return auto_correct(errors)
+    return output</code></pre>
+                </div>
+
+                <div class="grid-item">
+                    <div class="grid-icon">🧪</div>
+                    <h4>5. Evaluation Suite（评估套件）</h4>
+                    <p>自动化测试 + 人工评审 + LLM-as-Judge。衡量质量的标准。</p>
+                    <pre style="margin-top: 15px;"><code># 示例：多维度评估
+eval_suite = {
+    "functional": test_cases,
+    "quality": code_reviewer,
+    "security": vulnerability_scan,
+    "performance": benchmark
+}</code></pre>
+                </div>
+
+                <div class="grid-item">
+                    <div class="grid-icon">🛡️</div>
+                    <h4>6. Guardrails（安全护栏）</h4>
+                    <p>输入过滤 + 输出审查 + 权限控制。防止灾难性错误。</p>
+                    <pre style="margin-top: 15px;"><code># 示例：安全护栏
+guardrails = [
+    input_sanitizer,
+    output_filter,
+    permission_checker,
+    rate_limiter,
+    audit_logger
+]</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Real-world Examples -->
+<section id="examples">
+    <div class="container">
+        <h2 class="section-title">💼 真实世界案例</h2>
+        
+        <div class="card">
+            <h3>📊 案例1：RAG问答系统的Harness优化</h3>
+            <p><strong>场景：</strong>企业知识库智能客服</p>
+            <p><strong>问题：</strong>原始RAG系统准确率只有65%，经常答非所问</p>
+            
+            <div class="highlight" style="margin-top: 20px;">
+                <p><strong>Harness改进措施：</strong></p>
+                <ol style="padding-left: 20px; color: var(--text-secondary);">
+                    <li style="margin: 10px 0;"><strong>检索策略优化</strong>：从简单BM25改为混合检索(BM25 + 语义)，+12%</li>
+                    <li style="margin: 10px 0;"><strong>重排序层</strong>：添加Cross-Encoder重排，+8%</li>
+                    <li style="margin: 10px 0;"><strong>上下文压缩</strong>：使用LLM提取关键句子而非整段，减少token 60%</li>
+                    <li style="margin: 10px 0;"><strong>自反思机制</strong>：回答前先判断"我有足够信息吗？"，+5%</li>
+                    <li style="margin: 10px 0;"><strong>失败案例分析</strong>：记录错误答案并定期微调检索权重</li>
+                </ol>
+                <p style="margin-top: 15px; margin-bottom: 0;"><strong style="color: var(--accent-green);">最终结果：准确率 65% → 90%，响应时间降低40%</strong></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🤖 案例2：编程Agent的Harness设计（来自Anthropic）</h3>
+            <p><strong>来源：</strong>Anthropic Labs团队的实战经验</p>
+            <p><strong>任务：</strong>让Claude自主完成数小时的前端设计 + 全栈应用开发</p>
+            
+            <div class="grid" style="margin-top: 25px;">
+                <div class="grid-item">
+                    <h4>🎯 初始问题</h4>
+                    <p>简单的prompt engineering很快遇到天花板：</p>
+                    <ul style="padding-left: 20px; margin-top: 10px;">
+                        <li>Claude会跑偏去编辑无关文件</li>
+                        <li>长任务中途丢失上下文</li>
+                        <li>主观设计质量不稳定</li>
+                    </ul>
+                </div>
+                
+                <div class="grid-item">
+                    <h4>✨ 解决方案：三Agent架构</h4>
+                    <p>灵感来自GANs（生成对抗网络）：</p>
+                    <ol style="padding-left: 20px; margin-top: 10px;">
+                        <li><strong>Planner（规划者）</strong>：分解任务为可管理块</li>
+                        <li><strong>Generator（生成者）</strong>：执行具体编码</li>
+                        <li><strong>Evaluator（评估者）</strong>：评判输出质量（含审美标准！）</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="highlight highlight-success" style="margin-top: 25px;">
+                <p><strong>关键Harness技术：</strong></p>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="padding: 8px 0;">✅ 将大任务分解为tractable chunks（可控块）</li>
+                    <li style="padding: 8px 0;">✅ 使用structured artifacts在session间传递上下文</li>
+                    <li style="padding: 8px 0;">✅ Evaluator将主观判断转化为可评分的标准</li>
+                    <li style="padding: 8px 0;">✅ 结果：Claude能自主运行数小时，产出生产级应用</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📈 案例3：TerminalBench-2上的Harness竞赛</h3>
+            <p><strong>背景：</strong>89个Docker化终端编程任务的基准测试</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>方法/Harness</th>
+                        <th>Pass Rate (Haiku 4.5)</th>
+                        <th>特点</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Claude Code (官方)</td>
+                        <td>27.5%</td>
+                        <td>基础版本</td>
+                    </tr>
+                    <tr>
+                        <td>Terminus-2</td>
+                        <td>28.3%</td>
+                        <td>改进的工具调用</td>
+                    </tr>
+                    <tr>
+                        <td>Mini-SWE-Agent</td>
+                        <td>29.8%</td>
+                        <td>SWE-bench优化</td>
+                    </tr>
+                    <tr>
+                        <td>Terminus-KIRA</td>
+                        <td>33.7%</td>
+                        <td>强上下文管理</td>
+                    </tr>
+                    <tr>
+                        <td>Goose</td>
+                        <td>35.5%</td>
+                        <td>优秀的工作流</td>
+                    </tr>
+                    <tr style="background: rgba(16,185,129,0.1);">
+                        <td><strong>Meta-Harness (自动优化)</strong></td>
+                        <td><strong style="color: var(--accent-green);">37.6% 🥇</strong></td>
+                        <td><strong>搜索发现的最佳Harness</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="highlight" style="margin-top: 25px;">
+                <p style="margin-bottom: 0;"><strong>关键洞察：</strong>同样的模型(Haiku 4.5)，只改变Harness就能产生<strong>10个百分点的差距</strong>！这证明了Harness Engineering的价值远超模型选择。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Hands-on Practice Guide -->
+<section id="practice">
+    <div class="container">
+        <h2 class="section-title">🚀 动手实践：你的第一个Harness项目</h2>
+        
+        <div class="card">
+            <p style="font-size: 1.15rem;">我们将一起构建一个<strong>智能文档问答系统</strong>的Harness，涵盖完整的工程流程！</p>
+            
+            <!-- Step 1 -->
+            <div class="practice-step">
+                <div class="step-number">1</div>
+                <div class="step-title">明确目标与范围</div>
+                <p><strong>📋 项目定义：</strong></p>
+                <ul style="padding-left: 25px; color: var(--text-secondary);">
+                    <li style="margin: 8px 0;"><strong>任务：</strong>基于公司内部Wiki文档的智能问答</li>
+                    <li style="margin: 8px 0;"><strong>输入：</strong>用户自然语言问题</li>
+                    <li style="margin: 8px 0;"><strong>输出：</strong>准确、有引用来源的回答</li>
+                    <li style="margin: 8px 0;"><strong>成功指标：</strong>准确率 > 85%，响应时间 < 3秒</li>
+                </ul>
+                
+                <pre style="margin-top: 20px;"><code># project_spec.yaml
+project:
+  name: "WikiQA-Bot"
+  type: RAG_QA_System
+  
+goals:
+  primary: "准确回答基于内部文档的问题"
+  secondary:
+    - 提供引用来源
+    - 处理模糊查询
+    - 拒绝回答无关问题
+
+constraints:
+  max_response_time: 3s
+  min_accuracy: 0.85
+  cost_per_query: <$0.01
+
+evaluation_dataset:
+  - dev_set: 100 questions (人工标注)
+  - test_set: 200 questions (held-out)</code></pre>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="practice-step">
+                <div class="step-number">2</div>
+                <div class="step-title">设计初始Harness架构</div>
+                <p><strong>🏗️ 系统设计：</strong></p>
+                
+                <pre style="margin-top: 20px;"><code># harness_architecture.py
+class WikiQAHarness:
+    """
+    文档问答系统的Harness骨架
+    包含6大核心组件
+    """
+    
+    def __init__(self):
+        # 1. System Prompt
+        self.system_prompt = self._build_system_prompt()
+        
+        # 2. Tools
+        self.tools = self._register_tools()
+        
+        # 3. Memory
+        self.memory = MemorySystem()
+        
+        # 4. Feedback
+        self.feedback = FeedbackLoop()
+        
+        # 5. Evaluation
+        self.evaluator = EvaluationSuite()
+        
+        # 6. Guardrails
+        self.guardrails = SafetyGuardrails()
+    
+    def _build_system_prompt(self):
+        return """你是{company_name}的智能文档助手。
+        
+角色：
+- 基于提供的文档片段回答问题
+- 如果信息不足，明确说明
+- 总是引用来源（文档名+段落）
+
+行为准则：
+1. 准确性优先于完整性
+2. 不编造信息
+3. 使用清晰的结构化回答
+4. 对模糊问题主动澄清"""
+    
+    def _register_tools(self):
+        return {
+            "search": DocumentSearchTool(),
+            "retrieve": DocumentRetriever(),
+            "summarize": ContextCompressor(),
+            "check_confidence": ConfidenceScorer()
+        }</code></pre>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="practice-step">
+                <div class="step-number">3</div>
+                <div class="step-title">实现核心检索逻辑（Context Engineering）</div>
+                
+                <pre style="margin-top: 20px;"><code># retrieval_harness.py
+class RetrievalHarness:
+    """检索策略的Harness - 可被Meta-Harness优化"""
+    
+    def __init__(self, config):
+        self.top_k = config.get('top_k', 5)
+        self.rerank = config.get('rerank', True)
+        self.compress = config.get('compress', False)
+        self.min_score = config.get('min_score', 0.7)
+    
+    def retrieve(self, query, document_store):
+        """主检索流程 - 这就是要优化的目标函数！"""
+        
+        # Step 1: 初步检索（混合检索）
+        candidates = document_store.hybrid_search(
+            query,
+            alpha=0.7  # BM25 vs 语义搜索的权重
+        )
+        
+        # Step 2: 过滤低相关性结果
+        filtered = [doc for doc in candidates 
+                   if doc.score >= self.min_score]
+        
+        # Step 3: 重排序（可选）
+        if self.rerank and len(filtered) > 1:
+            filtered = self.cross_encoder_rerank(
+                query, filtered
+            )
+        
+        # Step 4: 截断到top-k
+        results = filtered[:self.top_k]
+        
+        # Step 5: 上下文压缩（可选）
+        if self.compress:
+            results = self.context_compress(results)
+        
+        return results
+    
+    def context_compress(self, documents):
+        """使用LLM压缩上下文以节省token"""
+        compressed = []
+        for doc in documents:
+            summary = llm.summarize(
+                doc.content,
+                max_tokens=200,
+                preserve_facts=True
+            )
+            compressed.append(doc.copy(content=summary))
+        return compressed</code></pre>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="practice-step">
+                <div class="step-number">4</div>
+                <div class="step-title">构建反馈与评估系统</div>
+                
+                <pre style="margin-top: 20px;"><code># feedback_system.py
+class FeedbackSystem:
+    """让Agent自我改进的反馈循环"""
+    
+    def __init__(self):
+        self.guides = []   # 前馈控制（预防）
+        self.sensors = []  # 反馈控制（检测）
+    
+    def add_guide(self, guide_func):
+        """添加前馈指导 - 在Agent行动前引导"""
+        self.guides.append(guide_func)
+        # 示例：
+        # def check_query_clarity(query):
+        #     if is_ambiguous(query):
+        #         return "请澄清：你是指X还是Y？"
+        #     return None
+    
+    def add_sensor(self, sensor_func):
+        """添加反馈传感器 - 在Agent行动后检测"""
+        self.sensors.append(sensor_func)
+        # 示例：
+        # def check_answer_quality(answer):
+        #     issues = []
+        #     if not has_citations(answer):
+        #         issues.append("缺少引用")
+        #     if too_vague(answer):
+        #         issues.append("回答过于模糊")
+        #     return issues
+    
+    def process_output(self, query, answer):
+        """完整的反馈处理流水线"""
+        
+        # 阶段1: 前馈检查（如果有guide返回内容，直接拦截）
+        for guide in self.guides:
+            intervention = guide(query)
+            if intervention:
+                return {"status": "guided", "message": intervention}
+        
+        # 阶段2: 后馈检测
+        issues = []
+        for sensor in self.sensors:
+            issues.extend(sensor(answer))
+        
+        if issues:
+            # 自动修复或标记需要人工审核
+            return {
+                "status": "needs_revision",
+                "issues": issues,
+                "auto_fix": self.attempt_auto_fix(answer, issues)
+            }
+        
+        return {"status": "ok", "answer": answer}
+
+# evaluation_suite.py
+class EvaluationSuite:
+    """评估Harness性能的测试套件"""
+    
+    def __init__(self):
+        self.metrics = {
+            "accuracy": ExactMatchMetric(),
+            "relevance": RelevanceScore(),
+            "citation_rate": CitationRate(),
+            "latency": LatencyMetric(),
+            "cost": CostTracker()
+        }
+    
+    def evaluate(self, harness, test_set):
+        """运行完整评估"""
+        results = {}
+        
+        for question in test_set:
+            start_time = time.time()
+            
+            # 运行Harness
+            response = harness.process(question)
+            
+            # 收集各项指标
+            for metric_name, metric in self.metrics.items():
+                score = metric.measure(question, response)
+                results.setdefault(metric_name, []).append(score)
+        
+        # 汇总统计
+        return {
+            metric: {
+                "mean": np.mean(scores),
+                "std": np.std(scores),
+                "p95": np.percentile(scores, 95)
+            }
+            for metric, scores in results.items()
+        }</code></pre>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="practice-step">
+                <div class="step-number">5</div>
+                <div class="step-title">使用Meta-Harness自动优化</div>
+                
+                <pre style="margin-top: 20px;"><code># meta_optimization.py
+"""使用Meta-Harness思想自动优化你的RetrievalHarness"""
+
+from meta_harness import MetaHarnessOptimizer
+
+# 定义配置空间（要搜索的范围）
+config_space = {
+    "top_k": [3, 5, 7, 10],
+    "rerank": [True, False],
+    "compress": [True, False],
+    "min_score": [0.5, 0.6, 0.7, 0.8],
+    "hybrid_alpha": [0.5, 0.6, 0.7, 0.8, 0.9]
+}
+
+# 初始化优化器
+optimizer = MetaHarnessOptimizer(
+    target_function=run_retrieval_pipeline,  # 你的评估函数
+    config_space=config_space,
+    proposer_model="claude-sonnet-4",       # 强编码模型
+    evaluator_model="gpt-4o",               # 用于评估
+    history_dir="./optimization_history",
+    max_iterations=20
+)
+
+# 运行优化！
+best_config, best_score = optimizer.optimize(
+    initial_config={
+        "top_k": 5,
+        "rerank": True,
+        "compress": False,
+        "min_score": 0.7,
+        "hybrid_alpha": 0.7
+    },
+    evaluation_set=dev_questions,
+    metric="accuracy"
+)
+
+print(f"✨ 优化完成!")
+print(f"最佳配置: {best_config}")
+print(f"最佳分数: {best_score:.2%}")
+print(f"提升幅度: +{(best_score - baseline):.2%}")
+
+# 典型输出：
+# ✨ 优化完成!
+# 最佳配置: {'top_k': 7, 'rerank': True, 'compress': True, 
+#           'min_score': 0.6, 'hybrid_alpha': 0.8}
+# 最佳分数: 91.23%
+# 提升幅度: +26.23%（从baseline 65%）</code></pre>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="practice-step">
+                <div class="step-number">6</div>
+                <div class="step-title">部署与持续监控</div>
+                
+                <pre style="margin-top: 20px;"><code># deployment.py
+class ProductionHarness:
+    """生产环境的Harness - 带完整监控"""
+    
+    def __init__(self, optimized_config):
+        self.harness = RetrievalHarness(optimized_config)
+        self.monitor = ProductionMonitor()
+        self.feedback_collector = UserFeedbackCollector()
+    
+    def handle_query(self, user_query):
+        """处理真实用户请求"""
+        request_id = generate_uuid()
+        
+        try:
+            # 记录开始时间
+            start = time.time()
+            
+            # 运行Harness
+            result = self.harness.retrieve_and_answer(user_query)
+            
+            # 记录指标
+            latency = time.time() - start
+            self.monitor.log({
+                "request_id": request_id,
+                "query": user_query,
+                "latency": latency,
+                "tokens_used": result.token_count,
+                "confidence": result.confidence_score
+            })
+            
+            # 异步收集用户反馈（点赞/点踩）
+            self.feedback_collector.schedule_collection(
+                request_id, result.answer
+            )
+            
+            return result
+            
+        except Exception as e:
+            self.monitor.log_error(request_id, e)
+            return self.fallback_response(user_query)
+    
+    def periodic_evaluation(self):
+        """定期重新评估（每周）"""
+        recent_feedback = self.feedback_collector.get_recent(days=7)
+        
+        if recent_feedback.accuracy < threshold:
+            print("⚠️ 性能下降，触发重新优化...")
+            new_config = self.re_optimize(recent_feedback)
+            self.harness.update_config(new_config)</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Learning Resources -->
+<section id="resources">
+    <div class="container">
+        <h2 class="section-title">📚 学习资源推荐</h2>
+        
+        <div class="card">
+            <h3>📖 必读文章与教程</h3>
+            <ul class="resource-list">
+                <li>
+                    <strong>Martin Fowler - Harness Engineering for Coding Agents</strong><br>
+                    <span style="color: var(--text-secondary);">软件架构大师的权威解读，包含Guides/Sensors概念</span><br>
+                    <a href="https://martinfowler.com/articles/harness-engineering.html" target="_blank">🔗 martinfowler.com/articles/harness-engineering.html</a>
+                </li>
+                <li>
+                    <strong>NxCode - Harness Engineering Complete Guide (2026)</strong><br>
+                    <span style="color: var(--text-secondary);">最全面的入门指南，包含大量实例和对比</span><br>
+                    <a href="https://www.nxcode.io/resources/news/harness-engineering-complete-guide-ai-agent-codex-2026" target="_blank">🔗 nxcode.io</a>
+                </li>
+                <li>
+                    <strong>Anthropic - Harness Design for Long-Running Apps</strong><br>
+                    <span style="color: var(--text-secondary);">Anthropic Labs实战经验，三Agent架构详解</span><br>
+                    <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps" target="_blank">🔗 anthropic.com/engineering</a>
+                </li>
+                <li>
+                    <strong>Medium - From Prompt Engineer to Harness Engineer</strong><br>
+                    <span style="color: var(--text-secondary);">清晰的演进路径解释，适合快速理解概念</span><br>
+                    <a href="https://dev.to/wonderlab/from-prompt-engineer-to-harness-engineer-three-evolutions-in-ai-collaboration-5bgp" target="_blank">🔗 dev.to</a>
+                </li>
+                <li>
+                    <strong>Analytics Vidhya - Harness Engineering with LangChain</strong><br>
+                    <span style="color: var(--text-secondary);">使用LangChain DeepAgents的动手教程</span><br>
+                    <a href="https://www.analyticsvidhya.com/blog/2026/03/harness-engineering" target="_blank">🔗 analyticsvidhya.com</a>
+                </li>
+            </ul>
+
+            <h3 style="margin-top: 45px;">🔬 学术论文</h3>
+            <ul class="resource-list">
+                <li>
+                    <strong>Meta-Harness (本篇论文)</strong><br>
+                    <span style="color: var(--text-secondary);">端到端Harness自动优化，文件系统暴露历史</span><br>
+                    <a href="https://arxiv.org/abs/2603.28052" target="_blank">🔗 arXiv:2603.28052</a>
+                </li>
+                <li>
+                    <strong>ACE: Agentic Context Engineering</strong><br>
+                    <span style="color: var(--text-secondary);">Stanford提出的自适应上下文演化框架</span><br>
+                    <a href="https://github.com/ace-agent/ace" target="_blank">🔗 github.com/ace-agent/ace</a>
+                </li>
+                <li>
+                    <strong>Natural-Language Agent Harnesses (NLAH)</strong><br>
+                    <span style="color: var(--text-secondary);">清华大学的可移植Harness表示方案</span><br>
+                    <a href="https://arxiv.org/html/2603.25723v1" target="_blank">🔗 arXiv:2603.25723</a>
+                </li>
+            </ul>
+
+            <h3 style="margin-top: 45px;">🛠️ 工具与框架</h3>
+            <ul class="resource-list">
+                <li>
+                    <strong>LangChain DeepAgents</strong><br>
+                    <span style="color: var(--text-secondary);">内置Harness能力的Agent框架（任务规划、VFS、子Agent）</span><br>
+                    <a href="https://python.langchain.com/docs/langchain agents/" target="_blank">🔗 python.langchain.com</a>
+                </li>
+                <li>
+                    <strong>Claude Code / OpenAI Codex</strong><br>
+                    <span style="color: var(--text-secondary);">生产级编码Agent，可作为Harness的基础模型</span><br>
+                    <a href="https://claude.ai/code" target="_blank">🔗 claude.ai/code</a>
+                </li>
+                <li>
+                    <strong>LlamaIndex</strong><br>
+                    <span style="color: var(--text-secondary);">RAG系统的优秀基础设施</span><br>
+                    <a href="https://docs.llamaindex.ai" target="_blank">🔗 docs.llamaindex.ai</a>
+                </li>
+                <li>
+                    <strong>LangSmith</strong><br>
+                    <span style="color: var(--text-secondary);">LLM应用的监控、测试、调试平台</span><br>
+                    <a href="https://smith.langchain.com" target="_blank">🔗 smith.langchain.com</a>
+                </li>
+            </ul>
+
+            <h3 style="margin-top: 45px;">🎯 实践项目建议</h3>
+            <div class="grid">
+                <div class="grid-item">
+                    <div class="grid-icon">🌟</div>
+                    <h4>初级：个人笔记助手</h4>
+                    <p>构建一个基于你个人笔记的RAG问答系统，练习基本的Harness组件设计</p>
+                    <p style="margin-top: 10px;"><strong>预计时间：</strong>1-2周</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">⭐⭐</div>
+                    <h4>中级：代码审查Bot</h4>
+                    <p>构建一个自动审查PR的Agent，包含自定义linting规则和反馈循环</p>
+                    <p style="margin-top: 10px;"><strong>预计时间：</strong>3-4周</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">⭐⭐⭐</div>
+                    <h4>高级：自主编程Agent</h4>
+                    <p>参考Anthropic的三Agent架构，构建能独立完成小型项目的系统</p>
+                    <p style="margin-top: 10px;"><strong>预计时间：</strong>2-3个月</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Summary -->
+<section id="summary">
+    <div class="container">
+        <h2 class="section-title">🎯 核心要点总结</h2>
+        
+        <div class="card">
+            <div class="highlight highlight-success">
+                <h3 style="color: var(--accent-green); margin-top: 0;">✨ Harness Engineering的本质</h3>
+                <p style="font-size: 1.1rem; margin-bottom: 15px;">
+                    <strong>你不是在教AI怎么做，而是在搭建一个环境让它能自主地做对。</strong>
+                </p>
+            </div>
+
+            <div class="grid" style="margin-top: 35px;">
+                <div class="grid-item">
+                    <div class="grid-icon">💡</div>
+                    <h4>思维转变</h4>
+                    <p>从"怎么写好prompt" → "怎么设计系统让AI不需要完美prompt也能成功"</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">🔄</div>
+                    <h4>核心循环</h4>
+                    <p>设计 → 评估 → 诊断 → 改进 → 再评估（这就是Meta-Harness做的事！）</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">📊</div>
+                    <h4>数据驱动</h4>
+                    <p>不要凭直觉改Harness，要用评估数据说话</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">🚀</div>
+                    <h4>渐进式复杂</h4>
+                    <p>先做最小可用Harness，再逐步增加反馈循环和自动化</p>
+                </div>
+            </div>
+
+            <div class="highlight" style="margin-top: 40px;">
+                <h3 style="margin-top: 0;">🎓 你的学习路线图</h3>
+                <table style="margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>阶段</th>
+                            <th>目标</th>
+                            <th>行动项</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>第1周</strong></td>
+                            <td>理解概念</td>
+                            <td>阅读本文档 + Martin Fowler的文章</td>
+                        </tr>
+                        <tr>
+                            <td><strong>第2-3周</strong></td>
+                            <td>动手实践</td>
+                            <td>完成"初级项目"：个人笔记助手</td>
+                        </tr>
+                        <tr>
+                            <td><strong>第4-6周</strong></td>
+                            <td>深入学习</td>
+                            <td>研究ACE框架 + Anthropic的Harness设计</td>
+                        </tr>
+                        <tr>
+                            <td><strong>第7-8周</strong></td>
+                            <td>应用优化</td>
+                            <td>尝试Meta-Harness自动优化你的系统</td>
+                        </tr>
+                        <tr>
+                            <td><strong>持续</strong></td>
+                            <td>进阶探索</td>
+                            <td>参与开源项目 + 阅读最新论文</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight highlight-warning" style="margin-top: 35px;">
+                <h3 style="color: var(--accent-orange); margin-top: 0;">⚡ 最后的建议</h3>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="padding: 10px 0;">🎯 <strong>从小处着手</strong>：不要一开始就试图构建完美系统，先做一个能用的MVP</li>
+                    <li style="padding: 10px 0;">📏 <strong>量化一切</strong>：建立评估基线，否则无法衡量改进</li>
+                    <li style="padding: 10px 0;">🔄 <strong>拥抱迭代</strong>：Harness Engineering本质上是持续的优化过程</li>
+                    <li style="padding: 10px 0;">🤝 <strong>学习社区</strong>：这个领域还在快速发展，保持关注最新进展</li>
+                    <li style="padding: 10px 0;">🧪 <strong>大胆实验</strong>：最好的学习方式是自己动手试错</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <p style="font-size: 1.1rem; margin-bottom: 15px;">
+            🚀 <strong>祝你在Harness Engineering的道路上一帆风顺！</strong>
+        </p>
+        <p style="font-size: 0.95rem;">
+            本指南基于 Meta-Harness 论文及行业最佳实践整理 | 2026年3月更新
+        </p>
+        <p style="margin-top: 20px; font-size: 0.85rem;">
+            💡 有问题或想分享你的实践心得？欢迎交流讨论！
+        </p>
+    </div>
+</footer>
+
+</body>
+</html>
