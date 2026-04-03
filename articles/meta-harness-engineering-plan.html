@@ -1,0 +1,3164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta-Harness Engineering 实施计划 - 从零到生产</title>
+    
+    <!-- MathJax -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(25, 25, 35, 0.7);
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-pink: #ec4899;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(59,130,246,0.05), transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(139,92,246,0.05), transparent 50%);
+            animation: bgShift 30s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-5%, -5%); }
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 40px; position: relative; z-index: 1; }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 90px 0 70px;
+            background: linear-gradient(180deg, rgba(59,130,246,0.1) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .hero h1 {
+            font-size: 3.8rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-blue) 50%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(59,130,246,0.3)); }
+            to { filter: drop-shadow(0 0 40px rgba(139,92,246,0.4)); }
+        }
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 900px;
+            margin: 0 auto 35px;
+        }
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 20px 30px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            min-width: 180px;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent-cyan);
+            display: block;
+        }
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 5px;
+        }
+
+        section { padding: 80px 0; }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .section-title::before {
+            content: '';
+            width: 6px; height: 45px;
+            background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 3px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            border-color: rgba(59,130,246,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        h2 { font-size: 2rem; font-weight: 700; margin: 35px 0 20px; color: var(--text-primary); }
+        h3 { font-size: 1.5rem; font-weight: 600; margin: 28px 0 16px; color: var(--accent-cyan); }
+        h4 { font-size: 1.2rem; font-weight: 600; margin: 20px 0 12px; color: var(--text-primary); }
+        p { margin-bottom: 1.5em; color: var(--text-secondary); font-size: 1.05rem; }
+        strong { color: var(--text-primary); font-weight: 600; }
+
+        /* Phase Timeline */
+        .phase-timeline {
+            position: relative;
+            padding-left: 60px;
+            margin: 50px 0;
+        }
+        .phase-timeline::before {
+            content: '';
+            position: absolute;
+            left: 25px; top: 0; bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, 
+                var(--accent-blue) 0%, 
+                var(--accent-purple) 33%, 
+                var(--accent-green) 66%, 
+                var(--accent-orange) 100%
+            );
+            border-radius: 2px;
+        }
+        
+        .phase-block {
+            position: relative;
+            margin-bottom: 50px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.4s ease;
+        }
+        .phase-block:hover {
+            border-color: var(--accent-blue);
+            box-shadow: 0 15px 50px rgba(59,130,246,0.15);
+        }
+        .phase-block::before {
+            content: attr(data-phase);
+            position: absolute;
+            left: -52px; top: 35px;
+            width: 54px; height: 54px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 50%;
+            border: 4px solid var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.3rem;
+            color: white;
+            box-shadow: 0 4px 20px rgba(59,130,246,0.4);
+        }
+        
+        .phase-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .phase-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .phase-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .badge-time { background: rgba(59,130,246,0.2); color: var(--accent-blue); }
+        .badge-difficulty { background: rgba(139,92,246,0.2); color: var(--accent-purple); }
+        .badge-deliverable { background: rgba(16,185,129,0.2); color: var(--accent-green); }
+
+        /* Task List */
+        .task-list {
+            list-style: none;
+            padding: 0;
+            margin: 25px 0;
+        }
+        .task-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-cyan);
+            border-radius: 12px;
+            padding: 22px 26px;
+            margin: 16px 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .task-item:hover {
+            background: rgba(59,130,246,0.05);
+            border-left-color: var(--accent-blue);
+            transform: translateX(8px);
+        }
+        .task-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+        .task-checkbox {
+            width: 24px; height: 24px;
+            min-width: 24px;
+            border: 2px solid var(--accent-cyan);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-top: 2px;
+        }
+        .task-checkbox:hover {
+            background: rgba(6,182,212,0.1);
+            border-color: var(--accent-cyan);
+        }
+        .task-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+        .task-description {
+            color: var(--text-secondary);
+            font-size: 0.98rem;
+            line-height: 1.6;
+            padding-left: 38px;
+        }
+        .task-details {
+            margin-top: 15px;
+            padding-left: 38px;
+            display: none;
+        }
+        .task-item.expanded .task-details {
+            display: block;
+        }
+
+        /* Code Block */
+        pre {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+            margin: 20px 0;
+            position: relative;
+        }
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            line-height: 1.65;
+            color: var(--accent-cyan);
+        }
+        pre code { color: var(--text-secondary); }
+
+        /* Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin: 30px 0; }
+        .grid-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s ease;
+        }
+        .grid-item:hover {
+            border-color: var(--accent-blue);
+            background: rgba(59,130,246,0.05);
+            transform: translateY(-5px);
+        }
+        .grid-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .grid-item h4 { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+
+        /* Highlight Boxes */
+        .highlight {
+            background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
+            border-left: 4px solid var(--accent-blue);
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+        .highlight-success {
+            background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.1));
+            border-left-color: var(--accent-green);
+        }
+        .highlight-warning {
+            background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(239,68,68,0.1));
+            border-left-color: var(--accent-orange);
+        }
+
+        /* Table */
+        table {
+            width: 100%; border-collapse: collapse;
+            margin: 25px 0; background: rgba(0,0,0,0.3);
+            border-radius: 12px; overflow: hidden;
+        }
+        thead { background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2)); }
+        th, td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { font-weight: 600; color: var(--text-primary); }
+        td { color: var(--text-secondary); }
+        tr:hover { background: rgba(59,130,246,0.05); }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 10px 0 10px 32px;
+            position: relative;
+            color: var(--text-secondary);
+        }
+        .checklist li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin: 30px 0;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .progress-bar {
+            height: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        /* Resource Card */
+        .resource-card {
+            background: linear-gradient(135deg, rgba(59,130,246,0.05), rgba(139,92,246,0.05));
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 15px 0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+        .resource-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateX(5px);
+        }
+        .resource-icon {
+            font-size: 2rem;
+            min-width: 50px;
+        }
+        .resource-info h4 {
+            color: var(--accent-cyan);
+            margin-bottom: 6px;
+        }
+        .resource-info p {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+        .resource-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .resource-link:hover { text-decoration: underline; }
+
+        footer {
+            text-align: center;
+            padding: 70px 0 50px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 80px;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 20px; }
+            .hero h1 { font-size: 2.3rem; }
+            .section-title { font-size: 1.8rem; }
+            .card { padding: 25px; }
+            .phase-timeline { padding-left: 45px; }
+            .phase-block { padding: 25px; }
+            .phase-block::before { left: -42px; width: 44px; height: 44px; font-size: 1.1rem; }
+            .grid { grid-template-columns: 1fr; }
+            .hero-stats { gap: 20px; }
+            .stat-item { min-width: 140px; padding: 15px 20px; }
+        }
+
+        html { scroll-behavior: smooth; }
+        ::selection { background: rgba(59,130,246,0.3); color: var(--text-primary); }
+
+        /* Print Styles */
+        @media print {
+            body { background: white; color: black; }
+            .card, .phase-block { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1>🚀 Meta-Harness Engineering<br>完整实施计划</h1>
+        <p class="hero-subtitle">
+            一份从零基础到生产级部署的系统化路线图<br>
+            覆盖理论学习、动手实践、自动优化、持续改进的全流程
+        </p>
+        
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-number">4</span>
+                <span class="stat-label">实施阶段</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">8-12</span>
+                <span class="stat-label">周总时长</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">25+</span>
+                <span class="stat-label">具体任务</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">3</span>
+                <span class="stat-label">实战项目</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Overview Section -->
+<section id="overview">
+    <div class="container">
+        <h2 class="section-title">📋 计划总览</h2>
+        
+        <div class="card">
+            <h3>🎯 本计划的核心目标</h3>
+            
+            <div class="grid" style="margin-top: 25px;">
+                <div class="grid-item">
+                    <div class="grid-icon">🎓</div>
+                    <h4>掌握核心概念</h4>
+                    <p>深入理解Harness Engineering的理论基础、设计原则和最佳实践</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">🛠️</div>
+                    <h4>构建实战能力</h4>
+                    <p>通过3个递进难度的项目，掌握从简单RAG到复杂Agent系统的开发</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">🤖</div>
+                    <h4>应用自动化优化</h4>
+                    <p>学会使用Meta-Harness方法论自动优化你的系统性能</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">🚀</div>
+                    <h4>达到生产就绪</h4>
+                    <p>具备部署、监控、维护真实 Harness 系统的能力</p>
+                </div>
+            </div>
+
+            <div class="highlight" style="margin-top: 40px;">
+                <h3 style="margin-top: 0;">📊 四阶段路线图</h3>
+                <table style="margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>阶段</th>
+                            <th>主题</th>
+                            <th>时间</th>
+                            <th>难度</th>
+                            <th>核心交付物</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong style="color: var(--accent-blue);">Phase 1</strong></td>
+                            <td>理论基础与概念理解</td>
+                            <td>第1-2周</td>
+                            <td>⭐⭐</td>
+                            <td>知识体系 + 环境搭建</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--accent-purple);">Phase 2</strong></td>
+                            <td>初级实践：RAG问答系统</td>
+                            <td>第3-4周</td>
+                            <td>⭐⭐⭐</td>
+                            <td>可运行的WikiQA Bot</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--accent-green);">Phase 3</strong></td>
+                            <td>进阶实践：Agent + 自动优化</td>
+                            <td>第5-8周</td>
+                            <td>⭐⭐⭐⭐</td>
+                            <td>智能编码助手 + 优化器</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--accent-orange);">Phase 4</strong></td>
+                            <td>高级应用：生产部署与迭代</td>
+                            <td>第9-12周+</td>
+                            <td>⭐⭐⭐⭐⭐</td>
+                            <td>生产级系统 + 持续优化</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight highlight-success" style="margin-top: 30px;">
+                <h3 style="color: var(--accent-green); margin-top: 0;">✅ 前置要求</h3>
+                <ul class="checklist">
+                    <li><strong>编程基础：</strong>熟悉 Python（中级水平），了解基本的数据结构和算法</li>
+                    <li><strong>LLM基础：</strong>使用过 ChatGPT/Claude 等 API，理解 prompt engineering 基本概念</li>
+                    <li><strong>机器学习概念：</strong>知道什么是 embedding、向量数据库、retrieval（不需要深入）</li>
+                    <li><strong>开发环境：</strong>能使用 Git、虚拟环境、基本的命令行操作</li>
+                    <li><strong>时间投入：</strong>每周至少 10-15 小时的专注学习时间</li>
+                </ul>
+            </div>
+
+            <div class="highlight highlight-warning" style="margin-top: 25px;">
+                <h3 style="color: var(--accent-orange); margin-top: 0;">💰 预算预估</h3>
+                <p><strong>API成本（可选）：</strong></p>
+                <ul style="padding-left: 25px; color: var(--text-secondary);">
+                    <li>OpenAI GPT-4o / Anthropic Claude API：约 $50-150/月（取决于使用量）</li>
+                    <li>本地模型替代方案：完全免费（使用 Ollama + Llama 3 / Qwen）</li>
+                    <li>向量数据库：免费（ChromaDB / FAISS 本地版）</li>
+                    <li>云服务（可选）：$0-50/月（Vercel / Railway 部署）</li>
+                </ul>
+                <p style="margin-bottom: 0;"><strong>总计：</strong>$0-200/月（取决于选择方案）</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Phase 1 -->
+<section id="phase1">
+    <div class="container">
+        <h2 class="section-title">📘 Phase 1: 理论基础与概念理解</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 40px;">建立坚实的理论基础，理解 Harness Engineering 的核心思想、历史演进和技术栈。</p>
+        
+        <div class="phase-timeline">
+            <div class="phase-block" data-phase="1">
+                <div class="phase-header">
+                    <div class="phase-title">
+                        🎓 第1-2周：理论奠基
+                    </div>
+                    <div class="phase-meta">
+                        <span class="badge badge-time">⏱️ 2周</span>
+                        <span class="badge badge-difficulty">📊 入门</span>
+                        <span class="badge badge-deliverable">✅ 交付：知识笔记 + 开发环境</span>
+                    </div>
+                </div>
+
+                <!-- Week 1 Tasks -->
+                <h3 style="color: var(--accent-blue); margin-top: 0;">📅 Week 1: 核心概念学习</h3>
+                
+                <ul class="task-list">
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 1.1：深度阅读 Meta-Harness 论文</div>
+                        </div>
+                        <div class="task-description">
+                            <p>完整阅读论文《Meta-Harness: End-to-End Optimization of Model Harnesses》，重点理解：</p>
+                            <ul style="padding-left: 25px; margin-top: 10px;">
+                                <li>Harness 的定义和重要性（为什么改变 harness 能产生 6x 性能差距？）</li>
+                                <li>文件系统暴露历史的创新点（为什么比压缩反馈更好？）</li>
+                                <li>Proposer Agent 的工作原理（如何选择性访问历史？）</li>
+                                <li>三个实验场景的设计思路和结果解读</li>
+                            </ul>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># 推荐阅读策略
+# Day 1-2: 读 Abstract + Introduction + Related Work (2小时)
+# Day 3-4: 读 Methodology 部分，画架构图 (3小时)
+# Day 5: 读 Experiments，对比表格数据 (2小时)
+# Day 6-7: 重读关键章节，写总结笔记 (2小时)
+
+# 笔记模板：
+"""
+## 核心洞察
+1. 
+2. 
+3. 
+
+## 关键公式/概念
+- 
+
+## 我的疑问
+- 
+
+## 可应用的点
+- 
+"""</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 1.2：阅读 Martin Fowler 的 Harness Engineering 文章</div>
+                        </div>
+                        <div class="task-description">
+                            <p>软件架构大师的权威解读，重点理解 Guides（前馈控制）和 Sensors（反馈控制）的概念。</p>
+                            <p style="margin-top: 10px;"><strong>🔗 资源：</strong> <a href="https://martinfowler.com/articles/harness-engineering.html" target="_blank" style="color: var(--accent-cyan);">martinfowler.com/articles/harness-engineering.html</a></p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># 核心概念提取
+Guides (前馈):
+- 在 Agent 行动前引导
+- 目的：提高首次成功率
+- 示例：
+  * 规则文件 (.cursorrules)
+  * 架构约束文档
+  * 输入验证器
+
+Sensors (反馈):
+- 在 Agent 行动后检测
+- 目的：自我纠正
+- 示例：
+  * 自定义 Linter（带修复建议）
+  * 测试套件
+  * 输出质量评分器
+
+# 关键洞察：
+# "好的 Harness = 强 Guides + 强 Sensors"</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 1.3：研究 ACE (Agentic Context Engineering) 框架</div>
+                        </div>
+                        <div class="task-description">
+                            <p>Stanford 提出的自适应上下文演化框架，理解 Generator → Reflector → Curator 三角色架构。</p>
+                            <p style="margin-top: 10px;"><strong>🔗 资源：</strong> <a href="https://github.com/ace-agent/ace" target="_blank" style="color: var(--accent-cyan);">github.com/ace-agent/ace</a></p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># ACE 三组件工作流：
+
+# 1. Generator（生成者）
+def generator(task, playbook):
+    """使用当前 playbook 解决任务"""
+    strategy = select_strategy(playbook, task)
+    solution = execute(task, strategy)
+    return solution, execution_trace
+
+# 2. Reflector（反思者）
+def reflector(solution, trace, outcome):
+    """分析结果，提取教训"""
+    if success(outcome):
+        lessons = extract_success_patterns(trace)
+    else:
+        lessons = extract_failure_modes(trace, outcome)
+    return lessons
+
+# 3. Curator（策展者）
+def curator(current_playbook, new_lessons):
+    """将教训整合到 playbook（增量更新）"""
+    updated_playbook = incremental_update(
+        current_playbook,
+        new_lessons,
+        preserve_existing=True  # 关键！不覆盖
+    )
+    return updated_playbook
+
+# 核心优势：避免 "Context Collapse"
+# 传统方法：整体重写 context → 信息丢失
+# ACE 方法：增量 delta updates → 保留细节</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 1.4：观看 Anthropic 的 Harness Design 技术分享</div>
+                        </div>
+                        <div class="task-description">
+                            <p>Anthropic Labs 团队关于长运行应用 Harness 设计的实战经验，特别是三 Agent 架构（Planner → Generator → Evaluator）。</p>
+                            <p style="margin-top: 10px;"><strong>🔗 资源：</strong> <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps" target="_blank" style="color: var(--accent-cyan);">anthropic.com/engineering/harness-design-long-running-apps</a></p>
+                        </div>
+                    </li>
+                </ul>
+
+                <!-- Week 2 Tasks -->
+                <h3 style="color: var(--accent-purple);">📅 Week 2: 环境搭建与技术选型</h3>
+                
+                <ul class="task-list">
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 1.5：搭建开发环境</div>
+                        </div>
+                        <div class="task-description">
+                            <p>配置完整的 Python 开发环境，安装所有必要的依赖库。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># 1. 创建项目目录
+mkdir meta-harness-journey
+cd meta-harness-journey
+
+# 2. 创建虚拟环境
+python -m venv venv
+source venv/bin/activate  # Mac/Linux
+# venv\Scripts\activate   # Windows
+
+# 3. 创建 requirements.txt
+cat > requirements.txt << EOF
+# Core LLM
+openai>=1.0.0
+anthropic>=0.30.0
+
+# Vector Database
+chromadb>=0.4.0
+faiss-cpu>=1.7.0
+
+# Frameworks
+langchain>=0.2.0
+langchain-community>=0.2.0
+llama-index>=0.10.0
+
+# Tools
+python-dotenv>=1.0.0
+httpx>=0.27.0
+rich>=13.0.0  # 终端美化
+
+# Evaluation
+ragas>=0.1.0
+deep-eval>=0.2.0
+
+# Development
+jupyter>=1.0.0
+pytest>=8.0.0
+black>=24.0.0
+EOF
+
+# 4. 安装依赖
+pip install -r requirements.txt
+
+# 5. 配置 API Keys
+cat > .env << EOF
+OPENAI_API_KEY=sk-your-key-here
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+EOF
+
+# 6. 测试安装
+python -c "import openai; import anthropic; print('✅ 环境配置成功!')"</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 1.6：完成第一个 Hello World：简单的 RAG Pipeline</div>
+                        </div>
+                        <div class="task-description">
+                            <p>用最少的代码实现一个基础的检索增强生成管道，验证环境配置并建立直观理解。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># hello_rag.py - 你的第一个 Harness 组件！
+
+import os
+from openai import OpenAI
+from chromadb import Client
+from chromadb.utils import embedding_functions
+
+# 初始化
+client = OpenAI()
+chroma_client = Client()
+embedder = embedding_functions.OpenAIEmbeddingFunction(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
+
+# 创建简单的文档集合
+collection = chroma_client.create_collection(
+    name="docs",
+    embedding_function=embedder
+)
+
+# 添加示例文档
+documents = [
+    "Harness Engineering 是设计和实现 AI Agent 运行环境的学科。",
+    "一个好的 Harness 应该包含 System Prompt、Tools、Memory、Feedback Loop。",
+    "Meta-Harness 使用文件系统暴露完整的历史经验给 Proposer Agent。"
+]
+collection.add(
+    documents=documents,
+    ids=["doc1", "doc2", "doc3"]
+)
+
+# 检索函数
+def retrieve(query, n_results=2):
+    results = collection.query(
+        query_texts=[query],
+        n_results=n_results
+    )
+    return results["documents"][0]
+
+# 生成回答
+def generate(query, context):
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "基于提供的上下文回答问题。"},
+            {"role": "user", "content": f"上下文:\n{context}\n\n问题: {query}"}
+        ]
+    )
+    return response.choices[0].message.content
+
+# 完整的 RAG Pipeline（这就是一个最小的 Harness！）
+def rag_pipeline(query):
+    print(f"\n🔍 查询: {query}")
+    
+    # Step 1: Retrieve
+    context = retrieve(query)
+    print(f"📄 检索到 {len(context)} 个文档片段")
+    
+    # Step 2: Generate
+    answer = generate(query, "\n".join(context))
+    
+    print(f"✨ 回答: {answer}")
+    return answer
+
+# 测试
+if __name__ == "__main__":
+    rag_pipeline("什么是 Harness Engineering?")
+    rag_pipeline("Meta-Harness 的特点是什么?")
+    
+    print("\n🎉 恭喜！你完成了第一个 Harness 组件！")</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 1.7：撰写学习笔记并制定个人目标</div>
+                        </div>
+                        <div class="task-description">
+                            <p>整理前两周的学习成果，明确后续学习的具体目标和预期成果。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># notes/phase1_summary.md
+
+# Phase 1 学习总结
+
+## 核心概念掌握情况
+- [ ] Harness 的定义和三大能力（Constrain/Inform/Feedback）
+- [ ] Agent = Model + Harness 公式
+- [ ] Guides vs Sensors 区别
+- [ ] ACE 三角色架构
+- [ ] Meta-Harness 文件系统方法
+
+## 技术栈熟悉度
+- [ ] OpenAI/Anthropic API 使用
+- [ ] ChromaDB 向量数据库
+- [ ] LangChain/LlamaIndex 基础
+- [ ] Embedding 和检索概念
+
+## 个人目标设定
+### 短期目标（Phase 2 结束时）
+- 完成一个可用的 WikiQA Bot
+- 准确率达到 >75%
+- 能够解释每个 Harness 组件的作用
+
+### 中期目标（Phase 3 结束时）
+- 实现 Meta-Harness 自动优化循环
+- 在自己的项目上看到 >10% 的性能提升
+- 能够设计多 Agent 协作架构
+
+### 长期目标（Phase 4 结束时）
+- 部署一个生产级的 Harness 系统
+- 建立持续的监控和优化流程
+- 能够指导他人进行 Harness Engineering
+
+## 遇到的挑战和解决方案
+1. 
+2. 
+3. 
+
+## 下一步行动项
+1. 
+2. 
+3.</code></pre>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="highlight highlight-success" style="margin-top: 35px;">
+                    <h3 style="color: var(--accent-green); margin-top: 0;">✅ Phase 1 完成标准</h3>
+                    <ul class="checklist">
+                        <li>能够用自己的话解释什么是 Harness Engineering</li>
+                        <li>理解 Guides/Sensors、Generator/Reflector/Curator 等核心模式</li>
+                        <li>开发环境配置完成，能够运行示例代码</li>
+                        <li>完成了至少一篇详细的学习笔记</li>
+                        <li>制定了清晰的个人学习目标和时间表</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Phase 2 -->
+<section id="phase2">
+    <div class="container">
+        <h2 class="section-title">🛠️ Phase 2: 初级实践 — RAG 问答系统</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 40px;">通过构建一个真实的文档问答系统，实践 Harness Engineering 的核心组件。</p>
+        
+        <div class="phase-timeline">
+            <div class="phase-block" data-phase="2">
+                <div class="phase-header">
+                    <div class="phase-title">
+                        💬 第3-4周：WikiQA Bot 项目
+                    </div>
+                    <div class="phase-meta">
+                        <span class="badge badge-time">⏱️ 2周</span>
+                        <span class="badge badge-difficulty">📊 进阶</span>
+                        <span class="badge badge-deliverable">✅ 交付：可运行的 WikiQA Bot</span>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--accent-green); margin-top: 0;">📅 Week 3: 核心 Harness 组件实现</h3>
+                
+                <ul class="task-list">
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 2.1：设计 System Prompt 层</div>
+                        </div>
+                        <div class="task-description">
+                            <p>为你的 QA Bot 设计灵活、可配置的系统提示词，包括角色定义、行为准则、输出格式等。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># system_prompts.py
+
+BASE_SYSTEM_PROMPT = """你是{company_name}的智能文档助手。
+
+## 你的角色
+基于提供的内部文档片段，准确回答用户的问题。
+
+## 核心原则
+1. **准确性优先**：如果信息不足，明确说明，不要编造
+2. **引用来源**：总是标注答案来自哪个文档
+3. **结构清晰**：使用列表、标题等让回答易读
+4. **适度详细**：提供足够但不冗余的信息
+
+## 输出格式
+请按以下格式回答：
+
+### 回答
+[你的回答内容]
+
+### 参考来源
+- 文档名：[来源1] (相关度: 高/中/低)
+- 文档名：[来源2] (相关度: 高/中/低)
+
+## 处理特殊情况
+- 如果问题模糊：主动询问澄清
+- 如果无相关信息：礼貌说明并建议相关话题
+- 如果涉及敏感信息：遵循安全准则
+"""
+
+class PromptManager:
+    """System Prompt 的管理器 - 支持动态调整"""
+    
+    def __init__(self, base_prompt=BASE_SYSTEM_PROMPT):
+        self.base_prompt = base_prompt
+        self.custom_rules = []
+        self.output_format = None
+    
+    def add_rule(self, rule: str):
+        """添加自定义规则"""
+        self.custom_rules.append(rule)
+    
+    def set_output_format(self, format_template: str):
+        """设置输出格式"""
+        self.output_format = format_template
+    
+    def build(self, company_name: str, context: str = "") -> str:
+        """构建最终的 system prompt"""
+        prompt = self.base_prompt.format(company_name=company_name)
+        
+        if self.custom_rules:
+            prompt += "\n## 额外规则\n"
+            for i, rule in enumerate(self.custom_rules, 1):
+                prompt += f"{i}. {rule}\n"
+        
+        if self.output_format:
+            prompt += f"\n## 特定输出格式\n{self.output_format}"
+        
+        if context:
+            prompt += f"\n## 当前上下文\n{context}"
+        
+        return prompt
+
+
+# 使用示例
+if __name__ == "__main__":
+    pm = PromptManager()
+    pm.add_rule("对于技术问题，提供代码示例")
+    pm.add_rule("回答长度控制在300字以内")
+    
+    prompt = pm.build(company_name="ACME公司")
+    print(prompt)</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 2.2：实现检索引擎（Retrieval Harness）</div>
+                        </div>
+                        <div class="task-description">
+                            <p>构建可配置的检索模块，支持混合检索、重排序、过滤等功能。这是后面要优化的核心目标函数。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># retrieval_harness.py
+
+from dataclasses import dataclass
+from typing import List, Dict, Optional
+import chromadb
+from chromadb.utils import embedding_functions
+
+@dataclass
+class RetrievalConfig:
+    """检索配置 - 这就是要被优化的参数空间！"""
+    top_k: int = 5              # 返回文档数量
+    use_rerank: bool = True     # 是否启用重排序
+    rerank_top_n: int = 10      # 重排序候选数
+    min_score: float = 0.7      # 最小相关性阈值
+    hybrid_alpha: float = 0.7   # BM25 vs 语义权重
+    use_compression: bool = False  # 是否压缩上下文
+    max_context_length: int = 4000  # 最大上下文长度
+    
+class RetrievalHarness:
+    """
+    检索系统的 Harness
+    将来会被 Meta-Harness 自动优化！
+    """
+    
+    def __init__(self, config: RetrievalConfig, collection):
+        self.config = config
+        self.collection = collection
+        self.embedder = embedding_functions.OpenAIEmbeddingFunction()
+    
+    def retrieve(self, query: str) -> List[Dict]:
+        """
+        主检索流程
+        这是优化的目标函数！
+        """
+        # Step 1: 混合检索（BM25 + Semantic）
+        candidates = self._hybrid_search(query)
+        
+        # Step 2: 过滤低相关性
+        filtered = self._filter_by_score(candidates)
+        
+        # Step 3: 重排序
+        if self.config.use_rerank and len(filtered) > 1:
+            filtered = self._rerank(query, filtered)
+        
+        # Step 4: 截断到 top-k
+        results = filtered[:self.config.top_k]
+        
+        # Step 5: 上下文压缩（可选）
+        if self.config.use_compression:
+            results = self._compress_context(results)
+        
+        return results
+    
+    def _hybrid_search(self, query: str) -> List[Dict]:
+        """混合检索：结合关键词和语义搜索"""
+        # 语义搜索
+        semantic_results = self.collection.query(
+            query_texts=[query],
+            n_results=self.config.rerank_top_n
+        )
+        
+        # TODO: 可以添加 BM25 搜索
+        # 目前先用语义搜索作为简化
+        
+        documents = semantic_results["documents"][0]
+        metadatas = semantic_results["metadatas"][0]
+        distances = semantic_results["distances"][0]
+        
+        results = []
+        for doc, meta, dist in zip(documents, metadatas, distances):
+            # 将距离转换为相似度分数 (0-1)
+            score = 1 / (1 + dist)
+            results.append({
+                "content": doc,
+                "metadata": meta,
+                "score": score
+            })
+        
+        return results
+    
+    def _filter_by_score(self, results: List[Dict]) -> List[Dict]:
+        """过滤低相关性结果"""
+        return [r for r in results if r["score"] >= self.config.min_score]
+    
+    def _rerank(self, query: str, results: List[Dict]) -> List[Dict]:
+        """使用 Cross-Encoder 重排序"""
+        # 简化版本：这里可以用更复杂的模型
+        # 实际项目中可以使用 sentence-transformers/cross-encoder
+        
+        # 按当前分数排序（实际应该调用重排序模型）
+        results.sort(key=lambda x: x["score"], reverse=True)
+        return results
+    
+    def _compress_context(self, results: List[Dict]) -> List[Dict]:
+        """使用 LLM 压缩上下文以节省 token"""
+        # TODO: 实现智能摘要
+        # 这里先返回原始内容
+        return results
+    
+    def format_for_llm(self, results: List[Dict]) -> str:
+        """将检索结果格式化为 LLM 可读的文本"""
+        formatted = []
+        for i, result in enumerate(results, 1):
+            formatted.append(f"[文档{i}] (相关度: {result['score']:.2f})\n{result['content']}")
+        
+        context = "\n\n".join(formatted)
+        
+        # 检查长度限制
+        if len(context) > self.config.max_context_length:
+            context = context[:self.config.max_context_length] + "\n...[截断]"
+        
+        return context
+
+
+# 测试
+if __name__ == "__main__":
+    # 配置
+    config = RetrievalConfig(
+        top_k=3,
+        use_rerank=True,
+        min_score=0.6
+    )
+    
+    # 初始化（假设已有 collection）
+    # harness = RetrievalHarness(config, collection)
+    
+    # 检索测试
+    # results = harness.retrieve("如何配置系统提示词？")
+    # context = harness.format_for_llm(results)
+    # print(context)</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 2.3：实现 Feedback Loop（反馈循环）</div>
+                        </div>
+                        <div class="task-description">
+                            <p>添加前馈控制和反馈传感器，让你的系统能够自我纠错和改进。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># feedback_system.py
+
+from typing import List, Dict, Optional, Callable
+from dataclasses import dataclass
+from enum import Enum
+
+class FeedbackStatus(Enum):
+    OK = "ok"
+    GUIDED = "guided"           # 被前馈拦截
+    NEEDS_REVISION = "needs_revision"  # 需要修改
+    BLOCKED = "blocked"         # 被安全护栏阻止
+
+@dataclass
+class FeedbackResult:
+    status: FeedbackStatus
+    message: Optional[str] = None
+    issues: List[str] = None
+    suggestion: Optional[str] = None
+    auto_fixed: bool = False
+
+class Guide:
+    """前馈控制器 - 在行动前引导"""
+    
+    def __init__(self):
+        self.rules: List[Callable] = []
+    
+    def add_rule(self, rule_func: Callable):
+        """添加引导规则"""
+        self.rules.append(rule_func)
+    
+    def check(self, query: str) -> Optional[str]:
+        """执行所有规则，返回第一个触发的干预消息"""
+        for rule in self.rules:
+            intervention = rule(query)
+            if intervention:
+                return intervention
+        return None
+
+class Sensor:
+    """反馈传感器 - 在行动后检测"""
+    
+    def __init__(self):
+        self.checks: List[Callable] = []
+    
+    def add_check(self, check_func: Callable):
+        """添加检测项"""
+        self.checks.append(check_func)
+    
+    def inspect(self, answer: str) -> List[str]:
+        """执行所有检测，返回发现的问题列表"""
+        issues = []
+        for check in self.checks:
+            found_issues = check(answer)
+            if found_issues:
+                issues.extend(found_issues)
+        return issues
+
+class FeedbackLoop:
+    """完整的反馈循环系统"""
+    
+    def __init__(self):
+        self.guide = Guide()
+        self.sensor = Sensor()
+        self.auto_fix_enabled = True
+    
+    # ========== 内置的 Guide 规则 ==========
+    
+    @staticmethod
+    def create_ambiguity_guide():
+        """检测模糊查询"""
+        def check(query: str) -> Optional[str]:
+            ambiguous_words = ["它", "那个", "这个", "它们"]
+            if any(word in query for word in ambiguous_words):
+                return ("您的查询中包含指代不明的词语（如'它'、'那个'），"
+                       "能否提供更多上下文或具体说明？")
+            return None
+        return check
+    
+    @staticmethod
+    def create_off_topic_guide(topics: List[str]):
+        """检测离题查询"""
+        def check(query: str) -> Optional[str]:
+            # 简化版：实际可以使用分类器
+            for topic in topics:
+                if topic.lower() in query.lower():
+                    return None  # 相关话题
+            return ("您的问题似乎超出了我的知识范围。"
+                   "我主要可以帮您解答以下领域的问题：" + 
+                   ", ".join(topics[:5]))
+        return check
+    
+    # ========== 内置的 Sensor 检测 ==========
+    
+    @staticmethod
+    def create_citation_sensor():
+        """检测是否缺少引用"""
+        def check(answer: str) -> List[str]:
+            issues = []
+            if "参考来源" not in answer and "来源" not in answer:
+                issues.append("缺少引用来源")
+            return issues
+        return check
+    
+    @staticmethod
+    def create_length_sensor(max_chars: int = 1000):
+        """检测回答长度"""
+        def check(answer: str) -> List[str]:
+            issues = []
+            if len(answer) > max_chars:
+                issues.append(f"回答过长 ({len(answer)}字符，建议<{max_chars})")
+            elif len(answer) < 50:
+                issues.append("回答过短，可能不够详细")
+            return issues
+        return check
+    
+    @staticmethod
+    def create_confidence_sensor():
+        """检测不确定的表达"""
+        def check(answer: str) -> List[str]:
+            issues = []
+            uncertain_phrases = ["可能", "也许", "大概", "我不确定"]
+            for phrase in uncertain_phrases:
+                if phrase in answer:
+                    issues.append(f"包含不确定表达：'{phrase}'")
+            return issues
+        return check
+    
+    def process(self, query: str, answer: str) -> FeedbackResult:
+        """
+        处理完整的反馈循环
+        """
+        # 阶段1: 前馈检查
+        guide_intervention = self.guide.check(query)
+        if guide_intervention:
+            return FeedbackResult(
+                status=FeedbackStatus.GUIDED,
+                message=guide_intervention
+            )
+        
+        # 阶段2: 反馈检测
+        issues = self.sensor.inspect(answer)
+        
+        if issues:
+            # 尝试自动修复
+            suggestion = self._generate_suggestion(issues)
+            
+            return FeedbackResult(
+                status=FeedbackStatus.NEEDS_REVISION,
+                issues=issues,
+                suggestion=suggestion
+            )
+        
+        return FeedbackResult(status=FeedbackStatus.OK, message=answer)
+    
+    def _generate_suggestion(self, issues: List[str]) -> str:
+        """根据问题生成修复建议"""
+        suggestions = {
+            "缺少引用来源": "请在回答末尾添加参考来源",
+            "回答过长": "请精简回答，保留核心信息",
+            "回答过短": "请补充更多细节和说明",
+            "包含不确定表达": "如果不确定，请明确说明或建议查阅其他资料"
+        }
+        
+        fixes = [suggestions.get(issue, "请重新审视回答") for issue in issues]
+        return "；".join(fixes)
+
+
+# 使用示例
+if __name__ == "__main__":
+    fb = FeedbackLoop()
+    
+    # 添加 Guide
+    fb.guide.add_rule(FeedbackLoop.create_ambiguity_guide())
+    fb.guide.add_rule(FeedbackLoop.create_off_topic_guide(["技术", "产品", "文档"]))
+    
+    # 添加 Sensor
+    fb.sensor.add_check(FeedbackLoop.create_citation_sensor())
+    fb.sensor.add_check(FeedbackLoop.create_length_sensor(500))
+    
+    # 测试
+    result = fb.process(
+        query="它怎么配置？",
+        answer="你需要去设置里面改一下东西就好了。"
+    )
+    
+    print(f"状态: {result.status.value}")
+    if result.message:
+        print(f"消息: {result.message}")
+    if result.issues:
+        print(f"问题: {result.issues}")</code></pre>
+                        </div>
+                    </li>
+                </ul>
+
+                <h3 style="color: var(--accent-orange);">📅 Week 4: 集成、测试与评估</h3>
+                
+                <ul class="task-list">
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 2.4：集成所有组件为完整系统</div>
+                        </div>
+                        <div class="task-description">
+                            <p>将 System Prompt、Retrieval Engine、Feedback Loop 组装成完整的 WikiQA Bot。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># wikiqa_bot.py - 完整的 Harness 系统！
+
+from system_prompts import PromptManager
+from retrieval_harness import RetrievalHarness, RetrievalConfig
+from feedback_system import FeedbackLoop, FeedbackStatus
+from openai import OpenAI
+import json
+
+class WikiQABot:
+    """
+    文档问答机器人 - 一个完整的 Harness 实现！
+    
+    Architecture:
+    User Query → [Guide Check] → Retrieval → Generation → [Sensor Check] → Response
+    """
+    
+    def __init__(self, config: dict):
+        # 初始化各组件
+        self.prompt_manager = PromptManager()
+        self.retrieval_config = RetrievalConfig(**config.get("retrieval", {}))
+        self.feedback_loop = FeedbackLoop()
+        self.llm = OpenAI()
+        
+        # 配置 Feedback
+        self._setup_feedback()
+        
+        # 加载文档集合
+        self.collection = self._load_collection(config.get("collection_path"))
+        self.retrieval_harness = RetrievalHarness(self.retrieval_config, self.collection)
+    
+    def _setup_feedback(self):
+        """配置反馈循环"""
+        # Guides
+        self.feedback_loop.guide.add_rule(
+            FeedbackLoop.create_ambiguity_guide()
+        )
+        
+        # Sensors
+        self.feedback_loop.sensor.add_check(
+            FeedbackLoop.create_citation_sensor()
+        )
+        self.feedback_loop.sensor.add_check(
+            FeedbackLoop.create_length_sensor(max_chars=800)
+        )
+    
+    def _load_collection(self, path: str):
+        """加载或创建文档集合"""
+        # TODO: 实际实现
+        pass
+    
+    def process_query(self, query: str) -> dict:
+        """
+        处理用户查询 - 主入口
+        """
+        result = {
+            "query": query,
+            "status": None,
+            "answer": None,
+            "sources": [],
+            "feedback": None,
+            "metrics": {}
+        }
+        
+        import time
+        start_time = time.time()
+        
+        try:
+            # Step 1: Guide Check (前馈)
+            feedback = self.feedback_loop.process(query, "")
+            if feedback.status == FeedbackStatus.GUIDED:
+                result["status"] = "guided"
+                result["answer"] = feedback.message
+                return result
+            
+            # Step 2: Retrieval (检索)
+            retrieved_docs = self.retrieval_harness.retrieve(query)
+            result["sources"] = [
+                {"content": doc["content"], "score": doc["score"]}
+                for doc in retrieved_docs
+            ]
+            context = self.retrieval_harness.format_for_llm(retrieved_docs)
+            
+            # Step 3: Build Prompt
+            system_prompt = self.prompt_manager.build(
+                company_name="MyCompany",
+                context=context
+            )
+            
+            # Step 4: Generate (生成)
+            response = self.llm.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": query}
+                ],
+                temperature=0.7
+            )
+            
+            answer = response.choices[0].message.content
+            result["metrics"]["tokens_used"] = response.usage.total_tokens
+            
+            # Step 5: Sensor Check (反馈)
+            feedback = self.feedback_loop.process(query, answer)
+            if feedback.status == FeedbackStatus.NEEDS_REVISION:
+                result["status"] = "needs_revision"
+                result["feedback"] = {
+                    "issues": feedback.issues,
+                    "suggestion": feedback.suggestion
+                }
+            else:
+                result["status"] = "ok"
+            
+            result["answer"] = answer
+            
+        except Exception as e:
+            result["status"] = "error"
+            result["feedback"] = str(e)
+        
+        finally:
+            result["metrics"]["latency_ms"] = (time.time() - start_time) * 1000
+        
+        return result
+    
+    def interactive_mode(self):
+        """交互式问答模式"""
+        print("=" * 60)
+        print("🤖 WikiQA Bot 已启动！输入 'quit' 退出")
+        print("=" * 60)
+        
+        while True:
+            query = input("\n❓ 您的问题: ").strip()
+            
+            if query.lower() in ['quit', 'exit', 'q']:
+                print("👋 再见！")
+                break
+            
+            if not query:
+                continue
+            
+            # 处理查询
+            result = self.process_query(query)
+            
+            # 显示结果
+            print("\n" + "=" * 60)
+            print(f"状态: {result['status']}")
+            print("-" * 60)
+            print(result['answer'])
+            
+            if result.get('feedback'):
+                print("-" * 60)
+                print("⚠️ 反馈:")
+                if isinstance(result['feedback'], dict):
+                    print(f"问题: {result['feedback'].get('issues', [])}")
+                    print(f"建议: {result['feedback'].get('suggestion', '')}")
+                else:
+                    print(result['feedback'])
+            
+            if result.get('metrics'):
+                print("-" * 60)
+                print(f"📊 Token用量: {result['metrics'].get('tokens_used', 'N/A')}")
+                print(f"⏱️ 响应时间: {result['metrics'].get('latency_ms', 0):.0f}ms")
+
+
+# 启动
+if __name__ == "__main__":
+    config = {
+        "retrieval": {
+            "top_k": 3,
+            "use_rerank": True,
+            "min_score": 0.6
+        },
+        "collection_path": "./data/documents"
+    }
+    
+    bot = WikiQABot(config)
+    bot.interactive_mode()</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 2.5：构建评估套件（Evaluation Suite）</div>
+                        </div>
+                        <div class="task-description">
+                            <p>创建自动化测试集和评估指标，量化系统性能，为后续优化建立基线。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># evaluation_suite.py
+
+import json
+from typing import List, Dict
+from dataclasses import dataclass
+from wikiqa_bot import WikiQABot
+import time
+
+@dataclass
+class TestCase:
+    """测试用例"""
+    query: str
+    expected_answer: str
+    expected_sources: List[str]
+    category: str  # factual / procedural / conceptual
+    difficulty: str  # easy / medium / hard
+
+@dataclass
+class EvalResult:
+    """评估结果"""
+    test_case: TestCase
+    actual_answer: str
+    actual_sources: List[str]
+    metrics: Dict[str, float]
+    latency_ms: float
+
+class EvaluationSuite:
+    """评估套件"""
+    
+    def __init__(self, bot: WikiQABot):
+        self.bot = bot
+        self.test_cases: List[TestCase] = []
+        self.results: List[EvalResult] = []
+    
+    def load_test_cases(self, filepath: str):
+        """加载测试集"""
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        
+        self.test_cases = [
+            TestCase(**tc) for tc in data["test_cases"]
+        ]
+        print(f"✅ 加载了 {len(self.test_cases)} 个测试用例")
+    
+    def create_sample_test_cases(self, n: int = 20):
+        """创建示例测试集（用于快速验证）"""
+        # 这里应该是你根据实际文档人工编写的测试用例
+        sample_cases = [
+            TestCase(
+                query="什么是 Harness Engineering？",
+                expected_answer="Harness Engineering 是设计和实现 AI Agent 运行环境的学科",
+                expected_sources=["doc1"],
+                category="factual",
+                difficulty="easy"
+            ),
+            # ... 更多测试用例
+        ]
+        self.test_cases = sample_cases[:n]
+    
+    def evaluate(self) -> Dict:
+        """运行完整评估"""
+        print(f"\n{'='*60}")
+        print(f"🧪 开始评估 ({len(self.test_cases)} 个测试用例)")
+        print(f"{'='*60}\n")
+        
+        self.results = []
+        
+        for i, test_case in enumerate(self.test_cases, 1):
+            print(f"[{i}/{len(self.test_cases)}] {test_case.query[:50]}...")
+            
+            start = time.time()
+            result = self.bot.process_query(test_case.query)
+            latency = (time.time() - start) * 1000
+            
+            # 计算指标
+            metrics = self._calculate_metrics(test_case, result)
+            
+            eval_result = EvalResult(
+                test_case=test_case,
+                actual_answer=result.get("answer", ""),
+                actual_sources=result.get("sources", []),
+                metrics=metrics,
+                latency_ms=latency
+            )
+            
+            self.results.append(eval_result)
+            
+            # 打印进度
+            accuracy = metrics.get("accuracy", 0)
+            print(f"   ✓ 准确率: {accuracy:.1%} | 延迟: {latency:.0f}ms")
+        
+        # 汇总统计
+        summary = self._summarize()
+        self._print_summary(summary)
+        
+        return summary
+    
+    def _calculate_metrics(self, test_case: TestCase, result: Dict) -> Dict:
+        """计算单个测试的指标"""
+        actual = result.get("answer", "")
+        
+        # 1. 准确性（简化版：使用关键词匹配）
+        expected_keywords = set(test_case.expected_answer.lower().split())
+        actual_keywords = set(actual.lower().split())
+        overlap = expected_keywords & actual_keywords
+        accuracy = len(overlap) / len(expected_keywords) if expected_keywords else 0
+        
+        # 2. 引用率
+        has_citation = "来源" in actual or "参考" in actual or "文档" in actual
+        
+        # 3. 格式合规
+        has_structure = "###" in actual or "**" in actual or "-" in actual
+        
+        # 4. 长度适中
+        length_ok = 50 <= len(actual) <= 1000
+        
+        return {
+            "accuracy": accuracy,
+            "has_citation": float(has_citation),
+            "has_structure": float(has_structure),
+            "length_ok": float(length_ok),
+            "overall": (accuracy * 0.5 + 
+                       float(has_citation) * 0.2 + 
+                       float(has_structure) * 0.15 + 
+                       float(length_ok) * 0.15)
+        }
+    
+    def _summarize(self) -> Dict:
+        """汇总所有结果"""
+        if not self.results:
+            return {}
+        
+        metrics_names = ["accuracy", "has_citation", "has_structure", "length_ok", "overall"]
+        
+        summary = {}
+        for metric in metrics_names:
+            values = [r.metrics[metric] for r in self.results]
+            summary[metric] = {
+                "mean": sum(values) / len(values),
+                "min": min(values),
+                "max": max(values)
+            }
+        
+        # 延迟统计
+        latencies = [r.latency_ms for r in self.results]
+        summary["latency"] = {
+            "mean": sum(latencies) / len(latencies),
+            "p95": sorted(latencies)[int(len(latencies)*0.95)]
+        }
+        
+        return summary
+    
+    def _print_summary(self, summary: Dict):
+        """打印汇总报告"""
+        print(f"\n{'='*60}")
+        print("📊 评估报告")
+        print(f"{'='*60}")
+        
+        print(f"\n📈 性能指标:")
+        print(f"   总体得分: {summary.get('overall', {}).get('mean', 0):.1%}")
+        print(f"   准确性:   {summary.get('accuracy', {}).get('mean', 0):.1%}")
+        print(f"   引用率:   {summary.get('has_citation', {}).get('mean', 0):.1%}")
+        print(f"   结构化:   {summary.get('has_structure', {}).get('mean', 0):.1%}")
+        print(f"   长度合适: {summary.get('length_ok', {}).get('mean', 0):.1%}")
+        
+        print(f"\n⏱️ 性能:")
+        latency = summary.get('latency', {})
+        print(f"   平均延迟: {latency.get('mean', 0):.0f}ms")
+        print(f"   P95延迟:  {latency.get('p95', 0):.0f}ms")
+        
+        print(f"\n{'='*60}")
+
+
+# 使用
+if __name__ == "__main__":
+    bot = WikiQABot(config={})
+    
+    suite = EvaluationSuite(bot)
+    suite.create_sample_test_cases(n=10)
+    
+    summary = suite.evaluate()
+    
+    # 保存结果
+    with open("eval_results.json", "w") as f:
+        json.dump(summary, f, indent=2)
+    
+    print("\n💾 结果已保存到 eval_results.json")</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 2.6：记录基线性能并进行初步调优</div>
+                        </div>
+                        <div class="task-description">
+                            <p>运行评估套件获取基线指标，然后手动尝试调整几个参数，观察性能变化。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># baseline_experiment.py
+
+"""Phase 2 结束实验：建立基线并手动调优"""
+
+from evaluation_suite import EvaluationSuite
+from wikiqa_bot import WikiQABot
+from retrieval_harness import RetrievalConfig
+import json
+
+def run_baseline_experiments():
+    """运行不同配置的实验"""
+    
+    configs = [
+        {
+            "name": "baseline",
+            "config": RetrievalConfig(
+                top_k=3,
+                use_rerank=False,
+                min_score=0.5
+            )
+        },
+        {
+            "name": "with_rerank",
+            "config": RetrievalConfig(
+                top_k=3,
+                use_rerank=True,
+                min_score=0.5
+            )
+        },
+        {
+            "name": "more_docs",
+            "config": RetrievalConfig(
+                top_k=5,
+                use_rerank=True,
+                min_score=0.6
+            )
+        },
+        {
+            "name": "strict_filter",
+            "config": RetrievalConfig(
+                top_k=3,
+                use_rerank=True,
+                min_score=0.8
+            )
+        }
+    ]
+    
+    results = {}
+    
+    for exp in configs:
+        print(f"\n{'='*60}")
+        print(f"🧪 实验: {exp['name']}")
+        print(f"{'='*60}")
+        
+        bot = WikiQABot({"retrieval": exp["config"].__dict__})
+        suite = EvaluationSuite(bot)
+        suite.create_sample_test_cases(n=20)
+        
+        summary = suite.evaluate()
+        results[exp["name"]] = summary
+    
+    # 对比结果
+    print_comparison(results)
+    
+    return results
+
+def print_comparison(results: Dict):
+    """打印实验对比"""
+    print(f"\n{'='*60}")
+    print("📊 实验对比")
+    print(f"{'='*60}")
+    print(f"{'配置':<20} {'总体':<10} {'准确性':<10} {'P95延迟':<10}")
+    print("-" * 60)
+    
+    for name, summary in results.items():
+        overall = summary.get("overall", {}).get("mean", 0)
+        accuracy = summary.get("accuracy", {}).get("mean", 0)
+        p95 = summary.get("latency", {}).get("p95", 0)
+        print(f"{name:<20} {overall:<10.1%} {accuracy:<10.1%} {p95:<10.0f}ms")
+    
+    print("-" * 60)
+    
+    # 找最佳配置
+    best = max(results.items(), key=lambda x: x[1].get("overall", {}).get("mean", 0))
+    print(f"\n🏆 最佳配置: {best[0]} (总体得分: {best[1]['overall']['mean']:.1%})")
+
+if __name__ == "__main__":
+    results = run_baseline_experiments()
+    
+    # 保存
+    with open("phase2_baseline.json", "w") as f:
+        json.dump(results, f, indent=2)
+    
+    print("\n✅ Phase 2 完成！基线已建立。")
+    print("📝 下一步：进入 Phase 3，实现自动优化！")</code></pre>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="highlight highlight-success" style="margin-top: 35px;">
+                    <h3 style="color: var(--accent-green); margin-top: 0;">✅ Phase 2 完成标准</h3>
+                    <ul class="checklist">
+                        <li>实现了完整的 WikiQA Bot，包含 System Prompt、Retrieval、Feedback 三大组件</li>
+                        <li>创建了至少 20 个测试用例的评估套件</li>
+                        <li>建立了基线性能指标（准确率、延迟、引用率等）</li>
+                        <li>完成了至少 4 种不同配置的手动对比实验</li>
+                        <li>代码结构清晰，有良好的注释和文档</li>
+                        <li>能够向他人解释你的 Harness 设计决策</li>
+                    </ul>
+                    
+                    <p style="margin-top: 20px; margin-bottom: 0;"><strong>🎯 预期成果：</strong>一个准确率在 70-85% 之间的可用 RAG 问答系统</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Phase 3 -->
+<section id="phase3">
+    <div class="container">
+        <h2 class="section-title">🤖 Phase 3: 进阶实践 — Agent + 自动优化</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 40px;">实现 Meta-Harness 的核心思想：自动搜索和优化 Harness 配置。</p>
+        
+        <div class="phase-timeline">
+            <div class="phase-block" data-phase="3">
+                <div class="phase-header">
+                    <div class="phase-title">
+                        ⚡ 第5-8周：Meta-Harness 优化器实现
+                    </div>
+                    <div class="phase-meta">
+                        <span class="badge badge-time">⏱️ 4周</span>
+                        <span class="badge badge-difficulty">📊 高级</span>
+                        <span class="badge badge-deliverable">✅ 交付：自动优化器 + 提升>10%</span>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--accent-pink); margin-top: 0;">📅 Week 5-6: 构建 Proposer Agent</h3>
+                
+                <ul class="task-list">
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 3.1：实现文件系统历史存储</div>
+                        </div>
+                        <div class="task-description">
+                            <p>按照 Meta-Harness 论文的方法，将每次优化的完整日志（代码、追踪、分数）存储到文件系统中。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># filesystem_history.py
+
+import os
+import json
+import shutil
+from datetime import datetime
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass, asdict
+import hashlib
+
+@dataclass
+class CandidateRecord:
+    """候选者的完整记录"""
+    candidate_id: int
+    timestamp: str
+    config: Dict[str, Any]
+    source_code: str  # Harness 的源码表示
+    execution_trace: List[Dict]  # 执行追踪
+    score: float
+    score_breakdown: Dict[str, float]  # 各维度分数
+    metadata: Dict[str, Any]  # 其他元数据
+
+class FilesystemHistory:
+    """
+    文件系统历史管理器
+    Meta-Harness 的核心组件之一！
+    """
+    
+    def __init__(self, base_dir: str = "./optimization_history"):
+        self.base_dir = base_dir
+        self._initialize_filesystem()
+    
+    def _initialize_filesystem(self):
+        """初始化目录结构"""
+        os.makedirs(self.base_dir, exist_ok=True)
+        
+        # 创建索引文件
+        index_path = os.path.join(self.base_dir, "index.json")
+        if not os.path.exists(index_path):
+            with open(index_path, 'w') as f:
+                json.dump({"candidates": [], "best_score": 0}, f)
+    
+    def save_candidate(self, record: CandidateRecord) -> str:
+        """
+        保存候选者到文件系统
+        返回保存的目录路径
+        """
+        # 创建候选者目录
+        candidate_dir = os.path.join(
+            self.base_dir, 
+            f"candidate_{record.candidate_id:04d}"
+        )
+        os.makedirs(candidate_dir, exist_ok=True)
+        
+        # 1. 保存配置
+        config_path = os.path.join(candidate_dir, "config.json")
+        with open(config_path, 'w') as f:
+            json.dump(record.config, f, indent=2)
+        
+        # 2. 保存源码
+        code_path = os.path.join(candidate_dir, "source_code.py")
+        with open(code_path, 'w') as f:
+            f.write(record.source_code)
+        
+        # 3. 保存执行追踪
+        trace_path = os.path.join(candidate_dir, "trace.json")
+        with open(trace_path, 'w') as f:
+            json.dump(record.execution_trace, f, indent=2)
+        
+        # 4. 保存分数
+        score_path = os.path.join(candidate_dir, "score.txt")
+        with open(score_path, 'w') as f:
+            f.write(f"Overall: {record.score:.4f}\n")
+            for metric, value in record.score_breakdown.items():
+                f.write(f"{metric}: {value:.4f}\n")
+        
+        # 5. 保存元数据
+        meta_path = os.path.join(candidate_dir, "metadata.json")
+        with open(meta_path, 'w') as f:
+            json.dump({
+                **record.metadata,
+                "timestamp": record.timestamp,
+                "candidate_id": record.candidate_id
+            }, f, indent=2)
+        
+        # 更新索引
+        self._update_index(record)
+        
+        print(f"✅ 已保存 Candidate {record.candidate_id} "
+              f"(Score: {record.score:.4f}) → {candidate_dir}")
+        
+        return candidate_dir
+    
+    def _update_index(self, record: CandidateRecord):
+        """更新全局索引"""
+        index_path = os.path.join(self.base_dir, "index.json")
+        
+        with open(index_path, 'r') as f:
+            index = json.load(f)
+        
+        index["candidates"].append({
+            "id": record.candidate_id,
+            "timestamp": record.timestamp,
+            "score": record.score,
+            "dir": f"candidate_{record.candidate_id:04d}"
+        })
+        
+        # 更新最佳分数
+        if record.score > index["best_score"]:
+            index["best_score"] = record.score
+            index["best_candidate_id"] = record.candidate_id
+        
+        with open(index_path, 'w') as f:
+            json.dump(index, f, indent=2)
+    
+    def get_best_candidate(self) -> Optional[CandidateRecord]:
+        """获取最佳候选者"""
+        index_path = os.path.join(self.base_dir, "index.json")
+        with open(index_path, 'r') as f:
+            index = json.load(f)
+        
+        best_id = index.get("best_candidate_id")
+        if best_id is None:
+            return None
+        
+        return self.load_candidate(best_id)
+    
+    def load_candidate(self, candidate_id: int) -> CandidateRecord:
+        """加载特定候选者"""
+        candidate_dir = os.path.join(
+            self.base_dir, 
+            f"candidate_{candidate_id:04d}"
+        )
+        
+        # 加载各部分
+        with open(os.path.join(candidate_dir, "config.json")) as f:
+            config = json.load(f)
+        
+        with open(os.path.join(candidate_dir, "source_code.py")) as f:
+            source_code = f.read()
+        
+        with open(os.path.join(candidate_dir, "trace.json")) as f:
+            trace = json.load(f)
+        
+        with open(os.path.join(candidate_dir, "metadata.json")) as f:
+            metadata = json.load(f)
+        
+        # 解析分数
+        score_path = os.path.join(candidate_dir, "score.txt")
+        with open(score_path) as f:
+            lines = f.readlines()
+            overall_score = float(lines[0].split(":")[1].strip())
+            breakdown = {}
+            for line in lines[1:]:
+                if ":" in line:
+                    key, val = line.split(":")
+                    breakdown[key.strip()] = float(val.strip())
+        
+        return CandidateRecord(
+            candidate_id=candidate_id,
+            timestamp=metadata["timestamp"],
+            config=config,
+            source_code=source_code,
+            execution_trace=trace,
+            score=overall_score,
+            score_breakdown=breakdown,
+            metadata=metadata
+        )
+    
+    def get_recent_candidates(self, n: int = 10) -> List[CandidateRecord]:
+        """获取最近的 N 个候选者"""
+        index_path = os.path.join(self.base_dir, "index.json")
+        with open(index_path, 'r') as f:
+            index = json.load(f)
+        
+        recent = index["candidates"][-n:]
+        return [self.load_candidate(c["id"]) for c in recent]
+    
+    def get_history_stats(self) -> Dict:
+        """获取历史统计"""
+        index_path = os.path.join(self.base_dir, "index.json")
+        with open(index_path, 'r') as f:
+            index = json.load(f)
+        
+        candidates = index["candidates"]
+        scores = [c["score"] for c in candidates]
+        
+        return {
+            "total_candidates": len(candidates),
+            "best_score": index["best_score"],
+            "avg_score": sum(scores) / len(scores) if scores else 0,
+            "improvement": (
+                scores[-1] - scores[0] 
+                if len(scores) >= 2 else 0
+            )
+        }
+    
+    def search_history(self, pattern: str) -> List[Dict]:
+        """
+        在历史中搜索
+        模拟 grep 功能！
+        """
+        results = []
+        
+        for root, dirs, files in os.walk(self.base_dir):
+            # 跳过索引文件
+            if "index.json" in files:
+                continue
+            
+            for file in files:
+                if file.endswith('.py') or file.endswith('.json'):
+                    filepath = os.path.join(root, file)
+                    try:
+                        with open(filepath, 'r') as f:
+                            content = f.read()
+                            if pattern.lower() in content.lower():
+                                results.append({
+                                    "file": filepath,
+                                    "matches": content.count(pattern)
+                                })
+                    except:
+                        pass
+        
+        return sorted(results, key=lambda x: x["matches"], reverse=True)
+
+
+# 使用示例
+if __name__ == "__main__":
+    history = FilesystemHistory("./test_history")
+    
+    # 保存一个示例候选
+    record = CandidateRecord(
+        candidate_id=1,
+        timestamp=datetime.now().isoformat(),
+        config={"top_k": 5, "use_rerank": True},
+        source_code="# Example harness code",
+        execution_trace=[{"step": "retrieve", "time": 0.1}],
+        score=0.85,
+        score_breakdown={"accuracy": 0.9, "speed": 0.8},
+        metadata={"experiment": "test"}
+    )
+    
+    history.save_candidate(record)
+    
+    # 查看统计
+    stats = history.get_history_stats()
+    print(f"统计: {stats}")
+    
+    # 搜索历史
+    matches = history.search_history("rerank")
+    print(f"找到 {len(matches)} 个匹配")</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 3.2：实现 Proposer Agent（编码Agent）</div>
+                        </div>
+                        <div class="task-description">
+                            <p>创建一个能够读取历史、分析失败原因、提出新配置的编码 Agent。这是 Meta-Harness 的核心创新。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># proposer_agent.py
+
+import os
+import json
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass
+from filesystem_history import FilesystemHistory, CandidateRecord
+from openai import OpenAI
+
+@dataclass
+class Proposal:
+    """提出的候选配置"""
+    candidate_id: int
+    config: Dict[str, Any]
+    reasoning: str  # 为什么提出这个配置
+    source_code: str  # 生成的 Harness 代码
+
+class ProposerAgent:
+    """
+    Proposer Agent - Meta-Harness 的核心！
+    
+    它是一个编码 Agent，能够：
+    1. 通过文件系统访问所有历史候选
+    2. 选择性地读取相关历史（模拟 grep/cat）
+    3. 分析成功/失败的模式
+    4. 提出新的、改进的配置
+    """
+    
+    def __init__(
+        self, 
+        model: str = "claude-sonnet-4-20250514",
+        history: FilesystemHistory = None
+    ):
+        self.model = model
+        self.llm = OpenAI()  # 或 Anthropic client
+        self.history = history or FilesystemHistory()
+        
+        self.system_prompt = """你是一个 Harness Optimization Expert（Harness 优化专家）。
+        
+## 你的任务
+基于历史优化记录，提出新的 Harness 配置以提高系统性能。
+
+## 你可以使用的工具
+- read_file(path): 读取文件内容
+- grep(pattern, dir): 在目录中搜索模式
+- get_best(): 获取最佳候选
+- get_recent(n): 获取最近N个候选
+- get_stats(): 获取历史统计
+
+## 工作流程
+1. 分析历史趋势：哪些配置效果最好？
+2. 识别失败模式：什么导致了低分？
+3. 形成假设：如何改进？
+4. 提出新配置：具体的参数调整
+5. 生成理由：为什么这样改？
+
+## 输出格式
+返回 JSON：
+{
+    "config": {...},
+    "reasoning": "详细说明",
+    "source_code": "生成的代码"
+}
+
+## 重要原则
+- 不要盲目随机搜索，要有依据地调整
+- 关注失败案例中的模式
+- 小步迭代，避免剧烈变化
+- 记录你的推理过程
+"""
+    
+    def propose(self, iteration: int) -> Proposal:
+        """
+        提出一个新的候选配置
+        """
+        print(f"\n🤖 Proposer 正在工作 (Iteration {iteration})...")
+        
+        # Step 1: 收集上下文
+        context = self._gather_context()
+        
+        # Step 2: 调用 LLM 生成提案
+        proposal = self._generate_proposal(context, iteration)
+        
+        return proposal
+    
+    def _gather_context(self) -> str:
+        """收集相关历史上下文"""
+        context_parts = []
+        
+        # 1. 获取统计信息
+        stats = self.history.get_history_stats()
+        context_parts.append(f"## 历史统计\n```json\n{json.dumps(stats, indent=2)}\n```")
+        
+        # 2. 获取最佳候选
+        best = self.history.get_best_candidate()
+        if best:
+            context_parts.append(f"""
+## 最佳候选 (ID: {best.candidate_id}, Score: {best.score:.4f})
+
+### 配置
+```json
+{json.dumps(best.config, indent=2)}
+```
+
+### 分数明细
+{json.dumps(best.score_breakdown, indent=2)}
+
+### 元数据
+{json.dumps(best.metadata, indent=2)}
+""")
+        
+        # 3. 获取最近的几个候选（用于观察趋势）
+        recent = self.history.get_recent_candidates(n=5)
+        if recent:
+            context_parts.append("\n## 最近5个候选的趋势\n")
+            context_parts.append("| ID | Score | Accuracy | Latency |\n")
+            context_parts.append("|----|-------|----------|---------|\n")
+            for cand in recent:
+                acc = cand.score_breakdown.get("accuracy", 0)
+                lat = cand.metadata.get("avg_latency", 0)
+                context_parts.append(
+                    f"| {cand.candidate_id} | {cand.score:.4f} | {acc:.2%} | {lat:.0f}ms |\n"
+                )
+        
+        # 4. 搜索失败模式
+        failures = self.history.search_history("error")
+        if failures:
+            context_parts.append(f"\n## 发现的失败模式\n")
+            context_parts.append(f"找到 {len(failures)} 个包含错误的记录\n")
+        
+        return "\n".join(context_parts)
+    
+    def _generate_proposal(self, context: str, iteration: int) -> Proposal:
+        """调用 LLM 生成新提案"""
+        
+        messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": f"""
+## 当前迭代
+Iteration #{iteration}
+
+## 历史上下文
+{context}
+
+## 请提出新的配置
+
+基于以上历史数据，分析趋势并提出新的 Harness 配置。
+重点关注：
+1. 如何提高准确率？
+2. 如何降低延迟？
+3. 是否有明显的失败模式需要解决？
+
+请输出 JSON 格式的提案。
+"""}
+        ]
+        
+        response = self.llm.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.7,  # 允许一定的创造性
+            response_format={"type": "json_object"}
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        
+        return Proposal(
+            candidate_id=iteration,
+            config=result.get("config", {}),
+            reasoning=result.get("reasoning", ""),
+            source_code=result.get("source_code", "")
+        )
+    
+    def analyze_failure(self, candidate_id: int) -> str:
+        """分析特定候选的失败原因"""
+        record = self.history.load_candidate(candidate_id)
+        
+        # 读取执行追踪
+        trace = record.execution_trace
+        
+        # 读取源码
+        source = record.source_code
+        
+        analysis_prompt = f"""
+分析以下失败的候选配置，找出可能的失败原因：
+
+## 分数: {record.score:.4f}
+## 分数明细: {json.dumps(record.score_breakdown, indent=2)}
+
+## 执行追踪
+```json
+{json.dumps(trace[:5], indent=2)}  # 只显示前5步
+```
+
+## 源码片段
+```python
+{source[:500]}  # 只显示前500字符
+```
+
+请分析：
+1. 主要的失败原因是什么？
+2. 哪些参数设置可能导致问题？
+3. 有什么改进建议？
+"""
+        
+        response = self.llm.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": analysis_prompt}]
+        )
+        
+        return response.choices[0].message.content
+
+
+# 使用示例
+if __name__ == "__main__":
+    history = FilesystemHistory("./my_optimization_history")
+    proposer = ProposerAgent(model="gpt-4o", history=history)
+    
+    # 第一次提案
+    proposal = proposer.propose(iteration=1)
+    
+    print(f"\n📋 提案 ID: {proposal.candidate_id}")
+    print(f"📊 配置: {json.dumps(proposal.config, indent=2)}")
+    print(f"💭 理由: {proposal.reasoning[:200]}...")</code></pre>
+                        </div>
+                    </li>
+                </ul>
+
+                <h3 style="color: var(--accent-red);">📅 Week 7-8: 实现优化循环并运行实验</h3>
+                
+                <ul class="task-list">
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 3.3：组装完整的 Meta-Harness 优化循环</div>
+                        </div>
+                        <div class="task-description">
+                            <p>将 Proposer、Evaluator、Filesystem History 整合成完整的自动优化循环。</p>
+                        </div>
+                        <div class="task-details">
+                            <pre><code># meta_harness_optimizer.py
+
+"""
+Meta-Harness Optimizer - 完整实现！
+
+这是整个计划的核心成果。
+"""
+
+import time
+import json
+from typing import Dict, List, Optional, Callable
+from dataclasses import dataclass
+from datetime import datetime
+
+from filesystem_history import FilesystemHistory, CandidateRecord
+from proposer_agent import ProposerAgent, Proposal
+from evaluation_suite import EvaluationSuite, EvalResult
+
+@dataclass
+class OptimizationResult:
+    """优化结果"""
+    best_config: Dict
+    best_score: float
+    total_iterations: int
+    improvement: float
+    history: List[Dict]
+
+class MetaHarnessOptimizer:
+    """
+    Meta-Harness 优化器
+    
+    核心循环：
+    1. Propose: Agent 提出新配置
+    2. Evaluate: 在测试集上评估
+    3. Store: 保存到文件系统
+    4. Repeat: 循环直到收敛
+    """
+    
+    def __init__(
+        self,
+        target_function: Callable,  # 要优化的目标函数
+        config_space: Dict,          # 配置空间
+        evaluator: EvaluationSuite,  # 评估器
+        proposer_model: str = "gpt-4o",
+        history_dir: str = "./optimization_runs",
+        max_iterations: int = 20,
+        patience: int = 5,           # 早停耐心值
+        improvement_threshold: float = 0.01  # 最小改进阈值
+    ):
+        self.target_function = target_function
+        self.config_space = config_space
+        self.evaluator = evaluator
+        self.history = FilesystemHistory(history_dir)
+        
+        self.proposer = ProposerAgent(
+            model=proposer_model,
+            history=self.history
+        )
+        
+        self.max_iterations = max_iterations
+        self.patience = patience
+        self.improvement_threshold = improvement_threshold
+        
+        self.results_history = []
+    
+    def optimize(
+        self, 
+        initial_config: Dict,
+        verbose: bool = True
+    ) -> OptimizationResult:
+        """
+        运行优化循环
+        """
+        print("=" * 70)
+        print("🚀 Meta-Harness Optimization Started!")
+        print("=" * 70)
+        
+        best_config = initial_config
+        best_score = self._evaluate_config(initial_config)
+        no_improve_count = 0
+        
+        print(f"\n📊 Baseline Score: {best_score:.4f}")
+        
+        for iteration in range(1, self.max_iterations + 1):
+            print(f"\n{'─'*70}")
+            print(f"🔄 Iteration {iteration}/{self.max_iterations}")
+            print(f"{'─'*70}")
+            
+            # ===== Step 1: PROPOSE =====
+            if verbose:
+                print("\n📝 Step 1: Proposing new configuration...")
+            
+            start_propose = time.time()
+            proposal = self.proposer.propose(iteration)
+            propose_time = time.time() - start_propose
+            
+            if verbose:
+                print(f"   ✅ Proposed in {propose_time:.1f}s")
+                print(f"   💭 Reasoning: {proposal.reasoning[:100]}...")
+            
+            # ===== Step 2: EVALUATE =====
+            if verbose:
+                print("\n🧪 Step 2: Evaluating configuration...")
+            
+            start_eval = time.time()
+            score, details = self._evaluate_with_details(proposal.config)
+            eval_time = time.time() - start_eval
+            
+            if verbose:
+                print(f"   ✅ Evaluated in {eval_time:.1f}s")
+                print(f"   📈 Score: {score:.4f}")
+                print(f"   📊 Breakdown: {details}")
+            
+            # ===== Step 3: STORE =====
+            if verbose:
+                print("\n💾 Step 3: Storing to filesystem...")
+            
+            record = CandidateRecord(
+                candidate_id=iteration,
+                timestamp=datetime.now().isoformat(),
+                config=proposal.config,
+                source_code=proposal.source_code,
+                execution_trace=[{
+                    "iteration": iteration,
+                    "propose_time": propose_time,
+                    "eval_time": eval_time,
+                    "score": score
+                }],
+                score=score,
+                score_breakdown=details,
+                metadata={
+                    "proposal_reasoning": proposal.reasoning,
+                    "model_used": self.proposer.model
+                }
+            )
+            
+            save_path = self.history.save_candidate(record)
+            
+            if verbose:
+                print(f"   ✅ Saved to {save_path}")
+            
+            # ===== Step 4: UPDATE BEST & CHECK CONVERGENCE =====
+            is_new_best = False
+            if score > best_score:
+                improvement = score - best_score
+                best_score = score
+                best_config = proposal.config
+                is_new_best = True
+                no_improve_count = 0
+                
+                if verbose:
+                    print(f"\n🎉 NEW BEST! Improvement: +{improvement:.4f}")
+            else:
+                no_improve_count += 1
+                if verbose:
+                    print(f"\n   No improvement ({no_improve_count}/{self.patience})")
+            
+            # 记录历史
+            self.results_history.append({
+                "iteration": iteration,
+                "score": score,
+                "best_score": best_score,
+                "is_new_best": is_new_best,
+                "config": proposal.config
+            })
+            
+            # Early stopping check
+            if no_improve_count >= self.patience:
+                if verbose:
+                    print(f"\n⏹️ Early stopped: No improvement for {self.patience} iterations")
+                break
+        
+        # ===== FINAL REPORT =====
+        print(f"\n{'='*70}")
+        print("🎊 OPTIMIZATION COMPLETE!")
+        print(f"{'='*70}")
+        
+        improvement = best_score - self._evaluate_config(initial_config)
+        
+        print(f"\n📊 Final Results:")
+        print(f"   Initial Score: {self._evaluate_config(initial_config):.4f}")
+        print(f"   Best Score:    {best_score:.4f}")
+        print(f"   Improvement:   +{improvement:.4f} (+{improvement*100:.1f}%)")
+        print(f"   Iterations:    {len(self.results_history)}")
+        
+        # 保存最终结果
+        final_result = OptimizationResult(
+            best_config=best_config,
+            best_score=best_score,
+            total_iterations=len(self.results_history),
+            improvement=improvement,
+            history=self.results_history
+        )
+        
+        # 导出结果
+        self._export_results(final_result)
+        
+        return final_result
+    
+    def _evaluate_config(self, config: Dict) -> float:
+        """评估配置（简化版，只返回总分）"""
+        score, _ = self._evaluate_with_details(config)
+        return score
+    
+    def _evaluate_with_details(self, config: Dict) -> tuple:
+        """评估配置，返回分数和详细信息"""
+        # 这里调用实际的评估逻辑
+        # 简化版：使用 evaluator
+        
+        # TODO: 实际实现应该：
+        # 1. 用 config 初始化 Harness
+        # 2. 在测试集上运行
+        # 3. 收集各项指标
+        
+        # 模拟评估（实际替换为真实评估）
+        import random
+        base_score = 0.75
+        noise = random.uniform(-0.05, 0.05)
+        
+        # 模拟某些配置更好
+        if config.get("top_k", 3) >= 5:
+            base_score += 0.02
+        if config.get("use_rerank"):
+            base_score += 0.03
+        if config.get("min_score", 0.7) >= 0.6:
+            base_score += 0.01
+        
+        score = max(0, min(1, base_score + noise))
+        
+        details = {
+            "accuracy": score * 0.9 + random.uniform(-0.02, 0.02),
+            "speed": random.uniform(0.7, 0.95),
+            "quality": score * 0.95
+        }
+        
+        return score, details
+    
+    def _export_results(self, result: OptimizationResult):
+        """导出优化结果"""
+        export_data = {
+            "best_config": result.best_config,
+            "best_score": result.best_score,
+            "total_iterations": result.total_iterations,
+            "improvement": result.improvement,
+            "history": result.history,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # 保存JSON
+        output_path = os.path.join(self.history.base_dir, "final_results.json")
+        with open(output_path, 'w') as f:
+            json.dump(export_data, f, indent=2)
+        
+        print(f"\n💾 Results exported to {output_path}")
+        
+        # 生成可视化数据（可用于绘图）
+        self._generate_plot_data(result.history)
+    
+    def _generate_plot_data(self, history: List[Dict]):
+        """生成可用于绑图的数据"""
+        plot_data = {
+            "iterations": [h["iteration"] for h in history],
+            "scores": [h["score"] for h in history],
+            "best_scores": [h["best_score"] for h in history]
+        }
+        
+        plot_path = os.path.join(self.history.base_dir, "plot_data.json")
+        with open(plot_path, 'w') as f:
+            json.dump(plot_data, f, indent=2)
+
+
+# ===== 使用示例 =====
+
+if __name__ == "__main__":
+    # 定义配置空间
+    config_space = {
+        "top_k": [3, 5, 7, 10],
+        "use_rerank": [True, False],
+        "min_score": [0.5, 0.6, 0.7, 0.8],
+        "hybrid_alpha": [0.5, 0.6, 0.7, 0.8, 0.9],
+        "use_compression": [True, False]
+    }
+    
+    # 初始配置
+    initial_config = {
+        "top_k": 3,
+        "use_rerank": False,
+        "min_score": 0.7,
+        "hybrid_alpha": 0.7,
+        "use_compression": False
+    }
+    
+    # 创建优化器
+    optimizer = MetaHarnessOptimizer(
+        target_function=None,  # 实际传入你的评估函数
+        config_space=config_space,
+        evaluator=None,       # 实际传入你的评估器
+        proposer_model="gpt-4o",
+        history_dir="./my_meta_harness_run",
+        max_iterations=15,
+        patience=5
+    )
+    
+    # 运行优化！
+    result = optimizer.optimize(
+        initial_config=initial_config,
+        verbose=True
+    )
+    
+    print("\n🎯 最佳配置:")
+    print(json.dumps(result.best_config, indent=2))
+    print(f"\n🏆 最佳分数: {result.best_score:.4f}")</code></pre>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 3.4：运行完整实验并分析结果</div>
+                        </div>
+                        <div class="task-description">
+                            <p>执行优化循环，收集数据，分析哪些配置改动带来了最大提升。</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="highlight highlight-success" style="margin-top: 35px;">
+                    <h3 style="color: var(--accent-green); margin-top: 0;">✅ Phase 3 完成标准</h3>
+                    <ul class="checklist">
+                        <li>实现了完整的文件系统历史存储（可读写、可搜索）</li>
+                        <li>Proposer Agent 能够基于历史提出有据可依的新配置</li>
+                        <li>优化循环能够稳定运行 10+ 次迭代而不崩溃</li>
+                        <li>观察到可量化的性能提升（目标：>10%）</li>
+                        <li>能够解释优化过程中发现的模式和洞察</li>
+                        <li>生成了完整的实验报告和可视化图表</li>
+                    </ul>
+                    
+                    <p style="margin-top: 20px; margin-bottom: 0;"><strong>🎯 预期成果：</strong>一个能在你的 WikiQA Bot 上自动寻找最优配置的 Meta-Harness 系统</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Phase 4 -->
+<section id="phase4">
+    <div class="container">
+        <h2 class="section-title">🚀 Phase 4: 高级应用 — 生产部署与持续改进</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 40px;">将你的系统推向生产环境，建立监控、反馈和持续优化的完整闭环。</p>
+        
+        <div class="phase-timeline">
+            <div class="phase-block" data-phase="4">
+                <div class="phase-header">
+                    <div class="phase-title">
+                        🏭 第9-12周+：生产级系统
+                    </div>
+                    <div class="phase-meta">
+                        <span class="badge badge-time">⏱️ 4周+（持续）</span>
+                        <span class="badge badge-difficulty">📊 专家</span>
+                        <span class="badge badge-deliverable">✅ 交付：生产系统 + 监控面板</span>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--accent-orange); margin-top: 0;">📅 Week 9-10: 生产化改造</h3>
+                
+                <ul class="task-list">
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 4.1：添加 API 层和错误处理</div>
+                        </div>
+                        <div class="task-description">
+                            <p>将你的系统包装成 RESTful API，添加完善的错误处理、日志记录和限流机制。</p>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 4.2：实现监控和告警系统</div>
+                        </div>
+                        <div class="task-description">
+                            <p>集成 Prometheus/Grafana 或类似工具，实时监控系统健康状态、性能指标和异常情况。</p>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 4.3：部署到云平台</div>
+                        </div>
+                        <div class="task-description">
+                            <p>使用 Docker + Railway/Vercel/Railway 部署你的系统，确保高可用性和可扩展性。</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <h3 style="color: var(--accent-red);">📅 Week 11-12+: 持续优化闭环</h3>
+                
+                <ul class="task-list">
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 4.4：建立用户反馈收集机制</div>
+                        </div>
+                        <div class="task-description">
+                            <p>在生产环境中收集真实用户的反馈（点赞/点踩/修正），形成持续改进的数据源。</p>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 4.5：实现定期自动再优化</div>
+                        </div>
+                        <div class="task-description">
+                            <p>设置定时任务（如每周），基于新收集的数据运行 Meta-Harness 优化循环，持续提升性能。</p>
+                        </div>
+                    </li>
+
+                    <li class="task-item">
+                        <div class="task-header">
+                            <div class="task-checkbox"></div>
+                            <div class="task-title">任务 4.6：撰写技术文档和分享</div>
+                        </div>
+                        <div class="task-description">
+                            <p>整理你的实践经验，撰写技术博客或分享给社区，巩固所学并建立影响力。</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="highlight" style="margin-top: 35px;">
+                    <h3 style="margin-top: 0;">🎯 Phase 4 及以后的长期目标</h3>
+                    <div class="grid" style="margin-top: 25px;">
+                        <div class="grid-item">
+                            <div class="grid-icon">📈</div>
+                            <h4>规模化</h4>
+                            <p>处理更大规模的用户请求和数据量</p>
+                        </div>
+                        <div class="grid-item">
+                            <div class="grid-icon">🌐</div>
+                            <h4>多模态</h4>
+                            <p>扩展到图像、音频等多模态场景</p>
+                        </div>
+                        <div class="grid-item">
+                            <div class="grid-icon">🤝</div>
+                            <h4>多Agent协作</h4>
+                            <p>实现复杂的 Agent 团队协作</p>
+                        </div>
+                        <div class="grid-item">
+                            <div class="grid-icon">🔬</div>
+                            <h4>前沿探索</h4>
+                            <p>跟踪最新论文，尝试新技术</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="highlight highlight-success" style="margin-top: 35px;">
+                    <h3 style="color: var(--accent-green); margin-top: 0;">🏆 最终成就清单</h3>
+                    <ul class="checklist">
+                        <li>✅ 深入理解 Harness Engineering 的理论和实践</li>
+                        <li>✅ 从零构建了完整的 RAG 问答系统（WikiQA Bot）</li>
+                        <li>✅ 实现了 Meta-Harness 自动优化框架</li>
+                        <li>✅ 在真实项目上观察到显著的性能提升（>10%）</li>
+                        <li>✅ 成功部署到生产环境并获得真实用户反馈</li>
+                        <li>✅ 建立了持续优化的闭环系统</li>
+                        <li>✅ 能够向他人清晰地解释和教授这些知识</li>
+                        <li>✅ 为社区贡献了代码、文档或经验分享</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Resources Section -->
+<section id="resources">
+    <div class="container">
+        <h2 class="section-title">📚 关键资源速查</h2>
+        
+        <div class="card">
+            <h3>📖 必读材料</h3>
+            
+            <div class="resource-card">
+                <div class="resource-icon">📄</div>
+                <div class="resource-info">
+                    <h4>Meta-Harness 原论文</h4>
+                    <p>本计划的基石，必须精读</p>
+                    <a href="https://arxiv.org/abs/2603.28052" target="_blank" class="resource-link">arxiv.org/abs/2603.28052 →</a>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon">🏗️</div>
+                <div class="resource-info">
+                    <h4>Martin Fowler - Harness Engineering</h4>
+                    <p>权威的概念解读和最佳实践</p>
+                    <a href="https://martinfowler.com/articles/harness-engineering.html" target="_blank" class="resource-link">martinfowler.com →</a>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon">🔬</div>
+                <div class="resource-info">
+                    <h4>Anthropic - Harness Design</h4>
+                    <p>三Agent架构的实战经验</p>
+                    <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps" target="_blank" class="resource-link">anthropic.com →</a>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon">🧩</div>
+                <div class="resource-info">
+                    <h4>ACE Framework (GitHub)</h4>
+                    <p>Agentic Context Engineering 的开源实现</p>
+                    <a href="https://github.com/ace-agent/ace" target="_blank" class="resource-link">github.com/ace-agent/ace →</a>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 45px;">🛠️ 工具链</h3>
+            
+            <div class="grid">
+                <div class="grid-item">
+                    <div class="grid-icon">🤖</div>
+                    <h4>LLM APIs</h4>
+                    <p>OpenAI GPT-4o / Anthropic Claude Sonnet 4</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">🗄️</div>
+                    <h4>向量数据库</h4>
+                    <p>ChromaDB / FAISS / Pinecone</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">⛓️</div>
+                    <h4>框架</h4>
+                    <p>LangChain / LlamaIndex</p>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon">📊</div>
+                    <h4>监控</h4>
+                    <p>LangSmith / Prometheus + Grafana</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Summary & Next Steps -->
+<section id="next-steps">
+    <div class="container">
+        <h2 class="section-title">🎯 立即开始行动</h2>
+        
+        <div class="card">
+            <div class="highlight highlight-success">
+                <h3 style="color: var(--accent-green); margin-top: 0;">✨ 今天就能做的 3 件事</h3>
+                
+                <div class="grid" style="margin-top: 25px;">
+                    <div class="grid-item" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.1));">
+                        <div class="grid-icon">1️⃣</div>
+                        <h4>花 30 分钟阅读本文档</h4>
+                        <p>通览整个计划，理解全貌，标记你最感兴趣的部分</p>
+                    </div>
+                    <div class="grid-item" style="background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));">
+                        <div class="grid-icon">2️⃣</div>
+                        <h4>搭建开发环境</h4>
+                        <p>按照 Phase 1 Task 1.5 的步骤，配置好 Python 环境</p>
+                    </div>
+                    <div class="grid-item" style="background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(239,68,68,0.1));">
+                        <div class="grid-icon">3️⃣</div>
+                        <h4>运行 Hello World</h4>
+                        <p>复制 Task 1.6 的代码，跑通你的第一个 RAG pipeline</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight" style="margin-top: 40px;">
+                <h3 style="margin-top: 0;">💡 成功的关键因素</h3>
+                <table style="margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>因素</th>
+                            <th>建议</th>
+                            <th>避免</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>时间管理</strong></td>
+                            <td>每天固定 1-2 小时专注学习</td>
+                            <td>断断续续，三天打鱼两天晒网</td>
+                        </tr>
+                        <tr>
+                            <td><strong>学习方法</strong></td>
+                            <td>边做边学，每学一个概念立即实践</td>
+                            <td>只看不练，囤积教程</td>
+                        </tr>
+                        <tr>
+                            <td><strong>项目选择</strong></td>
+                            <td>从真实需求出发，解决实际问题</td>
+                            <td>追求完美，永远在准备</td>
+                        </tr>
+                        <tr>
+                            <td><strong>遇到困难</strong></td>
+                            <td>积极搜索、提问、查看官方文档</td>
+                            <td>卡住超过 2 小时不寻求帮助</td>
+                        </tr>
+                        <tr>
+                            <td><strong>记录总结</strong></td>
+                            <td>定期写笔记、博客、分享心得</td>
+                            <td>学完就忘，不留痕迹</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight highlight-warning" style="margin-top: 35px;">
+                <h3 style="color: var(--accent-orange); margin-top: 0;">⚡ 常见陷阱预警</h3>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+                        <strong>❌ 陷阱1：过度准备综合症</strong><br>
+                        <span style="color: var(--text-secondary);">花了太多时间看视频、读文章，却迟迟不动手。<br>
+                        <strong>✅ 解药：</strong>给自己设定"第一天就必须写出能运行的代码"的硬性目标。</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+                        <strong>❌ 陷阱2：完美主义陷阱</strong><br>
+                        <span style="color: var(--text-secondary);">想一次性做出完美的系统，导致进度停滞。<br>
+                        <strong>✅ 解药：</strong>接受"MVP思维"——先做一个能用的烂版本，再迭代改进。</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+                        <strong>❌ 陷阱3：孤立无援</strong><br>
+                        <span style="color: var(--text-secondary);">一个人死磕，遇到问题卡很久。<br>
+                        <strong>✅ 解药：</strong>加入 Discord/Slack 社区，积极参与讨论，善用 AI 助手辅助调试。</span>
+                    </li>
+                    <li style="padding: 12px 0;">
+                        <strong>❌ 陷阱4：忽视评估</strong><br>
+                        <span style="color: var(--text-secondary);">只关注功能实现，不建立量化评估体系。<br>
+                        <strong>✅ 解药：</strong>从第一天就开始收集指标，数据驱动优化。</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <h2 style="color: var(--accent-cyan); margin-bottom: 20px;">🚀 你的 Meta-Harness 之旅从此开始！</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 25px;">
+            记住：<strong>最好的学习方式就是立即开始动手</strong>
+        </p>
+        <p style="font-size: 0.95rem; margin-bottom: 15px;">
+            这个计划不是教条，而是指南。根据自己的节奏调整，享受过程！
+        </p>
+        <p style="font-size: 0.85rem; opacity: 0.7;">
+            基于 Meta-Harness 论文及行业最佳实践整理 | 2026年3月更新
+        </p>
+        <div style="margin-top: 30px; font-size: 2rem;">
+            🎯 🔥 💪 🌟
+        </div>
+    </div>
+</footer>
+
+<script>
+// 简单的任务展开/收起交互
+document.querySelectorAll('.task-item').forEach(item => {
+    item.addEventListener('click', function() {
+        this.classList.toggle('expanded');
+    });
+});
+
+// 平滑滚动
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+});
+</script>
+
+</body>
+</html>
