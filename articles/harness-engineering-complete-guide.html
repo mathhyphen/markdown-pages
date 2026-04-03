@@ -305,6 +305,22 @@
             border-top: 1px solid var(--border-color);
             margin-top: 80px;
         }
+        .back-link {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        .back-link:hover {
+            transform: translateX(-4px);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
 
         @media (max-width: 768px) {
             .container { padding: 0 20px; }
@@ -1266,15 +1282,10 @@ class ProductionHarness:
 <!-- Footer -->
 <footer>
     <div class="container">
-        <p style="font-size: 1.1rem; margin-bottom: 15px;">
-            🚀 <strong>祝你在Harness Engineering的道路上一帆风顺！</strong>
-        </p>
-        <p style="font-size: 0.95rem;">
+        <p style="font-size: 0.95rem; margin-bottom: 15px;">
             本指南基于 Meta-Harness 论文及行业最佳实践整理 | 2026年3月更新
         </p>
-        <p style="margin-top: 20px; font-size: 0.85rem;">
-            💡 有问题或想分享你的实践心得？欢迎交流讨论！
-        </p>
+        <a href="../index.html" class="back-link">← 返回首页</a>
     </div>
 </footer>
 
