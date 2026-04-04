@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Martin Fowler Harness Engineering 深度解读</title>
+
+    <!-- MathJax -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(25, 25, 35, 0.7);
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-pink: #ec4899;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(59,130,246,0.05), transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(139,92,246,0.05), transparent 50%);
+            animation: bgShift 30s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-5%, -5%); }
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 40px; position: relative; z-index: 1; }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 90px 0 70px;
+            background: linear-gradient(180deg, rgba(59,130,246,0.1) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-blue) 50%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(59,130,246,0.3)); }
+            to { filter: drop-shadow(0 0 40px rgba(139,92,246,0.4)); }
+        }
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 900px;
+            margin: 0 auto 35px;
+            line-height: 1.7;
+        }
+        .author-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 28px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        section { padding: 80px 0; }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .section-title::before {
+            content: '';
+            width: 6px; height: 45px;
+            background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 3px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 45px;
+            backdrop-filter: blur(20px);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            border-color: rgba(59,130,246,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        h2 { font-size: 2rem; font-weight: 700; margin: 40px 0 25px; color: var(--text-primary); }
+        h3 { font-size: 1.6rem; font-weight: 600; margin: 35px 0 18px; color: var(--accent-cyan); }
+        h4 { font-size: 1.3rem; font-weight: 600; margin: 25px 0 14px; color: var(--text-primary); }
+        p { margin-bottom: 1.5em; color: var(--text-secondary); font-size: 1.05rem; line-height: 1.8; }
+        strong { color: var(--text-primary); font-weight: 600; }
+
+        /* Core Concept Box */
+        .concept-box {
+            background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15));
+            border: 2px solid var(--accent-blue);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .concept-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-cyan));
+        }
+        .formula {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 900;
+            margin: 30px 0;
+            padding: 25px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-cyan);
+            letter-spacing: 2px;
+        }
+
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 35px 0;
+        }
+        @media (max-width: 900px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+
+        /* Guide/Sensor Cards */
+        .gs-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 32px;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .gs-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        .gs-card.guide { border-left: 4px solid var(--accent-green); }
+        .gs-card.sensor { border-left: 4px solid var(--accent-orange); }
+        .gs-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .gs-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .gs-card.guide .gs-title { color: var(--accent-green); }
+        .gs-card.sensor .gs-title { color: var(--accent-orange); }
+
+        /* Example Box */
+        .example-box {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-purple);
+            border-radius: 12px;
+            padding: 28px;
+            margin: 25px 0;
+        }
+        .example-label {
+            display: inline-block;
+            padding: 5px 14px;
+            background: var(--accent-purple);
+            color: white;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* Table */
+        table {
+            width: 100%; border-collapse: collapse;
+            margin: 30px 0; background: rgba(0,0,0,0.3);
+            border-radius: 12px; overflow: hidden;
+        }
+        thead { background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2)); }
+        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { font-weight: 600; color: var(--text-primary); }
+        td { color: var(--text-secondary); }
+        tr:hover { background: rgba(59,130,246,0.05); }
+
+        /* Code */
+        pre {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+            margin: 25px 0;
+        }
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.65;
+            color: var(--accent-cyan);
+        }
+        pre code { color: var(--text-secondary); }
+
+        /* Highlight */
+        .highlight {
+            background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
+            border-left: 4px solid var(--accent-blue);
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+        .highlight-success {
+            background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.1));
+            border-left-color: var(--accent-green);
+        }
+        .highlight-warning {
+            background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(239,68,68,0.1));
+            border-left-color: var(--accent-orange);
+        }
+
+        /* Diagram Placeholder */
+        .diagram {
+            background: linear-gradient(135deg, rgba(59,130,246,0.05), rgba(139,92,246,0.05));
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 50px;
+            text-align: center;
+            margin: 35px 0;
+            color: var(--text-secondary);
+        }
+        .diagram-icon { font-size: 4rem; margin-bottom: 15px; }
+
+        /* Comparison Grid */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .comp-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        .comp-item:hover {
+            background: rgba(59,130,246,0.05);
+            transform: translateY(-3px);
+        }
+        .comp-label {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .label-guide { background: rgba(16,185,129,0.2); color: var(--accent-green); }
+        .label-sensor { background: rgba(245,158,11,0.2); color: var(--accent-orange); }
+        .label-comp { background: rgba(59,130,246,0.2); color: var(--accent-blue); }
+        .label-infer { background: rgba(139,92,246,0.2); color: var(--accent-purple); }
+
+        /* Key Takeaway */
+        .takeaway {
+            background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(6,182,212,0.15));
+            border: 2px solid var(--accent-green);
+            border-radius: 18px;
+            padding: 35px;
+            margin: 40px 0;
+        }
+        .takeaway-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 70px 0 50px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 80px;
+        }
+
+        /* Back Link */
+        .back-link {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        .back-link:hover {
+            transform: translateX(-4px);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 20px; }
+            .hero h1 { font-size: 2.2rem; }
+            .section-title { font-size: 1.8rem; }
+            .card { padding: 25px; }
+            .formula { font-size: 1.4rem; }
+        }
+
+        html { scroll-behavior: smooth; }
+        ::selection { background: rgba(59,130,246,0.3); color: var(--text-primary); }
+    </style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <span class="author-badge">📖 Martin Fowler 权威解读</span>
+        <h1>Harness Engineering<br>深度解析</h1>
+        <p class="hero-subtitle">
+            软件架构大师 Martin Fowler 对 AI Agent 系统设计的深刻洞察<br>
+            用最通俗的语言，带你理解 Guides、Sensors、Steering Loop 的精髓
+        </p>
+    </div>
+</section>
+
+<!-- Section 1: What is Harness -->
+<section id="what-is-harness">
+    <div class="container">
+        <h2 class="section-title">🎯 核心定义：什么是 Harness？</h2>
+
+        <div class="concept-box">
+            <h3 style="color: var(--accent-cyan); margin-top: 0;">📐 最核心的公式</h3>
+
+            <div class="formula">
+                Agent = Model + Harness
+            </div>
+
+            <p style="font-size: 1.15rem; text-align: center; max-width: 800px; margin: 0 auto;">
+                <strong style="color: var(--text-primary);">Harness = 除了模型本身之外的一切东西</strong><br>
+                包括：系统提示词、工具定义、检索机制、编排逻辑、规则文件……
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>🔄 三层同心圆模型</h3>
+            <p>Martin Fowler 用<strong>三层同心圆</strong>来解释 Harness 在不同语境下的含义：</p>
+
+            <div class="diagram">
+                <div class="diagram-icon">🎯</div>
+                <h4 style="margin: 20px 0 15px;">三层结构示意图</h4>
+                <p style="margin-bottom: 10px;">
+                    <strong style="color: var(--accent-cyan);">内圈（核心）：</strong>Model（模型本身，如 GPT-4）
+                </p>
+                <p style="margin-bottom: 10px;">
+                    <strong style="color: var(--accent-purple);">中圈：</strong>Builder's Harness（构建者提供的Harness，如 Claude Code 自带的工具和提示词）
+                </p>
+                <p style="margin-bottom: 0;">
+                    <strong style="color: var(--accent-green);">外圈：</strong>User's Harness（用户自定义的Harness，针对你的具体场景定制）
+                </p>
+                <p style="margin-top: 20px; font-size: 0.95rem; opacity: 0.8;">
+                    📌 本文重点关注：<strong style="color: var(--accent-green);">User's Harness（用户层）</strong>
+                </p>
+            </div>
+
+            <div class="highlight highlight-success">
+                <h3 style="color: var(--accent-green); margin-top: 0;">✨ 好的 Outer Harness 有两大目标</h3>
+                <div class="two-col" style="margin-top: 20px;">
+                    <div>
+                        <h4 style="color: var(--accent-green);">🎯 目标1：提高首次成功率</h4>
+                        <p>通过前馈控制（Guides），让 Agent 第一次就做对，减少返工。</p>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--accent-green);">🔄 目标2：自动自我纠正</h4>
+                        <p>通过反馈控制（Sensors），让 Agent 能在人类介入前自己发现问题并修复。</p>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; margin-bottom: 0;">
+                    <strong>最终效果：</strong>减少人工审查负担 + 提高系统质量 + 节省 Token 成本
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section 2: Guides and Sensors -->
+<section id="guides-sensors">
+    <div class="container">
+        <h2 class="section-title">🔑 核心概念：Guides vs Sensors</h2>
+
+        <p style="font-size: 1.15rem; margin-bottom: 40px;">
+            这是整篇文章<strong>最重要的两个概念</strong>！理解了这两个，你就理解了 Harness Engineering 的精髓。
+        </p>
+
+        <div class="two-col">
+            <!-- Guide Card -->
+            <div class="gs-card guide">
+                <span class="gs-icon">➡️</span>
+                <div class="gs-title">Guides（引导/前馈控制）</div>
+
+                <h4 style="color: var(--text-primary); margin-top: 20px;">📍 定义</h4>
+                <p><strong>在 Agent 行动之前</strong>进行干预，<br>预判可能的问题并提前引导。</p>
+
+                <h4 style="color: var(--text-primary);">⏰ 时间点</h4>
+                <p><strong style="color: var(--accent-green);">Feedforward（前馈）</strong></p>
+                <p>Agent 还没开始做事的时候就已经发挥作用。</p>
+
+                <h4 style="color: var(--text-primary);">🎯 核心作用</h4>
+                <p><strong>提高首次做对的概率</strong></p>
+                <p>就像给马套上缰绳，让它一开始就走对方向。</p>
+
+                <div class="example-box" style="margin-top: 25px;">
+                    <span class="example-label">💡 生活类比</span>
+                    <p><strong>GPS 导航</strong></p>
+                    <p>在你出发前就告诉你："走这条路，不要走那条路"。这就是前馈控制——提前引导你避免错误路线。</p>
+                </div>
+            </div>
+
+            <!-- Sensor Card -->
+            <div class="gs-card sensor">
+                <span class="gs-icon">⬅️</span>
+                <div class="gs-title">Sensors（传感器/反馈控制）</div>
+
+                <h4 style="color: var(--text-primary); margin-top: 20px;">📍 定义</h4>
+                <p><strong>在 Agent 行动之后</strong>进行检测，<br>观察结果并提供纠正信号。</p>
+
+                <h4 style="color: var(--text-primary);">⏰ 时间点</h4>
+                <p><strong style="color: var(--accent-orange);">Feedback（反馈）</strong></p>
+                <p>Agent 完成动作后才启动检测。</p>
+
+                <h4 style="color: var(--text-primary);">🎯 核心作用</h4>
+                <p><strong>让 Agent 自我发现错误并修正</strong></p>
+                <p>就像汽车的安全气囊，出问题时自动触发保护。</p>
+
+                <div class="example-box" style="margin-top: 25px;">
+                    <span class="example-label">💡 生活类比</span>
+                    <p><strong>拼写检查器</strong></p>
+                    <p>你打完字后它才检查，发现错误时用红色波浪线提醒你修改。这就是反馈控制——事后检测并提示纠正。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight highlight-warning" style="margin-top: 45px;">
+            <h3 style="color: var(--accent-orange); margin-top: 0;">⚠️ 为什么两者缺一不可？</h3>
+
+            <table style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>情况</th>
+                        <th>结果</th>
+                        <th>问题</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>只有 Sensors（只有反馈）</strong></td>
+                        <td>Agent 会不断重复同样的错误</td>
+                        <td style="color: var(--accent-red);">❌ 浪费时间和Token</td>
+                    </tr>
+                    <tr>
+                        <td><strong>只有 Guides（只有前馈）</strong></td>
+                        <td>Agent 遵守规则但不知道效果如何</td>
+                        <td style="color: var(--accent-red);">❌ 无法学习和改进</td>
+                    </tr>
+                    <tr style="background: rgba(16,185,129,0.1);">
+                        <td><strong>Guides + Sensors（两者兼备）</strong></td>
+                        <td>Agent 既被正确引导，又能从错误中学习</td>
+                        <td style="color: var(--accent-green);">✅ 最佳实践！</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Section 3: Computational vs Inferential -->
+<section id="types">
+    <div class="container">
+        <h2 class="section-title">⚙️ 两种执行类型：Computational vs Inferential</h2>
+
+        <div class="card">
+            <p style="font-size: 1.1rem;">
+                Guides 和 Sensors 都可以以两种方式实现：<strong>计算型（确定性）</strong>或<strong>推断型（AI驱动）</strong>。
+            </p>
+
+            <div class="two-col" style="margin-top: 40px;">
+                <!-- Computational -->
+                <div class="comp-item">
+                    <span class="comp-label label-comp">Computational 计算型</span>
+
+                    <h4 style="margin-top: 15px;">⚡ 特点</h4>
+                    <ul style="padding-left: 20px; color: var(--text-secondary);">
+                        <li style="margin: 8px 0;"><strong>确定性</strong>：相同输入永远产生相同输出</li>
+                        <li style="margin: 8px 0;"><strong>快速</strong>：毫秒到秒级完成</li>
+                        <li style="margin: 8px 0;"><strong>便宜</strong>：CPU 运行，成本低</li>
+                        <li style="margin: 8px 0;"><strong>可靠</strong>：结果可预测、可复现</li>
+                    </ul>
+
+                    <h4 style="margin-top: 20px;">🛠️ 典型示例</h4>
+                    <div class="example-box" style="margin-top: 15px;">
+                        <p><strong>Guides 示例：</strong></p>
+                        <ul style="padding-left: 20px; margin: 10px 0;">
+                            <li>LSP（语言服务器协议）提供代码补全</li>
+                            <li>代码格式化工具（Prettier、Black）</li>
+                            <li>项目脚手架生成脚本</li>
+                            <li>.cursorrules / AGENTS.md 规则文件</li>
+                        </ul>
+
+                        <p style="margin-top: 15px;"><strong>Sensors 示例：</strong></p>
+                        <ul style="padding-left: 20px; margin: 10px 0;">
+                            <li>ESLint / Pylint 静态分析</li>
+                            <li>TypeScript 类型检查器</li>
+                            <li>单元测试（pytest、Jest）</li>
+                            <li>架构约束检查（ArchUnit）</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Inferential -->
+                <div class="comp-item">
+                    <span class="comp-label label-infer">Inferential 推断型</span>
+
+                    <h4 style="margin-top: 15px;">🧠 特点</h4>
+                    <ul style="padding-left: 20px; color: var(--text-secondary);">
+                        <li style="margin: 8px 0;"><strong>语义理解</strong>：能理解代码含义和意图</li>
+                        <li style="margin: 8px 0;"><strong>较慢</strong>：秒到分钟级完成</li>
+                        <li style="margin: 8px 0;"><strong>较贵</strong>：GPU/NPU 运行，成本较高</li>
+                        <li style="margin: 8px 0;"><strong>概率性</strong>：结果有一定随机性</li>
+                    </ul>
+
+                    <h4 style="margin-top: 20px;">🛠️ 典型示例</h4>
+                    <div class="example-box" style="margin-top: 15px;">
+                        <p><strong>Guides 示例：</strong></p>
+                        <ul style="padding-left: 20px; margin: 10px 0;">
+                            <li>AGENTS.md 中描述性的编码规范</li>
+                            <li>Skill 文件中的自然语言指令</li>
+                            <li>How-to 文档和最佳实践指南</li>
+                            <li>API 文档的自然语言描述</li>
+                        </ul>
+
+                        <p style="margin-top: 15px;"><strong>Sensors 示例：</strong></p>
+                        <ul style="padding-left: 20px; margin: 10px 0;">
+                            <li>AI Code Reviewer（LLM-as-Judge）</li>
+                            <li>语义重复代码检测</li>
+                            <li>代码质量评分（基于语义理解）</li>
+                            <li>安全漏洞智能扫描</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="takeaway" style="margin-top: 45px;">
+                <div class="takeaway-title">💡 如何选择？</div>
+                <table style="margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>场景</th>
+                            <th>推荐类型</th>
+                            <th>原因</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>每次提交都要跑的检查</td>
+                            <td><strong style="color: var(--accent-blue);">Computational</strong></td>
+                            <td>快速、便宜、可靠</td>
+                        </tr>
+                        <tr>
+                            <td>需要语义理解的复杂判断</td>
+                            <td><strong style="color: var(--accent-purple);">Inferential</strong></td>
+                            <td>能处理模糊性和上下文</td>
+                        </tr>
+                        <tr>
+                            <td>关键路径上的核心质量门禁</td>
+                            <td><strong style="color: var(--accent-green);">两者结合</strong></td>
+                            <td>先用计算型快速筛选，再用推断型深度检查</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section 4: Concrete Examples -->
+<section id="examples">
+    <div class="container">
+        <h2 class="section-title">💡 具体实例：实际项目中怎么用？</h2>
+
+        <div class="card">
+            <h3>📋 Martin Fowler 提供的真实案例表</h3>
+            <p style="font-size: 1.05rem;">让我们看看在实际编码 Agent 场景中，Guides 和 Sensors 分别长什么样：</p>
+
+            <table style="margin-top: 30px;">
+                <thead>
+                    <tr>
+                        <th>功能</th>
+                        <th>方向</th>
+                        <th>类型</th>
+                        <th>具体实现示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>编码规范</strong></td>
+                        <td><span class="comp-label label-guide">Guide</span></td>
+                        <td><span class="comp-label label-infer">Inferential</span></td>
+                        <td>AGENTS.md 文件、Skill 定义文件</td>
+                    </tr>
+                    <tr>
+                        <td><strong>新项目初始化指引</strong></td>
+                        <td><span class="comp-label label-guide">Guide</span></td>
+                        <td><span class="comp-label label-comp">Both</span></td>
+                        <td>包含指令的 Skill + Bootstrap 脚本</td>
+                    </tr>
+                    <tr>
+                        <td><strong>自动代码重构</strong></td>
+                        <td><span class="comp-label label-guide">Guide</span></td>
+                        <td><span class="comp-label label-comp">Computational</span></td>
+                        <td>使用 OpenRewrite recipes 的工具</td>
+                    </tr>
+                    <tr>
+                        <td><strong>架构约束检查</strong></td>
+                        <td><span class="comp-label label-sensor">Sensor</span></td>
+                        <td><span class="comp-label label-comp">Computational</span></td>
+                        <td>pre-commit hook 运行的 ArchUnit 测试</td>
+                    </tr>
+                    <tr>
+                        <td><strong>代码审查指导</strong></td>
+                        <td><span class="comp-label label-sensor">Sensor</span></td>
+                        <td><span class="comp-label label-infer">Inferential</span></td>
+                        <td>Code Review Skill（告诉 Agent 怎么审查）</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 50px;">🔍 让我们深入看几个具体例子</h3>
+
+            <!-- Example 1: AGENTS.md as Guide -->
+            <div class="example-box" style="margin-top: 30px;">
+                <span class="example-label">📝 案例1：AGENTS.md 作为 Inferential Guide</span>
+
+                <h4 style="margin-top: 20px;">这是什么？</h4>
+                <p>一个放在项目根目录的 Markdown 文件，用自然语言告诉编码 Agent 这个项目的规则和约定。</p>
+
+                <h4 style="margin-top: 20px;">示例内容：</h4>
+                <pre><code># AGENTS.md
+
+## 项目概述
+这是一个使用 FastAPI + React 的全栈 Web 应用。
+
+## 编码规范
+- 使用 TypeScript 严格模式
+- 所有 API 端点必须有输入验证
+- 组件必须使用函数式写法 + Hooks
+- 测试覆盖率要求 > 80%
+
+## 架构约束
+- 前端调用后端只能通过 /api/* 路径
+- 数据库访问必须通过 Repository 层
+- 禁止在前端直接操作 DOM（使用 React 方式）
+
+## Git 工作流
+- 功能分支命名：feature/JIRA-ID-description
+- PR 必须关联 JIRA ticket
+- main 分支受保护，不能直接 push</code></pre>
+
+                <h4 style="margin-top: 20px;">为什么这是 Guide？</h4>
+                <p>✅ <strong>前馈</strong>：Agent 开始工作前就读取这些规则<br>
+                ✅ <strong>Inferential</strong>：使用自然语言，需要 Agent 语义理解<br>
+                ✅ <strong>作用</strong>：提高首次写出符合规范代码的概率</p>
+            </div>
+
+            <!-- Example 2: ESLint as Sensor -->
+            <div class="example-box">
+                <span class="example-label">🔍 案例2：ESLint 作为 Computational Sensor</span>
+
+                <h4 style="margin-top: 20px;">这是什么？</h4>
+                <p>一个静态代码分析工具，能在 Agent 写完代码后立即检测语法错误、风格违规等问题。</p>
+
+                <h4 style="margin-top: 20px;">工作流程：</h4>
+                <pre><code># Agent 写完代码后...
+
+# Sensor 自动运行：
+$ npx eslint src/new-feature.tsx
+
+# 输出示例：
+#   ✗  12:3   error  Missing semicolon
+#   ✗  25:10  warning  Unused variable 'temp'
+#   ✗  48:7   error  React Hook 'useEffect' is missing dependencies
+
+# Agent 收到这些信号后自动修复...</code></pre>
+
+                <h4 style="margin-top: 20px;">为什么这是 Sensor？</h4>
+                <p>✅ <strong>反馈</strong>：Agent 完成代码后才运行检测<br>
+                ✅ <strong>Computational</strong>：确定性的规则匹配，毫秒级完成<br>
+                ✅ <strong>作用</strong>：让 Agent 自动发现并修复基础错误</p>
+            </div>
+
+            <!-- Example 3: AI Code Reviewer -->
+            <div class="example-box">
+                <span class="example-label">🤖 案例3：AI Code Reviewer 作为 Inferential Sensor</span>
+
+                <h4 style="margin-top: 20px;">这是什么？</h4>
+                <p>使用 LLM（如 GPT-4）作为 Judge，对 Agent 产出的代码进行深度的语义级审查。</p>
+
+                <h4 style="margin-top: 20px;">它能发现什么？</h4>
+                <div class="comparison-grid" style="margin-top: 15px;">
+                    <div class="comp-item">
+                        <h5 style="color: var(--accent-purple);">✅ 能发现的</h5>
+                        <ul style="padding-left: 18px; font-size: 0.95rem;">
+                            <li style="margin: 6px 0;">语义重复的代码逻辑</li>
+                            <li style="margin: 6px 0;">过度工程化的设计</li>
+                            <li style="margin: 6px 0;">潜在的边界条件 bug</li>
+                            <li style="margin: 6px 0;">不符合业务意图的实现</li>
+                        </ul>
+                    </div>
+                    <div class="comp-item">
+                        <h5 style="color: var(--accent-red);">❌ 不能完全依赖的</h5>
+                        <ul style="padding-left: 18px; font-size: 0.95rem;">
+                            <li style="margin: 6px 0;">需求理解是否正确（这需要人判断）</li>
+                            <li style="margin: 6px 0;">是否过度设计（主观性强）</li>
+                            <li style="margin: 6px 0;">性能瓶颈（需要实测）</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h4 style="margin-top: 20px;">关键洞察：</h4>
+                <div class="highlight" style="margin-top: 15px;">
+                    <p style="margin-bottom: 0;">
+                        <strong>Inferential Sensor 特别强大的一点：</strong>它可以输出<strong>专门为 LLM 优化的纠错指令</strong>！<br>
+                        这就像是一种"<strong>正向的 Prompt Injection</strong>"——不是攻击，而是帮助 Agent 更好地自我修正。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section 5: Steering Loop -->
+<section id="steering-loop">
+    <div class="container">
+        <h2 class="section-title">🔄 Steering Loop（转向循环）</h2>
+
+        <div class="card">
+            <h3>👨‍💼 人类的角色：不是骑手，而是驯马师</h3>
+
+            <p style="font-size: 1.1rem; margin-bottom: 30px;">
+                Martin Fowler 强调：<strong>人类的工作是"steer"（驾驶/引导）Agent</strong>，而不是每次都亲自去做。
+            </p>
+
+            <div class="concept-box" style="margin: 40px 0;">
+                <h3 style="color: var(--accent-cyan); margin-top: 0;">🔄 Steering Loop 的完整流程</h3>
+
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; margin-top: 30px;">
+                    <div style="flex: 1; min-width: 200px; text-align: center; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px;">
+                        <div style="font-size: 2.5rem; margin-bottom: 10px;">①</div>
+                        <h4 style="color: var(--accent-green);">观察问题</h4>
+                        <p style="font-size: 0.95rem;">发现 Agent 反复犯同类错误</p>
+                    </div>
+                    <div style="flex: 1; min-width: 200px; text-align: center; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px;">
+                        <div style="font-size: 2.5rem; margin-bottom: 10px;">②</div>
+                        <h4 style="color: var(--accent-blue);">改进 Harness</h4>
+                        <p style="font-size: 0.95rem;">添加新的 Guide 或加强 Sensor</p>
+                    </div>
+                    <div style="flex: 1; min-width: 200px; text-align: center; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px;">
+                        <div style="font-size: 2.5rem; margin-bottom: 10px;">③</div>
+                        <h4 style="color: var(--accent-purple);">验证效果</h4>
+                        <p style="font-size: 0.95rem;">观察改进后是否解决问题</p>
+                    </div>
+                    <div style="flex: 1; min-width: 200px; text-align: center; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px;">
+                        <div style="font-size: 2.5rem; margin-bottom: 10px;">④</div>
+                        <h4 style="color: var(--accent-orange);">循环迭代</h4>
+                        <p style="font-size: 0.95rem;">持续优化直到满意</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 50px;">💪 用 AI 来改进 Harness</h3>
+            <p>Martin Fowler 指出一个很酷的点：<strong>我们可以用 Agent 本身来帮我们构建更好的 Harness！</strong></p>
+
+            <div class="comparison-grid" style="margin-top: 25px;">
+                <div class="comp-item">
+                    <h4 style="color: var(--accent-cyan);">🤖 Agent 能帮忙做什么？</h4>
+                    <ul style="padding-left: 18px; font-size: 0.95rem;">
+                        <li style="margin: 8px 0;">编写结构性测试</li>
+                        <li style="margin: 8px 0;">从观察到的模式中生成规则草案</li>
+                        <li style="margin: 8px 0;">搭建自定义 Linter 的框架</li>
+                        <li style="margin: 8px 0;">通过代码考古学创建 How-to 文档</li>
+                    </ul>
+                </div>
+                <div class="comp-item">
+                    <h4 style="color: var(--accent-pink);">🎯 这意味着什么？</h4>
+                    <ul style="padding-left: 18px; font-size: 0.95rem;">
+                        <li style="margin: 8px 0;">构建 Harness 的成本大幅降低</li>
+                        <li style="margin: 8px 0;">可以更频繁地迭代优化</li>
+                        <li style="margin: 8px 0;">形成正向循环：更好的 Harness → 更好的 Agent → 更好的 Harness</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="takeaway" style="margin-top: 45px;">
+                <div class="takeaway-title">🎯 Steering Loop 的核心理念</div>
+                <p style="font-size: 1.1rem; margin-bottom: 15px;">
+                    <strong>不要每次都手动修复 Agent 的错误，而是改进系统让这类错误不再发生。</strong>
+                </p>
+                <p style="margin-bottom: 0;">
+                    这就是从"救火队员"到"系统设计师"的思维转变。
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section 6: Timing -->
+<section id="timing">
+    <div class="container">
+        <h2 class="section-title">⏱️ 时机选择：Keep Quality Left</h2>
+
+        <div class="card">
+            <h3>📍 将检查点尽可能左移</h3>
+
+            <p style="font-size: 1.1rem;">
+                Martin Fowler 借用了软件工程中 "<strong>Shift Left Testing</strong>"（测试左移）的理念：<br>
+                <strong>越早发现问题，修复成本越低。</strong>
+            </p>
+
+            <div class="diagram" style="margin: 40px 0;">
+                <div class="diagram-icon">📅</div>
+                <h4 style="margin: 20px 0 15px;">开发时间线上的 Guides & Sensors 分布</h4>
+                <div style="text-align: left; max-width: 700px; margin: 0 auto;">
+                    <p style="margin: 15px 0;">
+                        <strong style="color: var(--accent-green);">【提交前】最快的检查</strong><br>
+                        • LSP 实时代码补全（Guide）<br>
+                        • 快速 Linter 检查（Sensor）<br>
+                        • 基础单元测试（Sensor）
+                    </p>
+                    <p style="margin: 15px 0;">
+                        <strong style="color: var(--accent-blue);">【Agent 工作时】第一轮自纠正</strong><br>
+                        • Code Review Skill 引导（Guide/Sensor）<br>
+                        • ESLint/Pylint 自动运行（Sensor）<br>
+                        • 测试覆盖率检查（Sensor）
+                    </p>
+                    <p style="margin: 15px 0;">
+                        <strong style="color: var(--accent-purple);">【集成后】CI/CD Pipeline</strong><br>
+                        • 重新运行所有快速检查<br>
+                        • 更全面的 Code Review（Inferential Sensor）<br>
+                        • 架构合规性审查（Sensor）
+                    </p>
+                    <p style="margin: 15px 0;">
+                        <strong style="color: var(--accent-orange);">【持续监控】生产环境</strong><br>
+                        • 死代码检测（Sensor）<br>
+                        • 依赖安全扫描（Sensor）<br>
+                        • SLO 性能监控（Sensor）<br>
+                        • 日志异常检测（Inferential Sensor）
+                    </p>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 50px;">📊 两类持续监控</h3>
+
+            <div class="two-col" style="margin-top: 25px;">
+                <div class="comp-item">
+                    <h4 style="color: var(--accent-cyan);">代码库漂移检测</h4>
+                    <p style="font-size: 0.95rem;">那些随时间积累的质量退化：</p>
+                    <ul style="padding-left: 18px; margin-top: 10px; font-size: 0.95rem;">
+                        <li style="margin: 6px 0;">死代码累积</li>
+                        <li style="margin: 6px 0;">测试覆盖率下降</li>
+                        <li style="margin: 6px 0;">依赖版本过时</li>
+                        <li style="margin: 6px 0;">技术债务增长</li>
+                    </ul>
+                </div>
+                <div class="comp-item">
+                    <h4 style="color: var(--accent-pink);">运行时反馈</h4>
+                    <p style="font-size: 0.95rem;">生产环境的实时信号：</p>
+                    <ul style="padding-left: 18px; margin-top: 10px; font-size: 0.95rem;">
+                        <li style="margin: 6px 0;">延迟 SLO 是否达标</li>
+                        <li style="margin: 6px 0;">错误率趋势</li>
+                        <li style="margin: 6px 0;">可用性监控</li>
+                        <li style="margin: 6px 0;">AI Judge 抽样评估响应质量</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section 7: Categories -->
+<section id="categories">
+    <div class="container">
+        <h2 class="section-title">📂 Harness 的分类维度</h2>
+
+        <div class="card">
+            <p style="font-size: 1.1rem; margin-bottom: 30px;">
+                Martin Fowler 提出，可以根据 Harness 要<strong>监管什么</strong>来分类。<br>
+                区分这些类别有助于我们用更精确的语言讨论不同类型的 Harness。
+            </p>
+
+            <h3 style="color: var(--accent-green);">1️⃣ Maintainability Harness（可维护性 Harness）</h3>
+
+            <p>这是<strong>目前最容易实现的类型</strong>，因为我们有很多现成的工具可以使用。</p>
+
+            <h4 style="margin-top: 25px;">它能捕捉哪些 Agent 失败模式？</h4>
+
+            <table style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>失败模式</th>
+                        <th>能否被 Computational Sensor 捕捉</th>
+                        <th>能否被 Inferential Sensor 捕捉</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>重复代码</td>
+                        <td><strong style="color: var(--accent-green);">✅ 可靠</strong></td>
+                        <td>✅ 可以</td>
+                    </tr>
+                    <tr>
+                        <td>圈复杂度过高</td>
+                        <td><strong style="color: var(--accent-green);">✅ 可靠</strong></td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>缺少测试覆盖</td>
+                        <td><strong style="color: var(--accent-green);">✅ 可靠</strong></td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>架构漂移</td>
+                        <td><strong style="color: var(--accent-green);">✅ 可靠</strong></td>
+                        <td>✅ 可以</td>
+                    </tr>
+                    <tr>
+                        <td>风格违规</td>
+                        <td><strong style="color: var(--accent-green);">✅ 可靠</strong></td>
+                        <td>-</td>
+                    </tr>
+                    <tr style="background: rgba(139,92,246,0.1);">
+                        <td>语义重复代码</td>
+                        <td>❌ 困难</td>
+                        <td><strong style="color: var(--accent-purple);">✅ 可能</strong>（但昂贵且不确定）</td>
+                    </tr>
+                    <tr style="background: rgba(239,68,68,0.1);">
+                        <td>误诊问题 / 过度设计</td>
+                        <td>❌ 不能</td>
+                        <td><strong style="color: var(--accent-red);">⚠️ 不够可靠</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight-warning" style="margin-top: 30px;">
+                <h3 style="color: var(--accent-orange); margin-top: 0;">⚠️ 关键限制</h3>
+                <p><strong>没有任何 Sensor 能可靠地解决以下问题：</strong></p>
+                <ul style="padding-left: 25px; margin-top: 15px;">
+                    <li style="margin: 10px 0;">问题的<strong>误诊断</strong>（Agent 理解错了需求）</li>
+                    <li style="margin: 10px 0;"><strong>过度工程</strong>（做了不需要的功能）</li>
+                    <li style="margin: 10px 0;"><strong>误解指令</strong>（如果人类一开始就没说清楚）</li>
+                </ul>
+                <p style="margin-top: 15px; margin-bottom: 0;">
+                    这些问题最终还需要<strong>人类的明确需求和清晰的沟通</strong>来解决。
+                </p>
+            </div>
+
+            <h3 style="color: var(--accent-blue); margin-top: 50px;">2️⃣ Architecture Fitness Harness（架构适配性 Harness）</h3>
+
+            <p>这一类关注<strong>系统的架构是否适合当前需求</strong>。</p>
+
+            <div class="comparison-grid" style="margin-top: 25px;">
+                <div class="comp-item">
+                    <h4>🏗️ Guides 示例</h4>
+                    <ul style="padding-left: 18px; font-size: 0.95rem;">
+                        <li style="margin: 6px 0;">架构决策记录 (ADR)</li>
+                        <li style="margin: 6px 0;">技术选型文档</li>
+                        <li style="margin: 6px 0;">模块边界定义</li>
+                        <li style="margin: 6px 0;">数据流规范</li>
+                    </ul>
+                </div>
+                <div class="comp-item">
+                    <h4>🔍 Sensors 示例</h4>
+                    <ul style="padding-left: 18px; font-size: 0.95rem;">
+                        <li style="margin: 6px 0;">依赖方向检查</li>
+                        <li style="margin: 6px 0;">分层违规检测</li>
+                        <li style="margin: 6px 0;">循环依赖识别</li>
+                        <li style="margin: 6px 0;">架构热力图可视化</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="color: var(--accent-purple); margin-top: 45px;">3️⃣ Security & Compliance Harness（安全合规 Harness）</h3>
+
+            <p>这一类确保系统满足安全和法规要求。</p>
+
+            <div class="comparison-grid" style="margin-top: 25px;">
+                <div class="comp-item">
+                    <h4>🛡️ Guides 示例</h4>
+                    <ul style="padding-left: 18px; font-size: 0.95rem;">
+                        <li style="margin: 6px 0;">安全编码规范 (OWASP)</li>
+                        <li style="margin: 6px 0;">数据处理政策 (GDPR)</li>
+                        <li style="margin: 6px 0;">认证授权流程文档</li>
+                        <li style="margin: 6px 0;">敏感数据处理规则</li>
+                    </ul>
+                </div>
+                <div class="comp-item">
+                    <h4>🚨 Sensors 示例</h4>
+                    <ul style="padding-left: 18px; font-size: 0.95rem;">
+                        <li style="margin: 6px 0;">SQL 注入检测</li>
+                        <li style="margin: 6px 0;">XSS 漏洞扫描</li>
+                        <li style="margin: 6px 0;">依赖漏洞检查 (Dependabot)</li>
+                        <li style="margin: 6px 0;">权限配置审计</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Summary -->
+<section id="summary">
+    <div class="container">
+        <h2 class="section-title">🎯 核心要点总结</h2>
+
+        <div class="card">
+            <div class="takeaway">
+                <div class="takeaway-title">🌟 Martin Fowler 文章的五大核心洞察</div>
+
+                <div style="margin-top: 30px; space-y: 25px;">
+                    <div style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                        <h4 style="color: var(--accent-cyan); margin-bottom: 10px;">1️⃣ 公式：Agent = Model + Harness</h4>
+                        <p style="margin-bottom: 0;">Harness 是除模型外的所有东西。我们的工作是设计和优化这个 Harness。</p>
+                    </div>
+
+                    <div style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                        <h4 style="color: var(--accent-green); margin-bottom: 10px;">2️⃣ 双轮驱动：Guides（前馈）+ Sensors（反馈）</h4>
+                        <p style="margin-bottom: 0;">Guides 提高首次成功率，Sensors 实现自动纠错。缺一不可。</p>
+                    </div>
+
+                    <div style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 10px;">3️⃣ 双重类型：Computational（快/准/便宜）vs Inferential（慢/智/贵）</h4>
+                        <p style="margin-bottom: 0;">根据场景选择合适的类型，通常组合使用效果最佳。</p>
+                    </div>
+
+                    <div style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                        <h4 style="color: var(--accent-purple); margin-bottom: 10px;">4️⃣ 人类角色：Steering（驾驶）而非 Riding（骑行）</h4>
+                        <p style="margin-bottom: 0;">不要每次都手动修错，而是改进 Harness 让错误不再发生。可以用 AI 来辅助构建 Harness。</p>
+                    </div>
+
+                    <div style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                        <h4 style="color: var(--accent-orange); margin-bottom: 10px;">5️⃣ 时机原则：Quality Left（质量左移）</h4>
+                        <p style="margin-bottom: 0;">把检查点尽量前置，越早发现问题成本越低。建立持续监控闭环。</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 50px;">🔗 与 Meta-Harness 论文的关系</h3>
+
+            <div class="highlight" style="margin-top: 25px;">
+                <p><strong>Martin Fowler 的文章</strong>提供了<strong> Harness Engineering 的概念框架和分类体系</strong>（是什么、为什么、怎么做）。</p>
+                <p style="margin-top: 15px;"><strong>Meta-Harness 论文</strong>则提供了<strong>自动化优化 Harness 的方法论</strong>（如何自动找到最优的 Harness 配置）。</p>
+                <p style="margin-top: 15px; margin-bottom: 0;">
+                    两者互补：<strong>先理解 Fowler 的框架，再用 Meta-Harness 的方法去自动化优化。</strong>
+                </p>
+            </div>
+
+            <h3 style="margin-top: 45px;">💡 给初学者的行动建议</h3>
+
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 25px;">
+                <div class="comp-item" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.1));">
+                    <h4 style="color: var(--accent-green);">第1步：观察现状</h4>
+                    <p style="font-size: 0.95rem;">在使用编码 Agent 时，记录它经常犯的错误类型。</p>
+                </div>
+                <div class="comp-item" style="background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));">
+                    <h4 style="color: var(--accent-blue);">第2步：添加 Guides</h4>
+                    <p style="font-size: 0.95rem;">创建 AGENTS.md 或规则文件，预防已知问题。</p>
+                </div>
+                <div class="comp-item" style="background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(239,68,68,0.1));">
+                    <h4 style="color: var(--accent-orange);">第3步：添加 Sensors</h4>
+                    <p style="font-size: 0.95rem;">配置 ESLint、测试、AI Reviewer 等自动检测。</p>
+                </div>
+                <div class="comp-item" style="background: linear-gradient(135deg, rgba(236,72,153,0.1), rgba(139,92,246,0.1));">
+                    <h4 style="color: var(--accent-pink);">第4步：迭代优化</h4>
+                    <p style="font-size: 0.95rem;">根据新出现的问题持续改进 Harness。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <h2 style="color: var(--accent-cyan); margin-bottom: 20px;">🎉 现在你应该理解了！</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 25px;">
+            Martin Fowler 的 Harness Engineering 并不复杂，核心就是：<br>
+            <strong style="color: var(--accent-green);">用 Guides 引导 Agent 做对，用 Sensors 让 Agent 发现错误并自纠。</strong>
+        </p>
+        <p style="font-size: 0.95rem; opacity: 0.8; margin-bottom: 15px;">
+            接下来就可以回到实施计划，开始动手实践了！
+        </p>
+        <a href="../index.html" class="back-link">← 返回首页</a>
+        <div style="margin-top: 30px; font-size: 2.5rem;">
+            🚀 💪 🔥
+        </div>
+    </div>
+</footer>
+
+<script>
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+});
+</script>
+
+</body>
+</html>
