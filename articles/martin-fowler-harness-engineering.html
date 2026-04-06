@@ -342,8 +342,6 @@
             border-top: 1px solid var(--border-color);
             margin-top: 80px;
         }
-
-        /* Back Link */
         .back-link {
             display: inline-block;
             padding: 12px 24px;
@@ -360,6 +358,21 @@
             transform: translateX(-4px);
             box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
         }
+        .footer-note {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        .footer-source {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 15px;
+        }
+        .footer-cta {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+
 
         @media (max-width: 768px) {
             .container { padding: 0 20px; }
@@ -1152,18 +1165,17 @@ $ npx eslint src/new-feature.tsx
 <!-- Footer -->
 <footer>
     <div class="container">
-        <h2 style="color: var(--accent-cyan); margin-bottom: 20px;">🎉 现在你应该理解了！</h2>
-        <p style="font-size: 1.1rem; margin-bottom: 25px;">
-            Martin Fowler 的 Harness Engineering 并不复杂，核心就是：<br>
-            <strong style="color: var(--accent-green);">用 Guides 引导 Agent 做对，用 Sensors 让 Agent 发现错误并自纠。</strong>
+        <p class="footer-cta">
+            Martin Fowler 的 Harness Engineering 核心在于：<br>
+            <strong style="color: var(--accent-green);">用 Guides 提高首次成功率，用 Sensors 建立自动纠错闭环。</strong>
         </p>
-        <p style="font-size: 0.95rem; opacity: 0.8; margin-bottom: 15px;">
-            接下来就可以回到实施计划，开始动手实践了！
+        <p class="footer-note">
+            接下来可以返回首页，继续查看实施计划与其它 Harness 相关文章。
+        </p>
+        <p class="footer-source">
+            基于 Martin Fowler 对 Harness Engineering 的概念框架解读整理 | 2026年4月更新
         </p>
         <a href="../index.html" class="back-link">← 返回首页</a>
-        <div style="margin-top: 30px; font-size: 2.5rem;">
-            🚀 💪 🔥
-        </div>
     </div>
 </footer>
 
