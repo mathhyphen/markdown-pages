@@ -37,7 +37,7 @@ jobs:
         run: npm install -g marked
 
       - name: Convert Markdown to HTML
-        run |
+        run: |
           for f in docs/*.md; do
             if [ -f "$f" ]; then
               filename=$(basename "$f" .md)
