@@ -44,6 +44,31 @@
       border-bottom: 1px solid var(--line);
     }
 
+    .top-nav {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 22px;
+    }
+
+    .home-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 7px 12px;
+      color: var(--accent-dark);
+      background: #e8f3f1;
+      border: 1px solid #b8d8d3;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .home-link:hover {
+      background: #d8ece8;
+    }
+
     .eyebrow {
       margin: 0 0 10px;
       color: var(--accent-dark);
@@ -278,6 +303,9 @@
 <body>
   <main>
     <header>
+      <nav class="top-nav" aria-label="页面导航">
+        <a class="home-link" href="/markdown-pages/">← 返回主页面</a>
+      </nav>
       <p class="eyebrow">SSH RemoteForward · VS Code · PyCharm · Clash/VPN</p>
       <h1>让远程服务器使用本机 VPN</h1>
       <p class="lead">这份指南说明如何在本机开启 Clash/VPN 后，通过 SSH 隧道把本机代理转发到远程服务器。配置完成后，服务器上的 <code>curl</code>、<code>pip</code>、<code>git</code>、<code>conda</code> 等命令可以走你本机的代理出口。</p>
