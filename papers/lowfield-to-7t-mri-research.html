@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>非配对低场 MRI 生成 7T MRI 研究导航</title>
+  <style>
+    :root {
+      --bg: #070a18;
+      --bg2: #101633;
+      --card: rgba(255, 255, 255, 0.08);
+      --card2: rgba(255, 255, 255, 0.12);
+      --text: #eef3ff;
+      --muted: #aeb9d7;
+      --line: rgba(255, 255, 255, 0.16);
+      --cyan: #53e0ff;
+      --blue: #6287ff;
+      --violet: #b775ff;
+      --pink: #ff78b7;
+      --green: #73f2a6;
+      --yellow: #ffd166;
+      --danger: #ff6b6b;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+      --radius: 26px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 5%, rgba(83, 224, 255, 0.22), transparent 33%),
+        radial-gradient(circle at 85% 8%, rgba(255, 120, 183, 0.2), transparent 28%),
+        radial-gradient(circle at 48% 42%, rgba(98, 135, 255, 0.16), transparent 36%),
+        linear-gradient(145deg, var(--bg), #0b1025 45%, #080b19);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.16;
+      background-image: radial-gradient(rgba(255,255,255,0.28) 0.7px, transparent 0.7px);
+      background-size: 18px 18px;
+      mask-image: linear-gradient(to bottom, black, transparent 90%);
+      z-index: 0;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(1180px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 14px;
+      z-index: 20;
+      margin: 14px auto 0;
+      width: min(1180px, calc(100% - 36px));
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--line);
+      background: rgba(7, 10, 24, 0.72);
+      backdrop-filter: blur(18px);
+      border-radius: 999px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .brand-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: conic-gradient(from 120deg, var(--cyan), var(--violet), var(--pink), var(--cyan));
+      box-shadow: 0 0 35px rgba(83, 224, 255, 0.6);
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .nav-links a,
+    .pill,
+    .button {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.07);
+      padding: 9px 13px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 13px;
+      transition: 0.25s ease;
+    }
+
+    .nav-links a:hover,
+    .button:hover {
+      color: var(--text);
+      transform: translateY(-1px);
+      border-color: rgba(83,224,255,0.55);
+      box-shadow: 0 0 0 5px rgba(83,224,255,0.08);
+    }
+
+    .hero {
+      padding: 78px 0 42px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 36px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      color: var(--cyan);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(42px, 7vw, 84px);
+      line-height: 0.94;
+      letter-spacing: -0.07em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #fff, var(--cyan), var(--violet), var(--pink));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.8;
+      max-width: 740px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button.primary {
+      color: #08101f;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      border: none;
+      font-weight: 800;
+    }
+
+    .scanner-card {
+      position: relative;
+      border-radius: 36px;
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04));
+      padding: 28px;
+      min-height: 470px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .scanner-card::before {
+      content: "";
+      position: absolute;
+      inset: -40% -20% auto auto;
+      width: 340px;
+      height: 340px;
+      background: radial-gradient(circle, rgba(83,224,255,0.34), transparent 60%);
+      filter: blur(4px);
+    }
+
+    .mri-orbit {
+      position: relative;
+      height: 310px;
+      display: grid;
+      place-items: center;
+    }
+
+    .brain {
+      width: 205px;
+      height: 245px;
+      border-radius: 48% 52% 46% 54% / 58% 58% 42% 42%;
+      background:
+        radial-gradient(circle at 35% 34%, rgba(255,255,255,0.8), transparent 7%),
+        radial-gradient(circle at 60% 30%, rgba(255,255,255,0.45), transparent 8%),
+        linear-gradient(145deg, rgba(83,224,255,0.18), rgba(255,120,183,0.22)),
+        repeating-radial-gradient(circle at 50% 42%, rgba(255,255,255,0.16) 0 3px, transparent 4px 12px);
+      border: 1px solid rgba(255,255,255,0.26);
+      box-shadow: inset 0 0 40px rgba(83,224,255,0.26), 0 0 80px rgba(183,117,255,0.3);
+      animation: float 5s ease-in-out infinite;
+    }
+
+    .ring {
+      position: absolute;
+      border: 1px solid rgba(83,224,255,0.28);
+      border-radius: 50%;
+      transform: rotateX(62deg);
+    }
+    .ring.r1 { width: 310px; height: 310px; animation: spin 16s linear infinite; }
+    .ring.r2 { width: 250px; height: 250px; animation: spin 10s linear reverse infinite; border-color: rgba(255,120,183,0.28); }
+    .ring.r3 { width: 185px; height: 185px; animation: spin 8s linear infinite; border-color: rgba(115,242,166,0.28); }
+
+    .field-badge {
+      position: absolute;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(7, 10, 24, 0.7);
+      backdrop-filter: blur(10px);
+      font-weight: 800;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.24);
+    }
+    .f01 { left: 12px; top: 60px; color: var(--green); }
+    .f15 { right: 10px; top: 74px; color: var(--cyan); }
+    .f3 { left: 38px; bottom: 42px; color: var(--yellow); }
+    .f5 { right: 36px; bottom: 54px; color: var(--pink); }
+    .f7 { top: 10px; left: 50%; transform: translateX(-50%); color: #07101d; background: linear-gradient(135deg, var(--cyan), var(--pink)); }
+
+    .scanner-caption {
+      position: relative;
+      display: grid;
+      gap: 12px;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .mini-stat {
+      border-radius: 18px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--line);
+      padding: 13px;
+    }
+
+    .mini-stat strong {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    section {
+      padding: 46px 0;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      margin-bottom: 22px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 48px);
+      letter-spacing: -0.04em;
+    }
+
+    .section-head p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.75;
+      max-width: 750px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .card {
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+      padding: 24px;
+      box-shadow: 0 16px 45px rgba(0,0,0,0.18);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -100px auto;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(83,224,255,0.16), transparent 66%);
+      pointer-events: none;
+    }
+
+    .card h3 { margin: 0 0 12px; font-size: 22px; }
+    .card p { margin: 0; color: var(--muted); line-height: 1.75; }
+    .card small { color: var(--muted); }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .tag {
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 9px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .warning {
+      border-color: rgba(255, 209, 102, 0.34);
+      background: linear-gradient(145deg, rgba(255,209,102,0.14), rgba(255,255,255,0.04));
+    }
+
+    .danger {
+      border-color: rgba(255,107,107,0.34);
+      background: linear-gradient(145deg, rgba(255,107,107,0.13), rgba(255,255,255,0.04));
+    }
+
+    .success {
+      border-color: rgba(115,242,166,0.34);
+      background: linear-gradient(145deg, rgba(115,242,166,0.13), rgba(255,255,255,0.04));
+    }
+
+    .diagram {
+      border-radius: 32px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.055);
+      padding: 24px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: 1.05fr 0.28fr 1.1fr 0.28fr 1.25fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .flow-col {
+      display: grid;
+      gap: 12px;
+    }
+
+    .node {
+      min-height: 88px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.07);
+      border-radius: 22px;
+      transition: 0.25s ease;
+    }
+
+    .node:hover {
+      transform: translateY(-3px);
+      border-color: rgba(83,224,255,0.5);
+      background: rgba(255,255,255,0.11);
+    }
+
+    .icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(83,224,255,0.22), rgba(183,117,255,0.22));
+      font-size: 21px;
+      flex: 0 0 auto;
+    }
+
+    .arrow {
+      text-align: center;
+      font-size: 36px;
+      color: var(--cyan);
+      filter: drop-shadow(0 0 12px rgba(83,224,255,0.55));
+    }
+
+    .field-ladder {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .tesla {
+      min-height: 130px;
+      border-radius: 24px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(to top, rgba(83,224,255,0.08), rgba(255,255,255,0.06));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tesla::before {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: var(--h);
+      background: linear-gradient(to top, rgba(83,224,255,0.26), rgba(183,117,255,0.12));
+      border-radius: 24px;
+    }
+
+    .tesla > * { position: relative; }
+    .tesla b { font-size: 28px; display: block; }
+    .tesla span { color: var(--muted); font-size: 13px; }
+
+    .method-card {
+      cursor: pointer;
+      min-height: 260px;
+    }
+
+    .method-card .rank {
+      font-size: 13px;
+      color: var(--cyan);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .method-card.active {
+      border-color: rgba(83,224,255,0.65);
+      box-shadow: 0 0 0 6px rgba(83,224,255,0.08), var(--shadow);
+    }
+
+    .detail-panel {
+      margin-top: 18px;
+      border: 1px solid rgba(83,224,255,0.25);
+      background: linear-gradient(145deg, rgba(83,224,255,0.12), rgba(183,117,255,0.08));
+      border-radius: 28px;
+      padding: 24px;
+      min-height: 170px;
+    }
+
+    .detail-panel h3 { margin: 0 0 10px; }
+    .detail-panel p { color: var(--muted); line-height: 1.75; }
+
+    .roadmap {
+      position: relative;
+      display: grid;
+      gap: 18px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .step-num {
+      height: 70px;
+      width: 70px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      color: #07101d;
+      font-weight: 900;
+      font-size: 26px;
+      box-shadow: 0 12px 35px rgba(83,224,255,0.22);
+    }
+
+    .loss-wheel {
+      min-height: 430px;
+      display: grid;
+      place-items: center;
+    }
+
+    .wheel {
+      width: min(440px, 100%);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      position: relative;
+      background:
+        radial-gradient(circle, rgba(7,10,24,0.92) 0 28%, transparent 29%),
+        conic-gradient(from 0deg, rgba(83,224,255,0.38), rgba(183,117,255,0.38), rgba(255,120,183,0.38), rgba(115,242,166,0.38), rgba(255,209,102,0.38), rgba(83,224,255,0.38));
+      border: 1px solid var(--line);
+      box-shadow: inset 0 0 70px rgba(0,0,0,0.35), 0 30px 80px rgba(0,0,0,0.25);
+      animation: glow 4s ease-in-out infinite;
+    }
+
+    .wheel-center {
+      position: absolute;
+      inset: 32%;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 16px;
+      background: rgba(7,10,24,0.88);
+      border: 1px solid var(--line);
+      font-weight: 900;
+    }
+
+    .wheel-label {
+      position: absolute;
+      width: 130px;
+      padding: 9px 10px;
+      border-radius: 14px;
+      text-align: center;
+      border: 1px solid var(--line);
+      background: rgba(7,10,24,0.78);
+      color: var(--muted);
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+    .l1 { top: 3%; left: 50%; transform: translateX(-50%); }
+    .l2 { top: 30%; right: -5%; }
+    .l3 { bottom: 11%; right: 5%; }
+    .l4 { bottom: 11%; left: 5%; }
+    .l5 { top: 30%; left: -5%; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 880px;
+    }
+
+    th, td {
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    td:first-child, th:first-child { color: var(--text); font-weight: 800; }
+
+    .link-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .resource {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      transition: 0.25s ease;
+    }
+
+    .resource:hover {
+      transform: translateY(-2px);
+      border-color: rgba(83,224,255,0.45);
+      background: rgba(255,255,255,0.1);
+    }
+
+    .resource .icon { width: 38px; height: 38px; border-radius: 13px; }
+    .resource b { display: block; margin-bottom: 4px; }
+    .resource span { color: var(--muted); font-size: 13px; line-height: 1.55; }
+
+    .footer {
+      margin: 48px 0 28px;
+      padding: 26px;
+      border-radius: 30px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .checklist li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .checklist li::before {
+      content: "✓";
+      color: #07101d;
+      background: var(--green);
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      font-weight: 900;
+      margin-top: 2px;
+    }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-14px) rotate(1deg); }
+    }
+
+    @keyframes spin {
+      to { transform: rotateX(62deg) rotateZ(360deg); }
+    }
+
+    @keyframes glow {
+      0%,100% { filter: drop-shadow(0 0 10px rgba(83,224,255,0.15)); }
+      50% { filter: drop-shadow(0 0 28px rgba(255,120,183,0.22)); }
+    }
+
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; padding-top: 48px; }
+      .grid.cols-3, .grid.cols-4, .grid.cols-2 { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); }
+      .field-ladder { grid-template-columns: repeat(2, 1fr); }
+      .link-list { grid-template-columns: 1fr; }
+      .nav { align-items: flex-start; border-radius: 26px; flex-direction: column; }
+      .nav-links { justify-content: flex-start; }
+    }
+
+    @media (max-width: 560px) {
+      .shell, .nav { width: min(100% - 22px, 1180px); }
+      .field-ladder { grid-template-columns: 1fr; }
+      .mini-grid { grid-template-columns: 1fr; }
+      .scanner-card { padding: 18px; min-height: auto; }
+      .mri-orbit { height: 270px; transform: scale(0.9); }
+      .section-head { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <nav class="nav">
+    <a class="brand" href="#top"><span class="brand-dot"></span><span>Low-field MRI → Synthetic 7T</span></a>
+    <div class="nav-links">
+      <a href="../index.html#papers">返回论文区</a>
+      <a href="#problem">问题边界</a>
+      <a href="#pipeline">技术路线</a>
+      <a href="#methods">方法谱系</a>
+      <a href="#data">数据资源</a>
+      <a href="#eval">评估</a>
+      <a href="#links">文章链接</a>
+    </div>
+  </nav>
+
+  <main id="top" class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Brain MRI · Unpaired Translation · Multi-field</div>
+        <h1>从 <span class="gradient-text">0.1T / 1.5T / 3T / 5T</span><br/>生成 7T MRI</h1>
+        <p>
+          目标不是简单“变清晰”，而是在非配对数据下，把低场/中场 MRI 的噪声、分辨率、对比度和伪影统计迁移到 7T 风格，同时最大限度保留真实脑解剖结构。模态覆盖 T1、T2、FLAIR。
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#roadmap">查看推荐实验路线</a>
+          <a class="button" href="#links">跳到论文与代码</a>
+          <span class="pill">核心关键词：unpaired · harmonization · latent diffusion · anatomy preservation</span>
+        </div>
+      </div>
+
+      <div class="scanner-card">
+        <div class="mri-orbit" aria-label="MRI field strength orbit diagram">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="ring r3"></div>
+          <div class="brain"></div>
+          <div class="field-badge f01">0.1T</div>
+          <div class="field-badge f15">1.5T</div>
+          <div class="field-badge f3">3T</div>
+          <div class="field-badge f5">5T</div>
+          <div class="field-badge f7">7T Target</div>
+        </div>
+        <div class="scanner-caption">
+          <div class="mini-grid">
+            <div class="mini-stat"><strong>T1</strong><small>解剖结构主线</small></div>
+            <div class="mini-stat"><strong>T2</strong><small>水含量/病灶敏感</small></div>
+            <div class="mini-stat"><strong>FLAIR</strong><small>白质病灶关键</small></div>
+          </div>
+          <p style="color: var(--muted); line-height: 1.7; margin: 0;">
+            页面建议：先按同模态映射训练，再扩展到多模态共享骨干；先做 2D/CUT 基线，再做 PTA 结构增强，最后做 2.5D/3D latent diffusion。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem">
+      <div class="section-head">
+        <div>
+          <h2>1. 这个问题真正涉及什么？</h2>
+          <p>低场到 7T 不是单纯超分辨率，而是五个因素叠加：场强差异、对比度差异、伪影差异、域偏移、解剖保真。</p>
+        </div>
+      </div>
+
+      <div class="grid cols-3">
+        <article class="card success">
+          <h3>可学习的部分</h3>
+          <p>7T 风格的纹理、组织对比、边界锐度、噪声分布、局部结构增强，以及不同场强下的 scanner/site 风格。</p>
+          <div class="tag-row"><span class="tag">style transfer</span><span class="tag">harmonization</span><span class="tag">contrast</span></div>
+        </article>
+        <article class="card warning">
+          <h3>必须保留的部分</h3>
+          <p>脑沟、脑室、灰白质边界、病灶位置、ROI 体积和受试者个体解剖。模型不能为了“像 7T”而重写结构。</p>
+          <div class="tag-row"><span class="tag">anatomy</span><span class="tag">ROI volume</span><span class="tag">lesion fidelity</span></div>
+        </article>
+        <article class="card danger">
+          <h3>最大风险</h3>
+          <p>生成模型容易产生“看起来像 7T”的幻觉纹理。合成 7T 应标记为 AI 增强图像，而不是等价真实采集 7T。</p>
+          <div class="tag-row"><span class="tag">hallucination</span><span class="tag">OOD</span><span class="tag">clinical safety</span></div>
+        </article>
+      </div>
+
+      <div class="diagram" style="margin-top: 18px;">
+        <div class="field-ladder">
+          <div class="tesla" style="--h: 18%;"><b>0.1T</b><span>极低场，SNR 低，真实 0.1T 公共 T1/T2/FLAIR 稀缺</span></div>
+          <div class="tesla" style="--h: 36%;"><b>1.5T</b><span>临床常规域，可作为中场源域</span></div>
+          <div class="tesla" style="--h: 52%;"><b>3T</b><span>高质量临床/科研常规，适合外部验证</span></div>
+          <div class="tesla" style="--h: 70%;"><b>5T</b><span>结构 T1/T2/FLAIR 公共资源非常少</span></div>
+          <div class="tesla" style="--h: 96%;"><b>7T</b><span>目标域，T1/T2 相对可找，7T FLAIR 更稀缺</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pipeline">
+      <div class="section-head">
+        <div>
+          <h2>2. 推荐总体技术路线</h2>
+          <p>建议把工程路线分成三层：强基线、结构增强基线、3D latent 主模型。评价也要从像素指标扩展到结构、任务和安全门控。</p>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <div class="flow">
+          <div class="flow-col">
+            <div class="node"><span class="icon">🧲</span><div><b>源域</b><br/><small>0.1T / 1.5T / 3T / 5T<br/>T1 / T2 / FLAIR</small></div></div>
+            <div class="node"><span class="icon">🎯</span><div><b>目标域</b><br/><small>真实 7T T1 / T2 / FLAIR<br/>非配对，不做 voxel-wise 监督</small></div></div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="flow-col">
+            <div class="node"><span class="icon">🧼</span><div><b>预处理</b><br/><small>N4、去颅骨、统一方向、模板空间、强度归一化</small></div></div>
+            <div class="node"><span class="icon">🧩</span><div><b>分模态训练</b><br/><small>T1→7T T1，T2→7T T2，FLAIR→7T FLAIR</small></div></div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="flow-col">
+            <div class="node"><span class="icon">⚡</span><div><b>基线</b><br/><small>CUT / CycleGAN：快速验证数据链路</small></div></div>
+            <div class="node"><span class="icon">🔬</span><div><b>结构增强</b><br/><small>PTA：SGP + LSC，约束切片与局部结构</small></div></div>
+            <div class="node"><span class="icon">🧠</span><div><b>主模型</b><br/><small>3D autoencoder + latent diffusion + anatomy/contrast disentanglement</small></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="methods">
+      <div class="section-head">
+        <div>
+          <h2>3. 方法谱系：不要只做 CycleGAN</h2>
+          <p>CycleGAN/CUT 是必要基线，但你的课题更需要对比学习、结构自监督、解剖/风格解耦和 3D latent diffusion。</p>
+        </div>
+      </div>
+
+      <div class="grid cols-3">
+        <article class="card method-card active" data-title="CUT / CycleGAN：先跑通的强基线" data-text="优点是成熟、复现多、适合快速检验你的预处理、切片策略和无配对训练是否稳定。缺点是 2D 逐切片容易体积不连续，且容易把 7T 风格误学成锐化纹理。建议：先按 T1/T2/FLAIR 分别训练，再做多模态共享骨干。">
+          <div class="rank">Baseline 01</div>
+          <h3>CUT / CycleGAN</h3>
+          <p>最稳的无配对图像翻译起点。CUT 用 PatchNCE 保持内容，比原始 CycleGAN 更轻。</p>
+          <div class="tag-row"><span class="tag">adversarial</span><span class="tag">cycle</span><span class="tag">PatchNCE</span></div>
+        </article>
+        <article class="card method-card" data-title="PTA：最贴近低场→超高场的近年路线" data-text="PTA 的重点不是换一个 GAN，而是加入 slice-wise gap perception 和 local structure correction：前者缓解非配对切片差距，后者用局部自监督恢复约束小结构。适合你在 CUT/CycleGAN 之后作为结构增强基线。">
+          <div class="rank">Baseline 02</div>
+          <h3>PTA-style</h3>
+          <p>面向无配对 low-field→ultra-high-field 的思路：切片感知 + 局部结构校正 + 对抗合成。</p>
+          <div class="tag-row"><span class="tag">SGP</span><span class="tag">LSC</span><span class="tag">local structure</span></div>
+        </article>
+        <article class="card method-card" data-title="HCLD / CACD / UMH：更适合主模型的方向" data-text="这些方法把问题从 2D GAN 推向 3D/latent harmonization：用 autoencoder 稳定表达解剖结构，再在 latent 空间做风格/场强转换，并显式区分 anatomy 与 contrast/style。对你的多场强、多模态、非配对任务最有扩展价值。">
+          <div class="rank">Main Model</div>
+          <h3>Latent Diffusion Harmonizer</h3>
+          <p>3D autoencoder + 条件 latent diffusion + anatomy/contrast disentanglement，是主模型优先方向。</p>
+          <div class="tag-row"><span class="tag">3D latent</span><span class="tag">diffusion</span><span class="tag">disentanglement</span></div>
+        </article>
+      </div>
+      <div class="detail-panel" id="methodDetail">
+        <h3>CUT / CycleGAN：先跑通的强基线</h3>
+        <p>优点是成熟、复现多、适合快速检验你的预处理、切片策略和无配对训练是否稳定。缺点是 2D 逐切片容易体积不连续，且容易把 7T 风格误学成锐化纹理。建议：先按 T1/T2/FLAIR 分别训练，再做多模态共享骨干。</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>4. 损失函数应该围绕“像 7T”与“不乱改结构”平衡</h2>
+          <p>网络架构重要，但损失设计更决定模型会不会产生幻觉结构。建议至少覆盖下面五类约束。</p>
+        </div>
+      </div>
+
+      <div class="grid cols-2">
+        <div class="diagram loss-wheel">
+          <div class="wheel">
+            <div class="wheel-center">Synthetic<br/>7T MRI</div>
+            <div class="wheel-label l1">Adversarial<br/>7T 分布</div>
+            <div class="wheel-label l2">Cycle / Identity<br/>内容回环</div>
+            <div class="wheel-label l3">PatchNCE<br/>局部一致</div>
+            <div class="wheel-label l4">Anatomy-aware<br/>结构保真</div>
+            <div class="wheel-label l5">Style / Contrast<br/>风格解耦</div>
+          </div>
+        </div>
+        <div class="grid">
+          <article class="card"><h3>推荐起始权重</h3><p>先用简单可控的权重起跑：λ_adv=1，λ_cycle≈10，λ_id=0.5~1，λ_sgp=1，λ_lsc=1。后续用消融实验确认每个模块的贡献。</p></article>
+          <article class="card"><h3>特别建议</h3><p>加入 edge / gradient consistency、ROI 体积一致性或 segmentation-aware loss。即便没有人工标签，也可用自监督边缘和局部结构约束降低结构漂移。</p></article>
+          <article class="card danger"><h3>不要做</h3><p>不要把任意低场图和任意 7T 图硬配准后计算 voxel-wise L1/L2，这会制造伪配对监督，反而把错误解剖差异写进模型。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="roadmap">
+      <div class="section-head">
+        <div>
+          <h2>5. 面向你数据的实验路线</h2>
+          <p>这是一条现实可落地的路线：先稳，再强，再扩展到多场强多模态统一模型。</p>
+        </div>
+      </div>
+
+      <div class="roadmap">
+        <div class="step">
+          <div class="step-num">01</div>
+          <article class="card">
+            <h3>建库与预处理</h3>
+            <p>按场强 × 模态建立域：0.1T-T1、0.1T-T2、0.1T-FLAIR、1.5T/3T/5T 同理，目标域为 7T。统一 N4、skull stripping、方向、体素大小、模板空间和强度归一化。</p>
+            <div class="tag-row"><span class="tag">N4</span><span class="tag">HD-BET / SynthStrip</span><span class="tag">MNI / in-house template</span></div>
+          </article>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <article class="card">
+            <h3>同模态无配对基线</h3>
+            <p>分别训练 T1→7T T1、T2→7T T2、FLAIR→7T FLAIR。先用 2D CUT 快速跑通，再补 CycleGAN 作为传统基线。</p>
+            <div class="tag-row"><span class="tag">2D axial</span><span class="tag">256×256 / 320×320</span><span class="tag">PatchNCE</span></div>
+          </article>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <article class="card">
+            <h3>PTA-style 结构增强</h3>
+            <p>加入 slice-wise gap perception 和 local structure correction，解决非配对切片差异与局部结构不稳问题。建议作为第二个核心 baseline。</p>
+            <div class="tag-row"><span class="tag">SGP</span><span class="tag">LSC</span><span class="tag">local reconstruction</span></div>
+          </article>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <article class="card">
+            <h3>2.5D / 3D latent 主模型</h3>
+            <p>用 3D autoencoder 表达体积解剖，在 latent 空间做条件生成：条件可以包括场强、模态、目标 7T style prototype。再加入 anatomy/contrast disentanglement。</p>
+            <div class="tag-row"><span class="tag">3D AE</span><span class="tag">latent diffusion</span><span class="tag">field-strength token</span><span class="tag">modality token</span></div>
+          </article>
+        </div>
+        <div class="step">
+          <div class="step-num">05</div>
+          <article class="card">
+            <h3>外部 sanity check 与安全门控</h3>
+            <p>用少量 paired 3T/7T 数据只做外部验证，不把它混入无配对训练定义。输出 uncertainty map、OOD 分数，并在报告中明确 synthetic 7T ≠ real acquired 7T。</p>
+            <div class="tag-row"><span class="tag">FID/KID</span><span class="tag">ROI volume</span><span class="tag">blind review</span><span class="tag">uncertainty</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="data">
+      <div class="section-head">
+        <div>
+          <h2>6. 数据资源速览</h2>
+          <p>与你设定完全一致的公共基准几乎不存在；更现实的是把不同数据集分别用于源域、目标域、外部验证和下游任务评估。</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>资源</th>
+              <th>场强 / 模态</th>
+              <th>在你的课题中怎么用</th>
+              <th>限制</th>
+              <th>链接</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>M4Raw</td>
+              <td>0.3T；脑 T1/T2/FLAIR；含 k-space</td>
+              <td>作为 0.1T 级别低场代理源域，也可用于重建+生成联合预训练</td>
+              <td>不是 7T；健康志愿者为主</td>
+              <td><a href="https://www.nature.com/articles/s41597-023-02181-4" target="_blank">Nature</a> · <a href="https://zenodo.org/records/7523691" target="_blank">Zenodo</a></td>
+            </tr>
+            <tr>
+              <td>OpenNeuro ds006557</td>
+              <td>64mT + 3T；成人 T1/T2</td>
+              <td>低场-高场形态学对应、外部 sanity check</td>
+              <td>不是 7T；样本量有限；缺 FLAIR</td>
+              <td><a href="https://openneuro.org/datasets/ds006557/versions/1.0.2" target="_blank">OpenNeuro</a></td>
+            </tr>
+            <tr>
+              <td>Leiden 64mT/3T</td>
+              <td>64mT/3T；T1/T2/FLAIR/DWI</td>
+              <td>低场多模态代理和小规模 paired 外部评估</td>
+              <td>不是 7T；paired 子集较小</td>
+              <td><a href="https://zenodo.org/records/15471394" target="_blank">Zenodo</a></td>
+            </tr>
+            <tr>
+              <td>fastMRI Brain</td>
+              <td>1.5T/3T；T1/T2/FLAIR</td>
+              <td>中场大样本源域预训练</td>
+              <td>不含 7T</td>
+              <td><a href="https://fastmri.med.nyu.edu/" target="_blank">Official</a></td>
+            </tr>
+            <tr>
+              <td>HCP S1200</td>
+              <td>3T 主体；部分 7T multimodal</td>
+              <td>真实 7T 目标域统计参考和无配对目标域</td>
+              <td>7T 结构序列与临床 T1/T2/FLAIR 不完全对齐</td>
+              <td><a href="https://www.humanconnectome.org/study/hcp-young-adult/document/1200-subjects-data-release" target="_blank">HCP</a></td>
+            </tr>
+            <tr>
+              <td>UNC / Chu paired 3T-7T</td>
+              <td>paired 3T/7T；T1/T2，Chu 含海马亚区标注</td>
+              <td>外部 sanity check、ROI/分割评估、7T 目标域定义</td>
+              <td>不是你的无配对主训练范式；样本规模有限</td>
+              <td><a href="https://springernature.figshare.com/articles/dataset/UNC_Paired_3T-7T_Dataset/23706033" target="_blank">UNC Figshare</a> · <a href="https://www.nature.com/articles/s41597-025-04586-9" target="_blank">Chu 2025</a></td>
+            </tr>
+            <tr>
+              <td>Diff5T</td>
+              <td>5.0T diffusion MRI</td>
+              <td>只能作为 5T 公共资源稀缺背景参考</td>
+              <td>不是 T1/T2/FLAIR</td>
+              <td><a href="https://www.nature.com/articles/s41597-025-05640-2" target="_blank">Nature</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="eval">
+      <div class="section-head">
+        <div>
+          <h2>7. 评估：不能只看 PSNR/SSIM</h2>
+          <p>非配对主测试不能随便跟任意 7T 计算像素误差。建议建立“分布级 + 结构级 + 任务级 + 临床读片 + 安全门控”的组合评价。</p>
+        </div>
+      </div>
+
+      <div class="grid cols-4">
+        <article class="card"><h3>图像分布</h3><p>FID / KID、7T 域分类器、直方图/特征分布距离。</p></article>
+        <article class="card"><h3>结构保真</h3><p>ROI 体积相关、ICC、Bland–Altman、Dice/HD95。</p></article>
+        <article class="card"><h3>任务收益</h3><p>分割、分类、brain-age、病灶检测是否保持或提升。</p></article>
+        <article class="card"><h3>临床安全</h3><p>盲法阅片、uncertainty map、OOD 检测、合成标签。</p></article>
+      </div>
+
+      <div class="grid cols-2" style="margin-top: 18px;">
+        <article class="card warning">
+          <h3>主评估建议</h3>
+          <ul class="checklist">
+            <li>无配对测试集：以 FID/KID、site classifier、任务性能和读片评分为主。</li>
+            <li>paired 3T/7T 外部集：只做 sanity check，可以补充 SSIM/PSNR/LPIPS。</li>
+            <li>病灶或 ROI：重点报告生成前后是否改变体积、边界和病灶可见性。</li>
+          </ul>
+        </article>
+        <article class="card danger">
+          <h3>临床转化提醒</h3>
+          <ul class="checklist">
+            <li>保留原始低场图像，不用 synthetic 7T 替代原图。</li>
+            <li>所有合成图像标记为 AI-enhanced / synthetic。</li>
+            <li>冻结模型版本、记录训练数据版本、每次更新重新验证。</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="links">
+      <div class="section-head">
+        <div>
+          <h2>8. 优先阅读与代码链接</h2>
+          <p>按“最相关方法 → 3D latent / diffusion → 基线代码 → 数据集 → 合规文档”的顺序阅读和复现。</p>
+        </div>
+      </div>
+
+      <div class="link-list">
+        <a class="resource" href="https://arxiv.org/html/2503.05339v1" target="_blank"><span class="icon">📄</span><div><b>PTA 2025</b><span>Pretext Task Adversarial Learning for unpaired low-field to high-field MRI synthesis</span></div></a>
+        <a class="resource" href="https://github.com/Zhenxuan-Zhang/PTA4Unpaired_HF_MRI_SYN" target="_blank"><span class="icon">💻</span><div><b>PTA Code</b><span>最贴近你任务的公开代码仓库，建议优先复现。</span></div></a>
+        <a class="resource" href="https://arxiv.org/html/2408.09315v1" target="_blank"><span class="icon">🧠</span><div><b>HCLD</b><span>3D autoencoder + conditional latent diffusion 的无配对体积 harmonization。</span></div></a>
+        <a class="resource" href="https://github.com/MW1798/HCLD" target="_blank"><span class="icon">💻</span><div><b>HCLD Code</b><span>主模型设计的重要工程参考。</span></div></a>
+        <a class="resource" href="https://github.com/daniel-scholz/cacd" target="_blank"><span class="icon">🔀</span><div><b>CACD Code</b><span>anatomy / contrast disentanglement，可借鉴到 7T 风格转换。</span></div></a>
+        <a class="resource" href="https://papers.miccai.org/miccai-2025/0980-Paper3175.html" target="_blank"><span class="icon">🧪</span><div><b>UMH 2025</b><span>无配对多序列 brain MRI harmonization，覆盖 T1/T2/T2-FLAIR 思路。</span></div></a>
+        <a class="resource" href="https://github.com/taesungp/contrastive-unpaired-translation" target="_blank"><span class="icon">⚡</span><div><b>CUT</b><span>建议先跑通的轻量强基线。</span></div></a>
+        <a class="resource" href="https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix" target="_blank"><span class="icon">🔁</span><div><b>CycleGAN / pix2pix</b><span>经典无配对基线，复现实验中必须保留。</span></div></a>
+        <a class="resource" href="https://github.com/lianruizuo/haca3" target="_blank"><span class="icon">🧬</span><div><b>HACA3</b><span>contrast / anatomy / artifact aware harmonization。</span></div></a>
+        <a class="resource" href="https://www.nature.com/articles/s41597-023-02181-4" target="_blank"><span class="icon">🗂️</span><div><b>M4Raw Dataset</b><span>0.3T brain T1/T2/FLAIR，适合作为 0.1T 级别代理。</span></div></a>
+        <a class="resource" href="https://www.humanconnectome.org/study/hcp-young-adult/document/1200-subjects-data-release" target="_blank"><span class="icon">🎯</span><div><b>HCP S1200</b><span>7T 目标域统计参考和无配对目标域候选。</span></div></a>
+        <a class="resource" href="https://www.fda.gov/medical-devices/software-medical-device-samd/good-machine-learning-practice-medical-device-development-guiding-principles" target="_blank"><span class="icon">🛡️</span><div><b>FDA GMLP</b><span>临床转化时需要考虑的数据、验证、变更控制原则。</span></div></a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <b style="color: var(--text);">一句话结论：</b>
+      这项任务最合理的研究路径是：<b style="color: var(--cyan);">CUT/CycleGAN 打基线</b> → <b style="color: var(--green);">PTA-style 加结构约束</b> → <b style="color: var(--pink);">HCLD/CACD/UMH 风格的 2.5D/3D latent harmonizer 做主模型</b>。paired 3T/7T 数据只用于外部 sanity check，不要破坏“非配对”问题定义。
+    </footer>
+  </main>
+
+  <script>
+    const cards = document.querySelectorAll('.method-card');
+    const panel = document.getElementById('methodDetail');
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        cards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        panel.innerHTML = `<h3>${card.dataset.title}</h3><p>${card.dataset.text}</p>`;
+      });
+    });
+  </script>
+</body>
+</html>
