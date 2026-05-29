@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通用智能演进蓝图 (AGI Next-Gen Blueprint) 探索面板</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#030712',
+                        },
+                        cortex: {
+                            500: '#a855f7',
+                            950: '#1e1b4b',
+                        },
+                        hippo: {
+                            500: '#10b981',
+                            950: '#064e3b',
+                        },
+                        planner: {
+                            500: '#f59e0b',
+                            950: '#451a03',
+                        },
+                        sleep: {
+                            500: '#3b82f6',
+                            950: '#172554',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+        .glow-cortex { box-shadow: 0 0 30px rgba(168, 85, 247, 0.15); }
+        .glow-hippo { box-shadow: 0 0 30px rgba(16, 185, 129, 0.15); }
+        .glow-planner { box-shadow: 0 0 30px rgba(245, 158, 11, 0.15); }
+        .glow-sleep { box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
+        
+        /* Pulse Animation for paths */
+        @keyframes pulsePath {
+            0%, 100% { stroke-dashoffset: 100; opacity: 0.3; }
+            50% { stroke-dashoffset: 0; opacity: 1; }
+        }
+        .active-path {
+            stroke-dasharray: 10;
+            animation: pulsePath 3s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen custom-scrollbar">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-900 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-cortex-500/10 text-cortex-500 rounded-xl border border-cortex-500/20">
+                    <i class="fa-solid fa-brain text-2xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-100 to-cortex-500 bg-clip-text text-transparent">
+                        世界模型 (World Model) 与 AGI 演进蓝图
+                    </h1>
+                    <p class="text-xs text-slate-400">解密 LeCun JEPA 架构与 TTT 自适应突触的深度融合与硬核挑战</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono">
+                    <i class="fa-solid fa-circle-nodes animate-spin"></i>
+                    JEPA + TTT 融合态模型
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-12">
+
+        <!-- Blueprint Conceptual Intro -->
+        <div class="bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950/30 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col lg:flex-row items-center gap-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-cortex-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="space-y-4 flex-1">
+                <div class="inline-block px-3 py-1 bg-cortex-500/10 text-cortex-500 rounded-full text-xs font-semibold uppercase tracking-wider">
+                    理论突破：解密世界模型与动态参数的底层联系
+                </div>
+                <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight leading-snug">
+                    为什么说 JEPA 是 AGI 摆脱"文字小抄"的终极拼图？
+                </h2>
+                <p class="text-slate-300 leading-relaxed text-sm">
+                    传统大模型是自回归的 **像素/Token 级预测者**，遇到未知新任务极易崩溃。而 Yann LeCun 提倡的 **JEPA (联合嵌入预测架构)** 是一种 **世界模型 (World Model)**，它摒弃了冗余的细节生成，直接在 **高维隐空间 (Latent Space)** 里预测世界的物理演变。
+                    将 **JEPA** 与 **TTT (测试时训练)** 结合，相当于用 TTT 作为世界模型的"动态校准器"：一旦真实世界反馈与脑内模拟产生"预测能量差"，系统原地通过 1-Step 快速突触微调校准隐空间，实现无损自发育。
+                </p>
+            </div>
+            
+            <!-- Key Architecture Layers Preview -->
+            <div class="w-full lg:w-96 bg-slate-900/60 border border-slate-800 p-5 rounded-2xl space-y-3 shrink-0">
+                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">世界模型 & TTT 映射关系：</div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="p-2.5 bg-cortex-950/50 border border-cortex-500/20 rounded-xl text-cortex-400"><i class="fa-solid fa-compress mr-1"></i>1. JEPA 特征编码器</div>
+                    <div class="p-2.5 bg-hippo-950/50 border border-hippo-500/20 rounded-xl text-hippo-400"><i class="fa-solid fa-bolt mr-1"></i>2. 隐空间 TTT 预测器</div>
+                    <div class="p-2.5 bg-planner-950/50 border border-planner-500/20 rounded-xl text-planner-400"><i class="fa-solid fa-bezier-curve mr-1"></i>3. 隐空间路径搜索器</div>
+                    <div class="p-2.5 bg-sleep-950/50 border border-sleep-500/20 rounded-xl text-sleep-400"><i class="fa-solid fa-moon mr-1"></i>4. 联合重塑蒸馏器</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Dynamic Sandbox Simulator (异世界生存演进沙盒) -->
+        <section class="space-y-6">
+            <div>
+                <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    <span class="w-1.5 h-6 bg-cortex-500 rounded-full"></span>
+                    动态演进实验沙盒：JEPA 隐空间时空定律坍塌测试
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">给系统灌入一个变异情境，观察 JEPA 编码出的高维特征矩阵在 TTT 能量校准下的动态形变过程</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Sandbox Control panel (5 Cols) -->
+                <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between space-y-6 relative overflow-hidden glow-cortex">
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-flask text-cortex-500"></i>
+                            世界参数变量注入
+                        </h4>
+                        
+                        <!-- Scenario Selection -->
+                        <div class="space-y-2">
+                            <label class="text-xs text-slate-400 font-bold block">1. 选定新异世界物理律 (感官视频流输入)：</label>
+                            <div class="grid grid-cols-1 gap-2">
+                                <button onclick="selectScenario('gravity')" id="scen-gravity" class="w-full text-left p-3 rounded-xl border-2 border-cortex-500 bg-cortex-950/20 text-xs transition-all flex items-center justify-between">
+                                    <div>
+                                        <div class="font-bold text-white">🪶 情境 A：微重力物理空间 (g=2.4)</div>
+                                        <div class="text-[10px] text-slate-400 mt-0.5">测试 JEPA 预测器在未知引力场下的隐空间偏转</div>
+                                    </div>
+                                    <i class="fa-solid fa-circle-check text-cortex-500"></i>
+                                </button>
+                                <button onclick="selectScenario('rust')" id="scen-rust" class="w-full text-left p-3 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-950/40 text-xs transition-all flex items-center justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-300">🦀 情境 B：未知并发编程语义 (Rust v3)</div>
+                                        <div class="text-[10px] text-slate-400 mt-0.5">测试逻辑世界模型在异常编译法则下的映射自适应</div>
+                                    </div>
+                                    <i class="fa-solid fa-circle text-slate-800"></i>
+                                </button>
+                                <button onclick="selectScenario('virus')" id="scen-virus" class="w-full text-left p-3 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-950/40 text-xs transition-all flex items-center justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-300">🦠 情境 C：外星变异流感爆发 (RNA-Y)</div>
+                                        <div class="text-[10px] text-slate-400 mt-0.5">测试高维医学特征编码器对未知病理的零样本预测</div>
+                                    </div>
+                                    <i class="fa-solid fa-circle text-slate-800"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Current anomaly text block -->
+                        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">JEPA 预测能量差 (Energy-Based Prediction Error)</div>
+                            <p id="anomaly-text" class="text-xs text-cortex-400 leading-relaxed font-mono">
+                                [异常发生]：检测到物体下落时间与常识模型不匹配。Base模型预测下落 1s，实际观测下落 4s。预测误差 E_pred > 0.75！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Simulate trigger button -->
+                    <div class="space-y-3 pt-2">
+                        <button id="run-sim-btn" onclick="startBlueprintSimulation()" class="w-full py-3.5 bg-gradient-to-r from-cortex-600 to-brand-600 hover:from-cortex-500 hover:to-brand-500 active:scale-95 text-white font-bold rounded-2xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-cortex-500/20">
+                            <i class="fa-solid fa-play"></i>
+                            <span>激活世界模型 TTT 自适应演进</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interactive Visualizer (7 Cols) - Fixed height on desktop, flexible on mobile to prevent overflow -->
+                <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                        <span class="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-nodes text-brand-500"></i>
+                            JEPA 隐空间高维特征流（Latent Space Vectors）
+                        </span>
+                        <span id="simulation-state" class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono uppercase tracking-wider">待命 IDLE</span>
+                    </div>
+
+                    <!-- Flow Diagram Container - Optimized with min-h and flex to look amazing on mobile -->
+                    <div class="relative min-h-[500px] lg:min-h-0 lg:h-96 my-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden p-4">
+                        
+                        <!-- Left: Latent Matrix Grid Visualization (Interactive!) -->
+                        <div class="lg:col-span-5 h-full flex flex-col justify-center items-center relative border-b lg:border-b-0 lg:border-r border-slate-900/80 pb-4 lg:pb-0 lg:pr-2">
+                            <div class="text-[9px] text-slate-500 font-mono absolute top-1 left-1">高维特征表示 Matrix (Z)</div>
+                            
+                            <!-- 4x4 Grid representing 16 dimensions of latent space -->
+                            <div class="grid grid-cols-4 gap-2.5 p-3 bg-slate-900/40 rounded-xl border border-slate-800/60 w-full max-w-[160px]">
+                                <div id="v1" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v2" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v3" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v4" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v5" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v6" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v7" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v8" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v9" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v10" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v11" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v12" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v13" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v14" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v15" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                                <div id="v16" class="w-6 h-6 rounded bg-slate-800 transition-all duration-300"></div>
+                            </div>
+                            
+                            <div id="grid-status" class="text-[9px] text-slate-500 font-mono mt-2 text-center">状态：特征固化 (Manifold Stable)</div>
+                        </div>
+
+                        <!-- Right: Active Layer Stack (7 Cols) -->
+                        <div class="lg:col-span-7 grid grid-cols-1 gap-2 z-10 text-xs py-2">
+                            <!-- Layer 3: Planner Card -->
+                            <div id="card-l3" class="p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between transition-all duration-300">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded bg-planner-500/10 text-planner-400 flex items-center justify-center text-[10px] border border-planner-500/20 font-bold">3</span>
+                                    <div>
+                                        <h5 class="text-[11px] font-bold">前额叶规划器 (Predictor Rollout)</h5>
+                                        <p id="desc-l3" class="text-[8px] text-slate-500">隐空间内的蒙特卡洛决策树搜寻</p>
+                                    </div>
+                                </div>
+                                <span id="status-l3" class="text-[8px] bg-slate-950 px-1.5 py-0.5 rounded text-slate-500 font-mono">待命</span>
+                            </div>
+
+                            <!-- Layer 2: Hippo Card -->
+                            <div id="card-l2" class="p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between transition-all duration-300">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded bg-hippo-500/10 text-hippo-400 flex items-center justify-center text-[10px] border border-hippo-500/20 font-bold">2</span>
+                                    <div>
+                                        <h5 class="text-[11px] font-bold">动态海马 TTT 隐空间校准器</h5>
+                                        <p id="desc-l2" class="text-[8px] text-slate-500">基于自监督能量损失的 W 快速偏转</p>
+                                    </div>
+                                </div>
+                                <span id="status-l2" class="text-[8px] bg-slate-950 px-1.5 py-0.5 rounded text-slate-500 font-mono">待命</span>
+                            </div>
+
+                            <!-- Layer 1: Base Card -->
+                            <div id="card-l1" class="p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between transition-all duration-300">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded bg-cortex-500/10 text-cortex-400 flex items-center justify-center text-[10px] border border-cortex-500/20 font-bold">1</span>
+                                    <div>
+                                        <h5 class="text-[11px] font-bold">JEPA 世界模型特征编码器 (Base)</h5>
+                                        <p id="desc-l1" class="text-[8px] text-slate-500">多模态高维世界内在因果特征表征</p>
+                                    </div>
+                                </div>
+                                <span id="status-l1" class="text-[8px] bg-slate-950 px-1.5 py-0.5 rounded text-slate-500 font-mono">常识固化</span>
+                            </div>
+
+                            <!-- Layer 4: Sleep Card -->
+                            <div id="card-l4" class="p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between transition-all duration-300">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded bg-sleep-500/10 text-sleep-400 flex items-center justify-center text-[10px] border border-sleep-500/20 font-bold">4</span>
+                                    <div>
+                                        <h5 class="text-[11px] font-bold">昼夜记忆巩固 (Sleep Loop)</h5>
+                                        <p id="desc-l4" class="text-[8px] text-slate-500">自监督对比学习蒸馏与特征防崩溃重构</p>
+                                    </div>
+                                </div>
+                                <span id="status-l4" class="text-[8px] bg-slate-950 px-1.5 py-0.5 rounded text-slate-500 font-mono">待命</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Active logs terminal -->
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
+                            脑内演变流式控制台 (Real-time Synaptic Output)
+                        </div>
+                        <div id="terminal-logs" class="text-[10px] font-mono text-slate-400 h-16 overflow-y-auto space-y-1 custom-scrollbar">
+                            <span class="text-slate-600">// 系统就绪。等待触发世界模型演变指令...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Deep Dive into 4-Layer Architecture (四层架构深度解剖) -->
+        <section class="space-y-6">
+            <div>
+                <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    <span class="w-1.5 h-6 bg-cortex-500 rounded-full"></span>
+                    四大核心神经层级深度解剖
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">从神经科学隐喻对齐硅基数学算子的终极技术解析</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Layer 1: World Model Cortex -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group hover:border-cortex-500/40 transition-all glow-cortex">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-8 h-8 rounded-xl bg-cortex-500/10 text-cortex-400 border border-cortex-500/20 flex items-center justify-center font-bold">1</span>
+                                <h4 class="text-base font-bold text-slate-100">核心世界模型常识底座 (Cortex)</h4>
+                            </div>
+                            <span class="text-[10px] bg-cortex-500/10 text-cortex-400 px-2 py-0.5 rounded font-mono">大脑皮层脑区</span>
+                        </div>
+                        
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            <strong>世界的物理规则和逻辑常识。</strong> 它不记忆任何具体的、微末的实体经历，只保留最通用的常识特征（例如万有引力常数、基础语法结构、高级因果逻辑），其参数在日常运作中是**彻底冻结 (Frozen)** 的，绝不参与日常微调。
+                        </p>
+
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] font-mono text-cortex-400 leading-relaxed">
+                            <strong class="text-slate-500">数学公式对齐：</strong>
+                            f_cortex(x; θ_base) -> s_predicted
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-800/60 text-[10px] text-slate-500">
+                        * 生物对齐：人类成年后，其新皮层突触连接极其稳定，只进行高频常识过滤和结构化沉淀。
+                    </div>
+                </div>
+
+                <!-- Layer 2: Hippo TTT -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group hover:border-hippo-500/40 transition-all glow-hippo">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-8 h-8 rounded-xl bg-hippo-500/10 text-hippo-400 border border-hippo-500/20 flex items-center justify-center font-bold">2</span>
+                                <h4 class="text-base font-bold text-slate-100">海马 TTT 局部快权重层 (Hippocampus)</h4>
+                            </div>
+                            <span class="text-[10px] bg-hippo-500/10 text-hippo-400 px-2 py-0.5 rounded font-mono">海马体快速记忆区</span>
+                        </div>
+                        
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            <strong>局部、单样本快速适应单元。</strong> 当外界反馈产生预测误差（如重力改变）时，它在推理的前向流中直接执行 1-Step 的微小自监督更新。这种"快速权重 (Fast Weights)"不改变 Base 核心，而是以临时补丁（LoRA 或 TTT 层）形式即时贴在 Base 上。
+                        </p>
+
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] font-mono text-hippo-400 leading-relaxed">
+                            <strong class="text-slate-500">数学公式对齐：</strong>
+                            W_t = W_(t-1) - η·(W_(t-1)·φ(k) - v)·φ(k)ᵀ
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-800/60 text-[10px] text-slate-500">
+                        * 生物对齐：海马区具有高度的突触可塑性（Plasticity），数秒内就能刻录下当前场景的新异常。
+                    </div>
+                </div>
+
+                <!-- Layer 3: Planner -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group hover:border-planner-500/40 transition-all glow-planner">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-8 h-8 rounded-xl bg-planner-500/10 text-planner-400 border border-planner-500/20 flex items-center justify-center font-bold">3</span>
+                                <h4 class="text-base font-bold text-slate-100">前额叶测试时计算规划器 (Prefrontal)</h4>
+                            </div>
+                            <span class="text-[10px] bg-planner-500/10 text-planner-400 px-2 py-0.5 rounded font-mono">前额叶假说检验区</span>
+                        </div>
+                        
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            <strong>在校准的世界模型中进行脑内推演。</strong> AI 面对任务时，不需要改变任何核心参数。由于海马层已经通过 TTT 临时把世界物理模型微调到精准状态，前额叶可以直接调用这个微调后的模拟器，在虚拟的隐空间（Hidden Space）中进行搜索与假说验证，寻找最佳行动。
+                        </p>
+
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] font-mono text-planner-400 leading-relaxed">
+                            <strong class="text-slate-500">数学公式对齐：</strong>
+                            a_best = argmax_a E_world_simulation[ R(s_t, a) ]
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-800/60 text-[10px] text-slate-500">
+                        * 生物对齐：人类在动手前会在大脑里"预演整个动作的过程"，这就是测试时计算（o1 慢速推演）。
+                    </div>
+                </div>
+
+                <!-- Layer 4: Sleep loop -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group hover:border-sleep-500/40 transition-all glow-sleep">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-8 h-8 rounded-xl bg-sleep-500/10 text-sleep-400 border border-sleep-500/20 flex items-center justify-center font-bold">4</span>
+                                <h4 class="text-base font-bold text-slate-100">夜间记忆新陈代谢机制 (Sleep Loop)</h4>
+                            </div>
+                            <span class="text-[10px] bg-sleep-500/10 text-sleep-400 px-2 py-0.5 rounded font-mono">慢波睡眠固化区</span>
+                        </div>
+                        
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            <strong>打通发育的终极闭环：记忆固化。</strong> 白天海马层产生的大量临时、零散的快权重（W_t），会在夜间系统闲置时，通过自监督的**生成式重放（Generative Replay）**和**知识蒸馏**，把其中被反复验证正确的低维常识，极其轻柔地揉进 Base 世界模型里，然后彻底清空临时层，迎来新一轮发育。
+                        </p>
+
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] font-mono text-sleep-400 leading-relaxed">
+                            <strong class="text-slate-500">数学公式对齐：</strong>
+                            L_distill = || f_base(x; θ_new) - f_base_with_TTT(x) ||²
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-800/60 text-[10px] text-slate-500">
+                        * 生物对齐：人类睡眠时，海马区会高频重放白天的经历，并逐渐将常识沉淀给大脑皮层。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: JEPA and AGI Integration & The 3 Insurmountable Chasms -->
+        <section class="space-y-6">
+            <div class="border-t border-slate-900 pt-8">
+                <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    <span class="w-1.5 h-6 bg-cortex-500 rounded-full"></span>
+                    学术硬核：世界模型与自演进大模型的三大不可逾越的鸿沟
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">探讨将 JEPA 与 TTT / 线性注意力真正融为一体时，物理学、数学与硬件面临的致命瓶颈</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Chasm A: Energy Landscape Curse -->
+                <div onclick="selectChasm('a')" id="chasm-a" class="bg-slate-900 border-2 border-fuchsia-500/40 rounded-2xl p-5 cursor-pointer hover:scale-[1.02] transition-all flex flex-col gap-3 glow-cortex">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-fuchsia-400 tracking-wider">鸿沟 A</span>
+                        <span class="text-[10px] bg-fuchsia-500/10 text-fuchsia-400 px-2 py-0.5 rounded-full font-mono">能量地形复杂性</span>
+                    </div>
+                    <h5 class="text-sm font-bold text-white leading-snug">能量地形的指数级崎岖爆炸</h5>
+                    <p class="text-xs text-slate-400 leading-relaxed">JEPA 的核心是能量函数 E(s)，在高维隐空间构建一个连续可微的能量地形。但我们已知这是一个 NP-Hard 级别的景观：</p>
+                    <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-[10px] font-mono text-fuchsia-400/80 leading-relaxed">
+                        Number(Local Minima) ≈ O(exp(d_model))
+                    </div>
+                </div>
+
+                <!-- Chasm B: TTT + Linear Temporal Collapse -->
+                <div onclick="selectChasm('b')" id="chasm-b" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:scale-[1.02] transition-all flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-amber-400 tracking-wider">鸿沟 B</span>
+                        <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full font-mono">状态坍缩与时序崩溃</span>
+                    </div>
+                    <h5 class="text-sm font-bold text-white leading-snug">超长序列的隐式时序折叠与灾难性遗忘</h5>
+                    <p class="text-xs text-slate-400 leading-relaxed">当序列超过百万 Token 时，TTT 与线性的乘积状态矩阵 SD 将不可逆地收敛到低秩吸引子。</p>
+                    <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-[10px] font-mono text-amber-400/80 leading-relaxed">
+                        lim(t→∞); rank(S_t) → r (« d_model)
+                    </div>
+                </div>
+
+                <!-- Chasm C: Physical Implementation Gap -->
+                <div onclick="selectChasm('c')" id="chasm-c" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:scale-[1.02] transition-all flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-sky-400 tracking-wider">鸿沟 C</span>
+                        <span class="text-[10px] bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded-full font-mono">硬件的物理瓶颈</span>
+                    </div>
+                    <h5 class="text-sm font-bold text-white leading-snug">存算一体架构与 SRAM 物理尺寸极限</h5>
+                    <p class="text-xs text-slate-400 leading-relaxed">TTT 要真正发挥实时功效，其内循环（Inner Loop）必须完全剥离 HBM 访问。</p>
+                    <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-[10px] font-mono text-sky-400/80 leading-relaxed">
+                        SRAM 带宽 (4-8 MB) « TTT 权重矩阵 (8 GB+)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deep Dive on Selected Chasm -->
+            <div id="chasm-solution-box" class="bg-fuchsia-950/15 border border-fuchsia-500/20 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div id="chasm-icon-container" class="w-12 h-12 rounded-xl bg-fuchsia-500/10 text-fuchsia-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-mountain text-xl"></i>
+                    </div>
+                    <div>
+                        <h5 id="chasm-sol-title" class="text-sm font-bold text-white">能量地形的指数级崎岖爆炸</h5>
+                        <p id="chasm-sol-text" class="text-xs text-slate-400 mt-1 leading-relaxed">
+                            每一个合理配置的世界模型，其隐藏参数空间都是一个高维非凸曲面。试图在推理时用 1-Step TTT 找到"真正物理定律"的全域最优解，数学上等价于在 O(exp(d_model)) 个局部极小中找到全局最小，这天然不可计算。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: The Ultimate Blueprint (终极蓝图) -->
+        <section class="border-t border-slate-900 pt-8 space-y-6">
+            <div>
+                <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    <span class="w-1.5 h-6 bg-cortex-500 rounded-full"></span>
+                    通往 AGI 的终极蓝图：发育模型四大模块协同
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">JEPA + TTT + 睡眠蒸馏 + 快慢系统 的整体框架与思考</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950/20 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+                <div class="absolute -top-32 -right-32 w-96 h-96 bg-cortex-500/5 rounded-full blur-3xl"></div>
+                <div class="relative z-10 space-y-6">
+                    <div class="text-center max-w-2xl mx-auto">
+                        <span class="text-xs text-cortex-400 font-bold tracking-widest uppercase">The Final Architecture</span>
+                        <h4 class="text-2xl font-extrabold text-white mt-2">AGI 自发育框架总图</h4>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl space-y-4">
+                            <h5 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                                <span class="w-4 h-4 rounded bg-cortex-500/20 text-[10px] text-cortex-400 flex items-center justify-center font-bold">1</span>
+                                实体世界交互 (World Interaction)
+                            </h5>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                通过视听触觉传感器获取现实世界的高维特征流。用 JEPA 的非生成式编码器将其映射到隐空间，形成对环境的高阶因果抽象表示（Z）。
+                            </p>
+                            <div class="text-[10px] font-mono text-slate-500 bg-slate-950 p-2 rounded-lg border border-slate-900">
+                                z_t = Encoder(x_t);  E(z_t, z_pred) < ε
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl space-y-4">
+                            <h5 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                                <span class="w-4 h-4 rounded bg-hippo-500/20 text-[10px] text-hippo-400 flex items-center justify-center font-bold">2</span>
+                                动态校准 (TTT Alignment)
+                            </h5>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                当 Z 与预测之间存在非零能量差时，触发海马体的 1-Step TTT 校准。在 Zero-Shot 场景实时重映射隐空间曲面，实现即时自适应，不修改 Base 权重。
+                            </p>
+                            <div class="text-[10px] font-mono text-slate-500 bg-slate-950 p-2 rounded-lg border border-slate-900">
+                                W_t = W_(t-1) - η·∇_W E(z_t, z_pred)
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl space-y-4">
+                            <h5 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                                <span class="w-4 h-4 rounded bg-planner-500/20 text-[10px] text-planner-400 flex items-center justify-center font-bold">3</span>
+                                脑内规划 (Mental Simulation)
+                            </h5>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                在隐空间中进行快速蒙特卡洛树搜索。利用校准后的世界模型生成决策路径（快思考），或通过测试时计算展开深度推理（慢思考），两者共享同一套高维世界表征。
+                            </p>
+                            <div class="text-[10px] font-mono text-slate-500 bg-slate-950 p-2 rounded-lg border border-slate-900">
+                                action = argmin_a E(rollout(z_t, a))
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl space-y-4">
+                            <h5 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                                <span class="w-4 h-4 rounded bg-sleep-500/20 text-[10px] text-sleep-400 flex items-center justify-center font-bold">4</span>
+                                睡眠巩固 (Sleep Consolidation)
+                            </h5>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                通过经验重放与知识蒸馏，将海马内临时校准的隐空间特征迁移至基底世界模型。清空临时层，实现模型在架构层面的逐步发育与成长。
+                            </p>
+                            <div class="text-[10px] font-mono text-slate-500 bg-slate-950 p-2 rounded-lg border border-slate-900">
+                                θ_base ← θ_base + λ·(W_T - θ_base)  [蒸馏后]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- JavaScript for Simulation Interactivity -->
+    <script>
+        let currentSimInterval = null;
+        let simRunning = false;
+        let currentScenario = 'gravity';
+
+        function selectScenario(scenario) {
+            const btns = ['gravity', 'rust', 'virus'];
+            btns.forEach(id => {
+                const btn = document.getElementById('scen-' + id);
+                if (id === scenario) {
+                    btn.className = 'w-full text-left p-3 rounded-xl border-2 border-cortex-500 bg-cortex-950/20 text-xs transition-all flex items-center justify-between';
+                    btn.querySelector('.fa-circle')?.classList.replace('fa-circle', 'fa-circle-check');
+                    btn.querySelector('.fa-circle-check').className = 'fa-solid fa-circle-check text-cortex-500';
+                } else {
+                    btn.className = 'w-full text-left p-3 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-950/40 text-xs transition-all flex items-center justify-between';
+                    btn.querySelector('.fa-circle-check')?.classList.replace('fa-circle-check', 'fa-circle');
+                    btn.querySelector('.fa-circle').className = 'fa-solid fa-circle text-slate-800';
+                }
+            });
+            currentScenario = scenario;
+            
+            const anomalyText = document.getElementById('anomaly-text');
+            if (scenario === 'gravity') {
+                anomalyText.innerHTML = '[异常发生]：检测到物体下落时间与常识模型不匹配。Base模型预测下落 1s，实际观测下落 4s。预测误差 E_pred > 0.75！';
+            } else if (scenario === 'rust') {
+                anomalyText.innerHTML = '[异常发生]：检测到未知的借用检查语义。Base模型预测编译通过，实际报错"lifetime mismatch at line 42"。预测误差 E_pred > 0.82！';
+            } else if (scenario === 'virus') {
+                anomalyText.innerHTML = '[异常发生]：检测到未知蛋白质折叠模式。Base模型预测为普通流感，实际致死率 12%。预测误差 E_pred > 0.91！';
+            }
+        }
+
+        function startBlueprintSimulation() {
+            if (simRunning) {
+                if (currentSimInterval) clearInterval(currentSimInterval);
+                simRunning = false;
+                document.getElementById('run-sim-btn').innerHTML = '<i class="fa-solid fa-play"></i><span>激活世界模型 TTT 自适应演进</span>';
+                document.getElementById('simulation-state').textContent = '待命 IDLE';
+                document.getElementById('simulation-state').className = 'text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono uppercase tracking-wider';
+                document.getElementById('terminal-logs').innerHTML = '<span class="text-slate-600">// 演进结束。系统返回初始状态...</span>';
+                
+                // Reset layer states
+                ['l1', 'l2', 'l3', 'l4'].forEach(l => {
+                    document.getElementById('card-' + l).style.borderColor = 'rgb(30 41 59)';
+                    document.getElementById('status-' + l).textContent = '待命';
+                    document.getElementById('status-' + l).className = 'text-[8px] bg-slate-950 px-1.5 py-0.5 rounded text-slate-500 font-mono';
+                });
+                document.getElementById('status-l1').textContent = '常识固化';
+                
+                // Reset grid
+                for (let i = 1; i <= 16; i++) {
+                    const cell = document.getElementById('v' + i);
+                    cell.className = 'w-6 h-6 rounded bg-slate-800 transition-all duration-300';
+                }
+                document.getElementById('grid-status').textContent = '状态：特征固化 (Manifold Stable)';
+                return;
+            }
+
+            simRunning = true;
+            document.getElementById('run-sim-btn').innerHTML = '<i class="fa-solid fa-stop"></i><span>停止演化</span>';
+            
+            // Phase 1: Anomaly Detection
+            document.getElementById('simulation-state').textContent = '异常检测中...';
+            document.getElementById('simulation-state').className = 'text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono uppercase tracking-wider';
+            
+            const log = document.getElementById('terminal-logs');
+            log.innerHTML = '<span class="text-amber-400">[Phase 1/4] 异常检测引擎启动...</span>\n<span class="text-slate-600">// 对比编码特征 Z 与预测特征 Z_pred...</span>';
+
+            // Phase 2: TTT Calibration
+            setTimeout(() => {
+                document.getElementById('simulation-state').textContent = 'TTT 校准中...';
+                document.getElementById('simulation-state').className = 'text-[10px] bg-hippo-500/10 text-hippo-400 px-2 py-0.5 rounded font-mono uppercase tracking-wider';
+                document.getElementById('status-l2').textContent = '校准中';
+                document.getElementById('status-l2').className = 'text-[8px] bg-hippo-500/10 text-hippo-400 px-1.5 py-0.5 rounded font-mono animate-pulse';
+                document.getElementById('card-l2').style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                log.innerHTML += '\n<span class="text-hippo-400">[Phase 2/4] 海马 TTT 1-Step 快速校准...</span>\n<span class="text-slate-600">// 计算能量梯度 ∇_W E(z, z_pred)...</span><span class="text-slate-600">// 执行快速权重更新 W_t = W_(t-1) - η·∇_W E</span>';
+
+                // Phase 3: Latent Space Shift
+                setTimeout(() => {
+                    document.getElementById('simulation-state').textContent = '隐空间重构中...';
+                    document.getElementById('simulation-state').className = 'text-[10px] bg-planner-500/10 text-planner-400 px-2 py-0.5 rounded font-mono uppercase tracking-wider';
+                    document.getElementById('status-l3').textContent = '推演中';
+                    document.getElementById('status-l3').className = 'text-[8px] bg-planner-500/10 text-planner-400 px-1.5 py-0.5 rounded font-mono animate-pulse';
+                    document.getElementById('card-l3').style.borderColor = 'rgba(245, 158, 11, 0.4)';
+                    log.innerHTML += '\n<span class="text-planner-400">[Phase 3/4] 隐空间路径搜索...</span>\n<span class="text-slate-600">// 在重构后的流形上执行蒙特卡洛模拟...</span>';
+
+                    // Animate grid cells
+                    let step = 0;
+                    currentSimInterval = setInterval(() => {
+                        step++;
+                        const colors = ['bg-cortex-500', 'bg-hippo-500', 'bg-planner-500', 'bg-sleep-500', 'bg-sky-500', 'bg-emerald-500', 'bg-amber-500', 'bg-fuchsia-500'];
+                        for (let i = 1; i <= 16; i++) {
+                            const cell = document.getElementById('v' + i);
+                            const intensity = Math.min(100, 30 + Math.floor(Math.random() * 70));
+                            cell.className = `w-6 h-6 rounded ${colors[(i + step) % colors.length]}/${intensity} transition-all duration-300`;
+                        }
+                        document.getElementById('grid-status').textContent = `状态：流形重构中... (迭代 ${step})`;
+                        
+                        if (step > 8) {
+                            clearInterval(currentSimInterval);
+                            currentSimInterval = null;
+
+                            // Phase 4: Sleep Consolidation
+                            document.getElementById('simulation-state').textContent = '记忆巩固中...';
+                            document.getElementById('simulation-state').className = 'text-[10px] bg-sleep-500/10 text-sleep-400 px-2 py-0.5 rounded font-mono uppercase tracking-wider';
+                            document.getElementById('status-l4').textContent = '蒸馏中';
+                            document.getElementById('status-l4').className = 'text-[8px] bg-sleep-500/10 text-sleep-400 px-1.5 py-0.5 rounded font-mono animate-pulse';
+                            document.getElementById('card-l4').style.borderColor = 'rgba(59, 130, 246, 0.4)';
+                            log.innerHTML += '\n<span class="text-sleep-400">[Phase 4/4] 昼夜记忆蒸馏与固化...</span>\n<span class="text-slate-600">// 生成经验重放... 执行知识蒸馏...</span>';
+
+                            setTimeout(() => {
+                                // Simulation Complete
+                                for (let i = 1; i <= 16; i++) {
+                                    const cell = document.getElementById('v' + i);
+                                    cell.className = 'w-6 h-6 rounded bg-slate-800 transition-all duration-300';
+                                }
+                                document.getElementById('grid-status').textContent = '状态：新流形固化 (Evolved)';
+                                document.getElementById('grid-status').className = 'text-[9px] text-emerald-500 font-mono mt-2 text-center';
+                                
+                                document.getElementById('simulation-state').textContent = '演进完成 EVOLVED';
+                                document.getElementById('simulation-state').className = 'text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-mono uppercase tracking-wider';
+                                
+                                ['l1', 'l2', 'l3', 'l4'].forEach(l => {
+                                    document.getElementById('status-l').textContent = '已固化';
+                                    document.getElementById('status-l').className = 'text-[8px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-mono';
+                                });
+                                document.getElementById('status-l1').textContent = '已更新';
+                                document.getElementById('status-l2').textContent = '校准完毕';
+                                document.getElementById('status-l3').textContent = '策略就绪';
+                                document.getElementById('status-l4').textContent = '蒸馏完成';
+                                
+                                log.innerHTML += '\n<span class="text-emerald-400">[完成] 世界模型已成功演进！新特征整合至 Base 模型。</span>';
+
+                                // Reset sim state so user can click again
+                                simRunning = false;
+                                document.getElementById('run-sim-btn').innerHTML = '<i class="fa-solid fa-play"></i><span>激活世界模型 TTT 自适应演进</span>';
+                            }, 2000);
+                        }
+                    }, 500);
+                }, 1500);
+            }, 1000);
+        }
+
+        // Chasm selector
+        function selectChasm(id) {
+            const configs = {
+                a: {
+                    title: '能量地形的指数级崎岖爆炸',
+                    left: '每一个合理配置的世界模型，其隐藏参数空间都是一个高维非凸曲面。',
+                    right: '试图在推理时用 1-Step TTT 找到"真正物理定律"的全域最优解，数学上等价于在 O(exp(d_model)) 个局部极小中找到全局最小，这天然不可计算。',
+                    solution: '唯一的出路是引入先验结构（如物理对称性归纳偏置）。JEPA 的隐空间不是纯欧几里得空间，而是一个预包含因果流形先验的结构化潜在空间，将搜索范围从 O(exp(d)) 降至 O(poly(d))。',
+                    color: 'fuchsia',
+                    icon: 'fa-mountain'
+                },
+                b: {
+                    title: '超长序列的隐式时序折叠与灾难性遗忘',
+                    left: '当序列超过百万 Token 时，TTT 与线性的乘积状态矩阵 SD 将不可逆地收敛到低秩吸引子。',
+                    right: '早期输入的信息会在持续的 TTT 迭代中被后续的状态覆盖，导致系统对序列早期的关键上下文产生遗忘。',
+                    solution: '借鉴 Transformer 的残差连接和层归一化思想，在 TTT 更新中引入衰减门控机制——每一步的 TTT 更新权重都会保留一部分上一状态的成分，通过可学习的遗忘门控制信息保留周期。',
+                    color: 'amber',
+                    icon: 'fa-clock'
+                },
+                c: {
+                    title: '存算一体架构与 SRAM 物理尺寸极限',
+                    left: 'TTT 要真正发挥实时功效，其内循环（Inner Loop）必须完全剥离 HBM 访问。',
+                    right: '但当前最优硬件的 SRAM 容量（4-8 MB）与 TTT 快权重矩阵的尺寸（8GB+）存在数千倍的鸿沟。',
+                    solution: '未来的 AGI 芯片必须走向近存计算（Near-Memory Computing）或存内计算（In-Memory Computing），让权重更新操作直接在存储阵列里完成，而不是在 SRAM 和 HBM 之间搬运海量数据。',
+                    color: 'sky',
+                    icon: 'fa-microchip'
+                }
+            };
+            const config = configs[id];
+            if (!config) return;
+
+            // Update cards
+            ['a', 'b', 'c'].forEach(k => {
+                const card = document.getElementById('chasm-' + k);
+                if (k === id) {
+                    card.className = 'bg-slate-900 border-2 border-' + config.color + '-500/40 rounded-2xl p-5 cursor-pointer hover:scale-[1.02] transition-all flex flex-col gap-3';
+                } else {
+                    card.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:scale-[1.02] transition-all flex flex-col gap-3';
+                }
+            });
+
+            // Update solution box
+            const solTitle = document.getElementById('chasm-sol-title');
+            if (solTitle) solTitle.textContent = config.title;
+            const chasmDescLeft = document.getElementById('chasm-sol-left');
+            if (chasmDescLeft) chasmDescLeft.textContent = config.left;
+            const chasmDescRight = document.getElementById('chasm-sol-right');
+            if (chasmDescRight) chasmDescRight.textContent = config.right;
+            const chasmSolText = document.getElementById('chasm-sol-text');
+            if (chasmSolText) chasmSolText.textContent = config.solution;
+
+            const iconBox = document.getElementById('chasm-icon-container');
+            if (iconBox) {
+                iconBox.className = 'w-12 h-12 rounded-xl bg-' + config.color + '-500/10 text-' + config.color + '-400 flex items-center justify-center shrink-0';
+                iconBox.innerHTML = '<i class="fa-solid ' + config.icon + ' text-xl"></i>';
+            }
+
+            const solBox = document.getElementById('chasm-solution-box');
+            if (solBox) {
+                solBox.className = 'bg-' + config.color + '-950/15 border border-' + config.color + '-500/20 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4';
+            }
+        }
+    </script>
+</body>
+</html>
