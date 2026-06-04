@@ -152,29 +152,39 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Featured Article -->
                     <article class="lg:col-span-2 glass rounded-2xl overflow-hidden card-hover glow featured-card relative group cursor-pointer">
-                        <a href="./articles/llm-architecture-tracking.html" class="block p-8">
-                            <div class="flex items-center space-x-3 mb-4">
-                                <span class="tag tag-guide">LLM 架构</span>
-                                <span class="text-xs text-slate-400 font-mono">L-01</span>
-                                <span class="text-xs text-slate-500">2026-05-29</span>
-                            </div>
-                            <h3 class="text-2xl lg:text-3xl font-bold text-white mb-4 group-hover:text-sky-300 transition-colors leading-tight">
-                                2026 旗舰大模型 TTT & 线性注意力架构深度剖析
-                            </h3>
-                            <p class="text-slate-300 mb-6 leading-relaxed text-base">
-                                解密 GPT-5.5 / Claude 4.8 / DeepSeek 4 Pro 的 TTT 测试时训练与线性注意力融合算子，从"静态死记"走向"动态自进化"。
-                            </p>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-2 text-sm text-sky-400 font-medium">
-                                    <span>阅读全文</span>
-                                    <i class="fa-solid fa-arrow-right ml-1 group-hover:translate-x-1 transition-transform"></i>
+                        <a href="./papers/rae-representation-autoencoders.html" class="block p-0">
+                            <div class="relative h-48 md:h-56 overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-br from-pink-500/40 via-purple-500/40 to-amber-500/40 flex items-center justify-center">
+                                    <i class="fa-solid fa-cube text-7xl text-white/25 drop-shadow-2xl"></i>
                                 </div>
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-arrow-right"></i>
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#0b0e14]/85 via-[#0b0e14]/40 to-transparent pointer-events-none"></div>
+                                <div class="absolute bottom-4 left-6 right-6">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="tag tag-arxiv">Diffusion</span>
+                                        <span class="text-xs text-slate-400 font-mono">P-07</span>
+                                        <span class="text-xs text-slate-500">2026-06-05</span>
+                                    </div>
+                                    <h3 class="text-xl lg:text-2xl font-bold text-white leading-tight drop-shadow-lg">
+                                        RAE &amp; 系列论文深度学习笔记 · Diffusion Transformers with Representation Autoencoders
+                                    </h3>
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <p class="text-slate-300 mb-4 leading-relaxed text-sm">
+                                    从 DiT → SiT → REPA → SRA → RAE v1/v2 完整演进路线：解码 Saining Xie 团队 Representation Autoencoder 如何重塑 latent diffusion 表征空间，含 DiTDH 架构与三处关键修复。
+                                </p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2 text-sm text-sky-400 font-medium">
+                                        <span>阅读全文</span>
+                                        <i class="fa-solid fa-arrow-right ml-1 group-hover:translate-x-1 transition-transform"></i>
+                                    </div>
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 via-purple-500 to-amber-500 flex items-center justify-center text-white font-bold text-base shadow-lg group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid fa-arrow-right"></i>
+                                    </div>
                                 </div>
                             </div>
                         </a>
-                        <div class="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-amber-500/10 to-transparent rounded-tl-full pointer-events-none"></div>
+                        <div class="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-pink-500/10 to-transparent rounded-tl-full pointer-events-none"></div>
                     </article>
 
                     <!-- Side Stack -->
@@ -890,6 +900,17 @@
                                 <h4 class="text-sm font-semibold text-white group-hover:text-pink-300 transition-colors line-clamp-1 mb-1">低场 MRI 生成 7T 研究导航</h4>
                                 <div class="flex items-center space-x-2 text-xs text-slate-500">
                                     <span class="tag tag-arxiv text-[10px] py-0 px-1.5">Synthetic 7T</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-pink-400 transition-colors text-xs mt-2"></i>
+                        </a>
+
+                        <a href="./papers/rae-representation-autoencoders.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
+                            <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center text-pink-400 font-mono text-xs font-bold shrink-0 mt-0.5">P-07</div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-semibold text-white group-hover:text-pink-300 transition-colors line-clamp-1 mb-1">RAE: Representation Autoencoders 系列论文深度学习笔记</h4>
+                                <div class="flex items-center space-x-2 text-xs text-slate-500">
+                                    <span class="tag tag-arxiv text-[10px] py-0 px-1.5">Diffusion / RAE</span>
                                 </div>
                             </div>
                             <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-pink-400 transition-colors text-xs mt-2"></i>

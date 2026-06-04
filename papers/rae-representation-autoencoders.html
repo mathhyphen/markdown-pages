@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RAE & 系列论文深度学习笔记 · Diffusion Transformers with Representation Autoencoders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg-0: #0b0e14;
+    --bg-1: #11151c;
+    --bg-2: #161b25;
+    --bg-3: #1c2230;
+    --border: #232a3a;
+    --border-strong: #2f384b;
+    --text: #d8dde8;
+    --text-dim: #97a0b3;
+    --text-bright: #f1f3f8;
+    --accent: #e0a878;       /* warm amber */
+    --accent-2: #7ec5d6;     /* cyan */
+    --accent-3: #c192d8;     /* lavender */
+    --accent-4: #9ad17a;     /* mint */
+    --accent-5: #e07a8b;     /* rose */
+    --code-bg: #0e1320;
+    --highlight: #fde68a33;
+    --link: #8bb7e0;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg-0);
+    color: var(--text);
+    font-family: "Inter", "Noto Sans SC", system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    scroll-behavior: smooth;
+  }
+
+  /* Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Sidebar TOC */
+  aside.toc {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    border-right: 1px solid var(--border);
+    background: var(--bg-1);
+  }
+  aside.toc h2 {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0 0 16px;
+    font-weight: 600;
+  }
+  aside.toc ol {
+    list-style: none;
+    padding: 0; margin: 0;
+    counter-reset: section;
+  }
+  aside.toc ol li {
+    counter-increment: section;
+    margin: 0;
+  }
+  aside.toc ol li a {
+    display: block;
+    padding: 6px 10px 6px 32px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    position: relative;
+  }
+  aside.toc ol li a::before {
+    content: counter(section, decimal-leading-zero);
+    position: absolute;
+    left: 8px;
+    color: var(--text-dim);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+  }
+  aside.toc ol li a:hover { color: var(--text-bright); }
+  aside.toc ol li a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(224,168,120,0.05);
+  }
+  aside.toc ol li.lvl-2 a { padding-left: 48px; font-size: 12.5px; }
+  aside.toc ol li.lvl-2 a::before { content: "·"; }
+
+  /* Main */
+  main {
+    padding: 0 56px 80px;
+    max-width: 920px;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 80px 0 48px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: "Noto Sans SC", "Inter", sans-serif;
+    font-size: 42px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+  }
+  .hero .subtitle {
+    font-size: 18px;
+    color: var(--text-dim);
+    margin: 0 0 28px;
+    font-weight: 400;
+  }
+  .hero .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-family: "JetBrains Mono", monospace;
+  }
+  .hero .meta .pill {
+    border: 1px solid var(--border-strong);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--bg-2);
+  }
+  .hero .meta .pill strong { color: var(--text); font-weight: 500; }
+
+  .key-results {
+    margin-top: 36px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .key-results .stat {
+    border: 1px solid var(--border);
+    background: var(--bg-1);
+    padding: 18px 20px;
+    border-radius: 8px;
+  }
+  .key-results .stat .v {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 28px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .key-results .stat .l {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Section */
+  section.block {
+    padding: 56px 0 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  section.block:last-child { border-bottom: none; }
+
+  section h2 {
+    font-family: "Noto Sans SC", sans-serif;
+    font-size: 30px;
+    color: var(--text-bright);
+    font-weight: 700;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  section h2 .num {
+    color: var(--accent);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 18px;
+    margin-right: 12px;
+    font-weight: 500;
+  }
+  section h3 {
+    font-size: 20px;
+    color: var(--text-bright);
+    font-weight: 600;
+    margin: 32px 0 12px;
+  }
+  section h4 {
+    font-size: 15px;
+    color: var(--accent-2);
+    font-weight: 600;
+    margin: 24px 0 8px;
+    font-family: "JetBrains Mono", monospace;
+    letter-spacing: 0.04em;
+  }
+  section p {
+    margin: 12px 0;
+    color: var(--text);
+  }
+  section a {
+    color: var(--link);
+    text-decoration: none;
+    border-bottom: 1px dashed transparent;
+    transition: border-color 0.15s;
+  }
+  section a:hover { border-bottom-color: var(--link); }
+
+  /* Callout */
+  .callout {
+    background: var(--bg-2);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 15px;
+  }
+  .callout.c-2 { border-color: var(--accent-2); }
+  .callout.c-3 { border-color: var(--accent-3); }
+  .callout.c-4 { border-color: var(--accent-4); }
+  .callout.c-5 { border-color: var(--accent-5); }
+  .callout .tag {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .callout.c-2 .tag { color: var(--accent-2); }
+  .callout.c-3 .tag { color: var(--accent-3); }
+  .callout.c-4 .tag { color: var(--accent-4); }
+  .callout.c-5 .tag { color: var(--accent-5); }
+
+  /* Code */
+  code, pre {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    font-size: 13.5px;
+  }
+  :not(pre) > code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #e6c177;
+    font-size: 0.9em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.55;
+    color: #d6dceb;
+  }
+  pre .c-kw { color: #c192d8; }
+  pre .c-str { color: #9ad17a; }
+  pre .c-num { color: #e0a878; }
+  pre .c-com { color: #5d6885; font-style: italic; }
+  pre .c-fn { color: #7ec5d6; }
+  pre .c-cls { color: #e07a8b; }
+
+  /* Paper card (series timeline) */
+  .series {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 28px 0 0;
+    padding: 0;
+  }
+  .paper {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 20px;
+    padding: 18px 20px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .paper:hover {
+    border-color: var(--border-strong);
+    transform: translateX(2px);
+  }
+  .paper.focus {
+    border-color: var(--accent);
+    background: linear-gradient(90deg, rgba(224,168,120,0.06), var(--bg-1) 30%);
+  }
+  .paper.focus::before {
+    content: "📌 你要重点读的";
+    position: absolute;
+    top: -10px;
+    right: 16px;
+    background: var(--accent);
+    color: var(--bg-0);
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .paper .when {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .paper .when .yr {
+    color: var(--accent-2);
+    font-weight: 600;
+    display: block;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .paper h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    color: var(--text-bright);
+    font-weight: 600;
+  }
+  .paper h3 .tag-mini {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-left: 8px;
+    padding: 1px 6px;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    font-weight: 500;
+  }
+  .paper .authors {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-style: italic;
+  }
+  .paper .summary {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.55;
+    margin: 0;
+  }
+  .paper .arxiv {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    color: var(--accent-2);
+    margin-top: 6px;
+  }
+
+  /* Diagram */
+  .diagram {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 28px 24px;
+    border-radius: 10px;
+    margin: 28px 0;
+    overflow-x: auto;
+  }
+  .diagram .title {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  .diagram svg { display: block; margin: 0 auto; max-width: 100%; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  thead th {
+    text-align: left;
+    background: var(--bg-2);
+    color: var(--accent-2);
+    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--border-strong);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  tbody tr:hover { background: var(--bg-1); }
+  tbody td code { font-size: 12.5px; }
+
+  /* Theorem block */
+  .theorem {
+    background: linear-gradient(180deg, rgba(126,197,214,0.04), var(--bg-1));
+    border: 1px solid var(--border-strong);
+    padding: 20px 22px;
+    margin: 24px 0;
+    border-radius: 8px;
+    position: relative;
+  }
+  .theorem::before {
+    content: "Theorem 1";
+    position: absolute;
+    top: -10px;
+    left: 18px;
+    background: var(--bg-1);
+    color: var(--accent-2);
+    padding: 1px 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--accent-2);
+    border-radius: 3px;
+  }
+  .theorem p { margin: 6px 0; }
+
+  /* Lists */
+  ul.bullets { padding-left: 22px; }
+  ul.bullets li { margin: 6px 0; }
+
+  /* TOC toggle for mobile */
+  .toc-toggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 100;
+    background: var(--bg-2);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; }
+    aside.toc { display: none; }
+    main { padding: 20px 24px 60px; }
+    .hero h1 { font-size: 30px; }
+    .key-results { grid-template-columns: 1fr; }
+    .toc-toggle { display: block; }
+    .paper { grid-template-columns: 1fr; }
+  }
+
+  /* Mermaid-like architecture (use SVG) */
+  .arch {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .arch .step {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    padding: 14px 12px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 12.5px;
+  }
+  .arch .step .n {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .arch .step .l {
+    color: var(--text-bright);
+    font-weight: 500;
+  }
+  .arch .step .d {
+    color: var(--text-dim);
+    font-size: 11px;
+    margin-top: 4px;
+  }
+  .arch .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 20px;
+  }
+
+  /* Reading order box */
+  .reading-order {
+    background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 24px 0;
+  }
+  .reading-order ol {
+    counter-reset: ro;
+    padding-left: 28px;
+  }
+  .reading-order ol li {
+    counter-increment: ro;
+    margin: 14px 0;
+    color: var(--text);
+  }
+  .reading-order ol li::marker {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .reading-order ol li strong { color: var(--text-bright); }
+
+  /* Plot canvas (simple bar chart with SVG) */
+  .chart {
+    margin: 16px 0;
+    padding: 18px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .chart .caption {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 10px;
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  /* Mini section title */
+  .sub {
+    font-size: 11px;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--accent);
+    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ============== Sidebar TOC ============== -->
+  <aside class="toc">
+    <h2>目录</h2>
+    <ol>
+      <li><a href="#hero">总览：RAE 在做什么</a></li>
+      <li><a href="#series">系列时间线</a></li>
+      <li class="lvl-2"><a href="#series">DiT → SiT → REPA → SRA → RAE v2</a></li>
+      <li><a href="#background">1. 背景：VAE 怎么了</a></li>
+      <li><a href="#idea">2. 核心想法：RAE</a></li>
+      <li class="lvl-2"><a href="#idea">冻结 Encoder + 训练 Decoder</a></li>
+      <li class="lvl-2"><a href="#idea">重建实验</a></li>
+      <li><a href="#challenge">3. 直接用行不行？</a></li>
+      <li><a href="#three-fixes">4. 三个关键解法</a></li>
+      <li class="lvl-2"><a href="#three-fixes">容量匹配（含 Theorem 1）</a></li>
+      <li class="lvl-2"><a href="#three-fixes">噪声调度对齐</a></li>
+      <li class="lvl-2"><a href="#three-fixes">噪声增强 Decoder</a></li>
+      <li><a href="#ditdh">5. DiTDH 架构</a></li>
+      <li><a href="#experiments">6. 实验结果</a></li>
+      <li><a href="#series-deep">7. 整条系列论文纵深</a></li>
+      <li class="lvl-2"><a href="#series-deep">DiT / SiT / REPA / SRA / RAE v2</a></li>
+      <li><a href="#formulas">8. 关键公式速查</a></li>
+      <li><a href="#open">9. 开放问题 & 讨论</a></li>
+      <li><a href="#reading">10. 建议阅读顺序</a></li>
+    </ol>
+  </aside>
+
+  <!-- ============== Main ============== -->
+  <main>
+
+    <!-- ============== HERO ============== -->
+    <header class="hero" id="hero">
+      <div class="eyebrow">arXiv:2510.11690 · 2025.10 · NYU · Saining Xie 组</div>
+      <h1>Diffusion Transformers with Representation Autoencoders</h1>
+      <p class="subtitle">
+        别再用 SD-VAE 了。直接把 DINOv2 / SigLIP / MAE 冻住当 Encoder，
+        训一个轻量 Decoder，就能把扩散模型的生成质量再抬一档。
+      </p>
+      <div class="meta">
+        <span class="pill"><strong>作者</strong> Boyang Zheng, Nanye Ma, Shengbang Tong, Saining Xie</span>
+        <span class="pill"><strong>机构</strong> NYU · CILVR</span>
+        <span class="pill"><strong>分类</strong> cs.CV · cs.LG</span>
+        <span class="pill"><strong>项目页</strong> rae-dit.github.io</span>
+        <span class="pill"><strong>代码</strong> github.com/bytetriper/RAE</span>
+      </div>
+
+      <div class="key-results">
+        <div class="stat">
+          <div class="v">1.51</div>
+          <div class="l">FID-50K @ 256×256（无 CFG）</div>
+        </div>
+        <div class="stat">
+          <div class="v">1.13</div>
+          <div class="l">FID-50K @ 256/512（有 CFG）</div>
+        </div>
+        <div class="stat">
+          <div class="v">~16×</div>
+          <div class="l">相比 DiT + SD-VAE 的训练收敛加速</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============== SERIES TIMELINE ============== -->
+    <section class="block" id="series">
+      <h2><span class="num">00</span>系列时间线</h2>
+      <p>
+        这篇 RAE 不是孤立的，它属于 Saining Xie 组一条清晰的技术演进线。从 DiT 出发，
+        沿着"用更强表征辅助生成"这条线一脉相承。下面六篇是这条线的关键节点：
+      </p>
+
+      <div class="series">
+
+        <div class="paper">
+          <div class="when"><span class="yr">2022.12</span>开端</div>
+          <div>
+            <h3>Scalable Diffusion Models with Transformers <span class="tag-mini">DiT</span></h3>
+            <div class="authors">William Peebles, Saining Xie · ICCV 2023 Oral</div>
+            <p class="summary">
+              用 ViT 替换 U-Net 做 latent diffusion 的骨干，证明了 DiT 的 FID
+              随 GFLOPs 单调下降。DiT-XL/2 在 ImageNet 256 上 FID 2.27，开山之作。
+            </p>
+            <div class="arxiv">arXiv:2212.09748 · #1 引用基础</div>
+          </div>
+        </div>
+
+        <div class="paper">
+          <div class="when"><span class="yr">2024.01</span>Flow 化</div>
+          <div>
+            <h3>Scalable Interpolant Transformers <span class="tag-mini">SiT</span></h3>
+            <div class="authors">Nanye Ma, Mark Goldstein, Michael S. Albergo, Nicholas M. Boffi, Eric Vanden-Eijnden, Saining Xie</div>
+            <p class="summary">
+              把 DiT 搬到 stochastic interpolant / flow matching 框架下。
+              同样的骨架和算力下，全面超过 DiT，并指出扩散系数是独立可调的"旋钮"。
+              FID 256 达 2.06。
+            </p>
+            <div class="arxiv">arXiv:2401.08740 · DiT 同一组"动力学升级版"</div>
+          </div>
+        </div>
+
+        <div class="paper">
+          <div class="when"><span class="yr">2024.10</span>对齐表征</div>
+          <div>
+            <h3>Representation Alignment for Generation <span class="tag-mini">REPA</span></h3>
+            <div class="authors">Sihyun Yu, Sangkyung Kwak, Huiwon Jang, Jongheon Jeong, Jonathan Huang, Jinwoo Shin, Saining Xie</div>
+            <p class="summary">
+              发现 DiT/SiT 中间层的 hidden state 语义质量远不如 DINOv2。
+              引入一个简单的正则项：把 diffusion 中间表示向 DINOv2 的干净表示拉齐。
+              训练速度提升 17.5×，FID 1.42。RAE 的"近亲"前置工作。
+            </p>
+            <div class="arxiv">arXiv:2410.06940 · 第一次把表征喂进 diffusion</div>
+          </div>
+        </div>
+
+        <div class="paper focus">
+          <div class="when"><span class="yr">2025.10</span>替换 VAE</div>
+          <div>
+            <h3>Diffusion Transformers with Representation Autoencoders <span class="tag-mini">RAE</span></h3>
+            <div class="authors">Boyang Zheng, Nanye Ma, Shengbang Tong, Saining Xie</div>
+            <p class="summary">
+              REPA 是"借表征"——AE 还是 SD-VAE。RAE 直接把 VAE 整个换掉：
+              Encoder 用冻结的 DINOv2 / SigLIP2 / MAE，Decoder 训一个轻量 ViT。
+              挑战了"语义 Encoder 不能重建""Diffusion 不擅长高维 latent"两个老观点。
+              FID 256 达 1.13，逼近隐式上限。
+            </p>
+            <div class="arxiv">arXiv:2510.11690 · 本笔记的重点</div>
+          </div>
+        </div>
+
+        <div class="paper">
+          <div class="when"><span class="yr">2025.05</span>自对齐</div>
+          <div>
+            <h3>Self-Representation Alignment <span class="tag-mini">SRA</span></h3>
+            <div class="authors">Dengyang Jiang, Mengmeng Wang, Liuzhuozheng Li, et al.</div>
+            <p class="summary">
+              不想引外部 Encoder？让 DiT 早层（高噪声）对齐晚层（低噪声），
+              不需要 DINOv2，自身就能提供表征监督。ICLR 2026 接收。
+              SRA v2（CVPR 2026）进一步把代价做到极低。
+            </p>
+            <div class="arxiv">arXiv:2505.02831 · "REPA 不需要外部 Encoder"的回答</div>
+          </div>
+        </div>
+
+        <div class="paper">
+          <div class="when"><span class="yr">2026.01</span>推到 T2I</div>
+          <div>
+            <h3>Scaling Text-to-Image Diffusion Transformers with Representation Autoencoders <span class="tag-mini">RAE v2</span></h3>
+            <div class="authors">Shengbang Tong, Boyang Zheng, Ziteng Wang, Bingda Tang, Nanye Ma, Ellis Brown, Jihan Yang, Rob Fergus, Yann LeCun, Saining Xie</div>
+            <p class="summary">
+              把 RAE 推到大规模自由文生图（0.5B → 9.8B）。RAE 在所有规模上
+              预训练都强过 FLUX VAE；VAE 微调 64 epoch 就灾难性过拟合，RAE 训到 256 epoch 依然稳。
+              发现规模化下，"宽 Head"和"噪声增强 Decoder"这些花活都没用了，只剩"维度感知调度"是真核心。
+            </p>
+            <div class="arxiv">arXiv:2601.16208 · RAE 的工业级验证 + 简化</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="callout c-3">
+        <div class="tag">读图小贴士</div>
+        这条线一以贯之的问题意识是：<b>能不能让生成模型直接用"已经会理解图像"的表征做潜空间</b>。
+        答案从 REPA 的"借力"（loss 上对齐），到 RAE 的"换掉"（AE 整个换掉），到 SRA 的"自给"（不引外部）。
+      </div>
+    </section>
+
+    <!-- ============== 1. Background ============== -->
+    <section class="block" id="background">
+      <h2><span class="num">01</span>背景：VAE 怎么了</h2>
+
+      <p>
+        标准 latent diffusion 模型（Stable Diffusion、DiT、SiT）的两阶段训练是这样的：
+      </p>
+
+      <div class="arch">
+        <div class="step"><div class="n">阶段一</div><div class="l">训 VAE</div><div class="d">图像 ↔ 紧凑 latent</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="n">阶段二</div><div class="l">训 DiT</div><div class="d">在 latent 上做 diffusion</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="n">推理</div><div class="l">采样 → 解码</div><div class="d">latent → 图像</div></div>
+      </div>
+
+      <p>
+        这里有个很要命的问题：<b>SD-VAE 是个老古董</b>。
+        Stable Diffusion 那会儿 (2021) 用的是 KL-VAE，编码器是个 8× 下采样的卷积网络，
+        把 256×256×3 压成 32×32×4（潜空间维度只有 4）。
+      </p>
+
+      <h3>VAE 三大先天不足</h3>
+      <ul class="bullets">
+        <li><b>架构过时</b>：卷积 + 8× 下采样，挤压了 backbone 设计的灵活性（你想换 ViT？难）。</li>
+        <li><b>潜空间维度太低</b>：4 维 channel 承载了全部图像信息，瓶颈明显。</li>
+        <li><b>语义信息几乎为零</b>：SD-VAE 在 ImageNet 上 linear probing 准确率只有 <b>~8%</b>。说明它压出来的 latent 几乎不携带分类/语义信息，对下游任务很不友好。</li>
+      </ul>
+
+      <div class="callout c-5">
+        <div class="tag">反直觉的点</div>
+        VAE 的训练目标就是"重建得越像越好"，所以它把所有带宽都用来记低层像素细节。
+        留给"语义"的部分基本被挤干了。这跟人类视觉系统的处理顺序（先语义后细节）正好反过来。
+      </div>
+
+      <p>
+        一个自然的问题：如果 generation 目标只是"画一张像猫的图片"，是不是必须先学会把猫"压缩"成 4 维 latent？
+        REPA 和 RAE 系列的答案都是：<b>不需要</b>。直接用高维的、已经会理解图像的表征就行。
+      </p>
+    </section>
+
+    <!-- ============== 2. Core Idea ============== -->
+    <section class="block" id="idea">
+      <h2><span class="num">02</span>核心想法：Representation Autoencoders</h2>
+
+      <h3>RAE = 冻结的语义 Encoder + 训出来的 Decoder</h3>
+
+      <p>
+        思路简单到近乎偷懒：
+      </p>
+
+      <div class="arch">
+        <div class="step">
+          <div class="n">E</div>
+          <div class="l">冻结的视觉 Encoder</div>
+          <div class="d">DINOv2-B / SigLIP2-B / MAE-B<br/>hidden dim = 768</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <div class="n">latent</div>
+          <div class="l">高维语义潜空间</div>
+          <div class="d">256 tokens × 768 dim<br/>(远超 SD-VAE 的 4 dim)</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <div class="n">D</div>
+          <div class="l">训出来的 Decoder</div>
+          <div class="d">ViT-XL<br/>图像重建</div>
+        </div>
+      </div>
+
+      <p>
+        Encoder 直接从现成的 self-supervised 模型拿过来（参数全部冻住），只训 Decoder。
+        这样有两大好处：
+      </p>
+      <ul class="bullets">
+        <li><b>潜空间天生富含语义</b>：DINOv2 的 latent 在 ImageNet linear probing 上准确率 <b>~84.5%</b>，跟 SD-VAE 的 8% 形成碾压级差距。</li>
+        <li><b>训练成本极低</b>：Encoder 不参与梯度计算，也不用训整个 AE，只需训一个 Decoder。</li>
+      </ul>
+
+      <h3>Decoder 怎么训？</h3>
+      <p>标准的重建目标：</p>
+      <pre><code>L = L<span class="c-num">1</span> + L<span class="c-num">LPIPS</span> + L<span class="c-num">adversarial</span></code></pre>
+      <p>
+        即 L1 像素损失 + LPIPS 感知损失 + GAN 风格的对抗损失。
+        Encoder patch size = Decoder patch size = 16，256×256 的图会得到 16×16 = 256 个 token。
+      </p>
+
+      <h3>实验：RAE 的重建质量</h3>
+
+      <p>下表是论文 Figure 2 的核心数据，重建用 rFID（重建 FID，越低越好）：</p>
+
+      <table>
+        <thead>
+          <tr><th>方法</th><th>Encoder</th><th>Decoder</th><th>rFID ↓</th><th>Linear probe acc ↑</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>SD-VAE</td><td>训 from scratch</td><td>训 from scratch</td><td>~0.6（基线，4 维）</td><td>~8%</td></tr>
+          <tr><td>RAE (DINOv2-B)</td><td>DINOv2-B（冻结）</td><td>ViT-XL</td><td><b>优于 SD-VAE</b></td><td>~84.5%</td></tr>
+          <tr><td>RAE (SigLIP2-B)</td><td>SigLIP2-B（冻结）</td><td>ViT-XL</td><td>略低于 DINOv2</td><td>~80%</td></tr>
+          <tr><td>RAE (MAE-B)</td><td>MAE-B（冻结）</td><td>ViT-XL</td><td>重建更弱</td><td>中等</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout c-4">
+        <div class="tag">反共识</div>
+        业界长久以来的假设是：<i>"语义 Encoder 太关注高层结构，丢失了底层细节，所以不适合做重建"</i>。
+        RAE 用一个简单粗暴的事实推翻了这个假设：<b>只要 Decoder 训得足够好（ViT-XL + 对抗损失），冻结的 DINOv2-B 照样能重建出比 SD-VAE 更清晰的细节</b>。
+      </div>
+    </section>
+
+    <!-- ============== 3. Challenge ============== -->
+    <section class="block" id="challenge">
+      <h2><span class="num">03</span>直接拿 RAE 训 DiT，行不行？</h2>
+
+      <p>
+        衡量一个 AE 合不合格，其实有两个维度：
+      </p>
+      <ul class="bullets">
+        <li><b>Reconstruction</b>：能不能把图重建回来？（上节已验证 ✓）</li>
+        <li><b>Diffusability / Generation</b>：在这个 AE 的 latent 上做 diffusion 容易不容易？生成效果好不好？</li>
+      </ul>
+
+      <p>
+        很不幸，把 RAE 接到 DiT 上直接训，<b>几乎不 work</b>。
+        小模型 DiT-S 完全失败，大模型 DiT-XL 性能也远落后于 SD-VAE baseline。
+        作者把这个失败归因到三件事：
+      </p>
+
+      <div class="callout c-5">
+        <div class="tag">失败三连</div>
+        <ol style="margin: 6px 0 0; padding-left: 22px;">
+          <li>标准 DiT 是为 <b>低维</b> VAE token 设计的，直接喂 <b>高维</b> RAE token 不消化。</li>
+          <li>Diffusion 的 noise schedule 是为 VAE token 的数据分布调的，对 RAE 这种"语义稠密"分布不合适。</li>
+          <li>RAE Decoder 是在 <b>干净</b> latent 上训的，但推理时面对的是 diffusion 中间过程的 <b>带噪</b> latent，存在 distribution gap。</li>
+        </ol>
+      </div>
+
+      <p>
+        下面三节是 RAE 这篇论文的真正核心 —— 怎么把这三件事一个个修好。
+      </p>
+    </section>
+
+    <!-- ============== 4. Three Fixes ============== -->
+    <section class="block" id="three-fixes">
+      <h2><span class="num">04</span>三个关键解法</h2>
+
+      <!-- 4.1 -->
+      <h3>4.1 容量匹配：模型宽度 ≥ Encoder token 维度</h3>
+
+      <p>
+        第一个意外发现来自一个 toy 实验：<b>只取一张图片</b>，用 RAE 编码成 latent，
+        然后用 DiT 去<b>过拟合这一张图</b>，看能学多像。
+      </p>
+
+      <p>结论相当反直觉：</p>
+      <ul class="bullets">
+        <li><b>固定深度，把模型变宽</b> → 训练 loss 单调下降，采样质量随之提升</li>
+        <li><b>固定宽度，把模型变深</b> → 几乎没收益</li>
+      </ul>
+
+      <p>
+        最关键的是，当宽度增加到 <b>768</b>（也就是 DINOv2-B 的 token 维度）时，
+        训练 loss 才能收敛到接近零；宽度不够时，loss 卡在一个显著高于零的平台上不去。
+      </p>
+
+      <div class="diagram">
+        <div class="title">Figure 4 思想：过拟合单张图，宽度才是关键</div>
+        <svg viewBox="0 0 720 220" width="720" height="220" xmlns="http://www.w3.org/2000/svg">
+          <!-- axes -->
+          <line x1="60" y1="180" x2="700" y2="180" stroke="#2f384b" stroke-width="1.5"/>
+          <line x1="60" y1="20" x2="60" y2="180" stroke="#2f384b" stroke-width="1.5"/>
+          <!-- y label -->
+          <text x="20" y="100" fill="#97a0b3" font-size="11" font-family="JetBrains Mono" transform="rotate(-90, 20, 100)">Loss</text>
+          <!-- x label -->
+          <text x="380" y="210" fill="#97a0b3" font-size="11" font-family="JetBrains Mono" text-anchor="middle">Hidden dim d</text>
+          <!-- x ticks -->
+          <text x="60" y="195" fill="#97a0b3" font-size="10" text-anchor="middle">128</text>
+          <text x="180" y="195" fill="#97a0b3" font-size="10" text-anchor="middle">256</text>
+          <text x="300" y="195" fill="#97a0b3" font-size="10" text-anchor="middle">512</text>
+          <text x="420" y="195" fill="#e0a878" font-size="10" text-anchor="middle" font-weight="600">768</text>
+          <text x="540" y="195" fill="#97a0b3" font-size="10" text-anchor="middle">1024</text>
+          <text x="660" y="195" fill="#97a0b3" font-size="10" text-anchor="middle">1280</text>
+          <!-- curve: loss decreasing then plateau -->
+          <path d="M 60 50 Q 180 90 300 140 Q 360 165 420 175 Q 540 178 700 178"
+                fill="none" stroke="#e0a878" stroke-width="2.5"/>
+          <!-- plateau reference line at low dim -->
+          <line x1="60" y1="60" x2="280" y2="60" stroke="#7ec5d6" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <text x="70" y="55" fill="#7ec5d6" font-size="10" font-family="JetBrains Mono">loss 卡住下不去</text>
+          <!-- threshold line at 768 -->
+          <line x1="420" y1="20" x2="420" y2="180" stroke="#c192d8" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="425" y="35" fill="#c192d8" font-size="10" font-family="JetBrains Mono">≈ token dim</text>
+          <text x="425" y="50" fill="#c192d8" font-size="10" font-family="JetBrains Mono">loss 才能接近 0</text>
+        </svg>
+        <div class="caption">图示：随着模型 hidden dim 增大，单图过拟合 loss 逐渐下降；但要接近 0，dim 必须 ≥ 768。</div>
+      </div>
+
+      <p>
+        作者进一步用 DINOv2-S / B / L 编码 + DiT-S / B / L 训练，
+        跑全量 ImageNet 数据集也复现了同样的规律：
+        <b>只有当 backbone 宽度 ≥ Encoder token 维度时，DiT 才开始正常收敛</b>。
+      </p>
+
+      <div class="theorem">
+        <p><b>直觉解释：</b> 数据 x 本来分布在一个高维空间的<b>低维流形</b>上，
+        所以生成模型传统上只需要在低维空间建模就够了。</p>
+        <p>但加噪后，分布被"扩散"到整个高维空间，模型的<b>容量</b>必须跟着抬高才能继续建模。
+        直观上，瓶颈从"理解流形结构"变成了"在高维空间里做插值"，对容量的需求本质性地变了。</p>
+        <p style="font-size: 13.5px; color: #97a0b3; margin-top: 10px;">
+          这就是 RAE 1.51 FID 时代"DiT 变宽才 work"的根因。后面的 RAE v2 又发现，规模化下这个约束会显著弱化。
+        </p>
+      </div>
+
+      <!-- 4.2 -->
+      <h3>4.2 噪声调度对齐：依赖有效数据维度</h3>
+
+      <p>
+        Diffusion 的 timestep schedule 决定了模型在多大噪声水平下学习。
+        Stable Diffusion 3 提出了"timestep shifting"——把 schedule 往某一端推一推。
+        RAE 把这个思想落到自己身上：
+      </p>
+
+      <p style="text-align: center;">
+        对于 schedule \( t_n \in [0,1] \)，shift 后的 timestep 为
+        \[ t_m = \frac{\alpha \cdot t_n}{1 + (\alpha - 1) t_n} \]
+        其中 \(\alpha = \sqrt{m / n}\)，<b>\(m\) 是 RAE 的有效数据维度</b>（token 数 × token 维度），
+        \(n = 4096\) 是 SD3 的基准维度。
+      </p>
+
+      <p>
+        实验上这一招直接把 FID 拉低一大截。简单说：高维语义 latent 配低维 schedule 会让噪声加得"太快"，
+        模型大部分时间都在学"几乎纯噪声"，浪费算力。把 schedule 拉一下，让噪声加得"慢"一点，
+        模型才有时间学语义结构。
+      </p>
+
+      <!-- 4.3 -->
+      <h3>4.3 噪声增强 Decoder：让 Decoder 适应"带噪输入"</h3>
+
+      <p>
+        RAE 的 Decoder 是在<b>干净</b> latent 上训的（直接来自 DINOv2）。
+        但 diffusion 推理时，DiT 在 t 大的时候输出的 latent 是<b>非常带噪</b>的。
+        这种 train-test mismatch 让 Decoder 容易崩。
+      </p>
+
+      <p>
+        解决思路：在训 Decoder 的时候，<b>主动在 latent 上加少量高斯噪声</b>：
+      </p>
+
+      <pre><code>z_train = E(x) + ε,    ε ~ N(0, σ²I)
+x̂     = D(z_train)</code></pre>
+
+      <p>
+        直观上：把 latent 的分布从"训练集样本点的离散集合"平滑成"附近的小球"，
+        Decoder 见过"轻微偏移的输入"，推理时就不会被击穿。
+      </p>
+
+      <p>
+        副作用：rFID 略升高（重建质量轻微下降），但 gFID 改善（生成质量提升）。
+        这个 trade-off 在 RAE v2 里被证伪——规模化下这个 trick 几乎没用。
+      </p>
+    </section>
+
+    <!-- ============== 5. DiTDH ============== -->
+    <section class="block" id="ditdh">
+      <h2><span class="num">05</span>DiTDH：浅而宽的接收头</h2>
+
+      <p>
+        既然"宽度 ≥ 768"是硬约束，朴素的方案就是把 DiT backbone 整体加宽到 1024 / 1536。
+        但 GFLOPs 会爆，训练成本受不了。
+      </p>
+
+      <p>
+        RAE 的解法是改造 backbone 的入口：保留 DiT 主干为相对窄的尺寸，
+        但在进入主干<b>之前</b>接一个<b>浅而宽的"接收头"</b>，论文里叫 <b>DDT head</b>。
+      </p>
+
+      <h3>结构示意</h3>
+
+      <div class="diagram">
+        <div class="title">DiTDH 架构：宽 Head + 相对窄的 Transformer 主干</div>
+        <svg viewBox="0 0 720 200" width="720" height="200" xmlns="http://www.w3.org/2000/svg">
+          <!-- input patch -->
+          <rect x="20" y="60" width="100" height="80" rx="6" fill="#161b25" stroke="#2f384b"/>
+          <text x="70" y="95" fill="#97a0b3" font-size="11" text-anchor="middle">Patch</text>
+          <text x="70" y="110" fill="#97a0b3" font-size="11" text-anchor="middle">embed</text>
+          <text x="70" y="135" fill="#e0a878" font-size="11" text-anchor="middle" font-family="JetBrains Mono">dim=384</text>
+          <!-- arrow -->
+          <line x1="125" y1="100" x2="155" y2="100" stroke="#e0a878" stroke-width="2"/>
+          <polygon points="155,95 165,100 155,105" fill="#e0a878"/>
+
+          <!-- DDT head (wide, shallow) -->
+          <rect x="170" y="30" width="140" height="140" rx="6" fill="rgba(224,168,120,0.08)" stroke="#e0a878" stroke-width="2"/>
+          <text x="240" y="55" fill="#e0a878" font-size="11" text-anchor="middle" font-family="JetBrains Mono" font-weight="600">DDT Head</text>
+          <text x="240" y="75" fill="#d8dde8" font-size="11" text-anchor="middle">2 层 MLP</text>
+          <text x="240" y="92" fill="#d8dde8" font-size="11" text-anchor="middle">hidden = 2048</text>
+          <text x="240" y="120" fill="#97a0b3" font-size="10" text-anchor="middle" font-style="italic">"宽而浅"</text>
+          <text x="240" y="138" fill="#97a0b3" font-size="10" text-anchor="middle" font-style="italic">高带宽接收</text>
+
+          <!-- arrow -->
+          <line x1="315" y1="100" x2="345" y2="100" stroke="#e0a878" stroke-width="2"/>
+          <polygon points="345,95 355,100 345,105" fill="#e0a878"/>
+
+          <!-- DiT main backbone (narrower, deeper) -->
+          <rect x="360" y="50" width="160" height="100" rx="6" fill="#161b25" stroke="#2f384b"/>
+          <text x="440" y="75" fill="#7ec5d6" font-size="11" text-anchor="middle" font-family="JetBrains Mono" font-weight="600">DiT 主干</text>
+          <text x="440" y="95" fill="#d8dde8" font-size="11" text-anchor="middle">N × Transformer</text>
+          <text x="440" y="112" fill="#d8dde8" font-size="11" text-anchor="middle">Block</text>
+          <text x="440" y="135" fill="#e0a878" font-size="11" text-anchor="middle" font-family="JetBrains Mono">dim=1152</text>
+
+          <!-- arrow -->
+          <line x1="525" y1="100" x2="555" y2="100" stroke="#e0a878" stroke-width="2"/>
+          <polygon points="555,95 565,100 555,105" fill="#e0a878"/>
+
+          <!-- output noise prediction -->
+          <rect x="570" y="60" width="130" height="80" rx="6" fill="#161b25" stroke="#2f384b"/>
+          <text x="635" y="95" fill="#97a0b3" font-size="11" text-anchor="middle">噪声预测</text>
+          <text x="635" y="110" fill="#97a0b3" font-size="11" text-anchor="middle">Linear + Unpatchify</text>
+        </svg>
+        <div class="caption">设计哲学：让"信息吞吐量瓶颈"在浅层就被打开，深层专注于组合语义。</div>
+      </div>
+
+      <h3>为什么是"浅而宽"而不是"深而窄"？</h3>
+      <ul class="bullets">
+        <li><b>宽</b>：hidden = 2048，能装下 768 维 token 携带的所有信息，不被压垮。</li>
+        <li><b>浅</b>：只有 2 层，FLOPs 增加有限，主干可以保持相对窄（比如 1152）。</li>
+        <li><b>位置在前</b>：先扩带宽再做语义组合；不然的话信息进入主干前就被切掉了。</li>
+      </ul>
+
+      <p>
+        实验上 DiTDH 比朴素加宽的 DiT 收敛更快、FID 更低。
+        一个有趣的副产物：如果用 SD-VAE（4 维 latent）跑 DiTDH，<b>反而比标准 DiT 差</b>。
+        说明这个 trick 只在"高维 latent"场景下才有用——和第 4.1 节的"容量匹配"是同一硬币的两面。
+      </p>
+    </section>
+
+    <!-- ============== 6. Experiments ============== -->
+    <section class="block" id="experiments">
+      <h2><span class="num">06</span>实验结果</h2>
+
+      <h3>ImageNet 256×256 class-conditional</h3>
+      <table>
+        <thead>
+          <tr><th>模型</th><th>Epochs</th><th>CFG</th><th>FID-50K ↓</th><th>备注</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>DiT-XL/2 + SD-VAE</td><td>1400</td><td>无</td><td>~3.0</td><td>基线</td></tr>
+          <tr><td>SiT-XL/2 + SD-VAE</td><td>1400</td><td>无</td><td>~2.3</td><td>flow matching 版</td></tr>
+          <tr><td>REPA + SiT-XL/2</td><td>~80</td><td>有</td><td>1.42</td><td>17.5× 加速</td></tr>
+          <tr><td><b>DiT(DH)-XL + RAE (DINOv2-B)</b></td><td>80</td><td>无</td><td>2.16</td><td>RAE 直出，未引导</td></tr>
+          <tr><td><b>DiT(DH)-XL + RAE (DINOv2-B)</b></td><td>800</td><td>无</td><td><b>1.51</b></td><td>无 CFG 也 SOTA</td></tr>
+          <tr><td><b>DiT(DH)-XL + RAE (DINOv2-B)</b></td><td>800</td><td>有</td><td><b>1.13</b></td><td>CFG 后</td></tr>
+        </tbody>
+      </table>
+
+      <h3>ImageNet 512×512 class-conditional</h3>
+      <table>
+        <thead>
+          <tr><th>模型</th><th>CFG</th><th>FID-50K ↓</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>DiT-XL/2 + SD-VAE</td><td>有</td><td>3.04</td></tr>
+          <tr><td>SiT-XL/2 + SD-VAE</td><td>有</td><td>~2.6</td></tr>
+          <tr><td><b>DiT(DH)-XL + RAE</b></td><td>有</td><td><b>1.13</b></td></tr>
+        </tbody>
+      </table>
+
+      <h3>收敛速度：≈ 16× 加速</h3>
+      <p>
+        在 RAE 的 latent 上训 DiT(DH)-XL，<b>用约 1/16 的 epoch 就能达到 SD-VAE baseline 的最佳性能</b>。
+        直观解释：既然 latent 本身已经"会理解图像"，DiT 不用从零学语义，只用学"如何把这个语义 latent 加噪再恢复"。
+      </p>
+
+      <h3>讨论：几个有意思的对照实验</h3>
+      <ul class="bullets">
+        <li><b>raw pixel 当 latent 行不行？</b> 256×256 patch=16 → token dim 768，刚好凑齐。但 raw pixel 上训 DiT 比 DINOv2-B 的 RAE 差很多。说明"高维"不是充分条件，<b>语义信息密度才是</b>。</li>
+        <li><b>DDT head 是不是对 SD-VAE 也 work？</b> 不 work，反而更差。印证 DDT head 解决的是"高维 → 主干"的带宽问题，对低维数据是负担。</li>
+        <li><b>Encoder 选哪个？</b> DINOv2-B > SigLIP2-B > MAE-B。差别主要在重建质量上，生成 FID 接近。</li>
+      </ul>
+    </section>
+
+    <!-- ============== 7. Series Deep ============== -->
+    <section class="block" id="series-deep">
+      <h2><span class="num">07</span>整条系列论文纵深</h2>
+
+      <p>这一节把上面 6 篇论文的"它到底解决了什么 / 留下了什么"讲透，方便对照读。</p>
+
+      <h3>DiT（2022.12）—— 把 Transformer 搬进 Diffusion</h3>
+      <p>
+        关键洞察：<b>FID 与 GFLOPs 在 log-log 上是单调下降</b>，这意味着
+        DiT 像 ViT 一样是"可扩展的"。这是后续所有工作的基础信心——花算力堆 GFLOPs 真的能换来质量。
+        论文还贡献了 adaLN-Zero Block（条件注入最高效的方式）。
+      </p>
+
+      <h3>SiT（2024.01）—— 把动力学换成 Flow Matching</h3>
+      <p>
+        SiT 不改架构，改的是训练目标。把 DDPM 换成 stochastic interpolant / flow matching，
+        多了几个独立可调的旋钮：interpolant 类型、连接分布、扩散系数、采样器。
+        论文的核心实证：<b>DiT 时代的很多"魔法数字"在 flow 框架下都有更优选择</b>。
+        RAE 直接继承了 SiT 的训练范式（用 flow matching 而非 DDPM）。
+      </p>
+
+      <h3>REPA（2024.10）—— 第一次把表征喂给 Diffusion</h3>
+      <p>
+        关键观察：DiT/SiT 的 hidden state 虽然也有判别能力（linear probe 60%+），
+        但和 DINOv2（80%+）差距明显，且这个差距即使训 7M 步也填不上。
+      </p>
+      <p>
+        修法极简：加一个正则项，把 diffusion 中间层 hidden state 的投影向 DINOv2 的干净表示拉齐：
+      </p>
+      <pre><code>L_total = L_diffusion + λ · || proj(f_θ(x_t, t)) − f_φ(x_clean) ||²</code></pre>
+      <p>
+        效果炸裂：SiT 训练加速 17.5×，FID 1.42。但 REPA 仍然依赖 SD-VAE 提供潜空间，
+        DINOv2 只是"外挂的监工"。RAE 把这一步推到底——DINOv2 直接当主角。
+      </p>
+
+      <h3>RAE v1（2025.10）—— 替换 VAE</h3>
+      <p>
+        REPA 的下一步：<b>如果 DINOv2 的表征这么好，为什么不让它直接当 AE 的 Encoder？</b>
+        这就是 RAE。论文还解决了三个工程难题：容量匹配、噪声调度、Decoder 噪声增强。
+        RAE 的隐含假设是"表征质量 ≈ 潜空间质量"，论文用一系列实验证明这个直觉是对的。
+      </p>
+
+      <h3>SRA（2025.05）—— 不要外部 Encoder</h3>
+      <p>
+        REPA / RAE 都依赖一个外部的 DINOv2。SRA 问：<b>DiT 自己能不能当自己的监工？</b>
+        答案是可以。方法是把 DiT 早期 block（高噪声）的输出和晚期 block（低噪声）的输出做对齐。
+        隐含假设是：去噪过程从"高噪声的弱表征"到"低噪声的强表征"是单调进步的，
+        让浅层去模仿深层的语义结构，模型就能自我提升。
+      </p>
+      <p>
+        优势：彻底摆脱外部 Encoder，训练管线更简洁；劣势：对齐目标在 DiT 内部产生，
+        没有 REPA 那么强的"语义锚点"。
+      </p>
+
+      <h3>RAE v2（2026.01）—— 推到 T2I 规模 + 简化</h3>
+      <p>
+        RAE v1 的 ImageNet 实验只是 toy。RAE v2 把它推到 0.5B → 9.8B 参数规模，
+        干了两件重要的事：
+      </p>
+      <ul class="bullets">
+        <li><b>数据 scaling</b>：Encoder 还是 SigLIP-2（冻结），但 Decoder 用 web / 合成 / 文字渲染数据继续训。
+          发现 scale 提升整体保真度，但<b>针对性数据配比对特定能力（如文字渲染）才关键</b>。</li>
+        <li><b>设计简化</b>：规模化下，"宽 DDT Head"和"噪声增强 Decoder"基本无收益。
+          唯一仍关键的是"维度感知调度"。RAE v1 的三大工程招数只剩一招。</li>
+        <li><b>与 FLUX VAE 的正面对决</b>：在 0.5B / 1.5B / 4B / 9.8B 四个规模上预训练，<b>RAE 在所有规模上 FID 都低于 VAE</b>。
+          微调阶段更夸张：VAE 训到 64 epoch 就灾难性过拟合，RAE 训到 256 epoch 依然稳定提升。</li>
+        <li><b>统一表征空间的暗示</b>：DINOv2 / SigLIP 是给理解任务用的，RAE 的 latent 也是这两者。
+          意味着同一个 latent 空间里，理解模型和生成模型可以<b>直接对话</b>——一个 unified model 的雏形。</li>
+      </ul>
+
+      <h3>一张图看完整条线</h3>
+
+      <div class="diagram">
+        <div class="title">"借力"的程度：从外挂 → 内置 → 替代</div>
+        <svg viewBox="0 0 760 130" width="760" height="130" xmlns="http://www.w3.org/2000/svg">
+          <!-- DiT -->
+          <rect x="20" y="40" width="100" height="50" rx="6" fill="#161b25" stroke="#2f384b"/>
+          <text x="70" y="62" fill="#7ec5d6" font-size="12" text-anchor="middle" font-weight="600">DiT</text>
+          <text x="70" y="78" fill="#97a0b3" font-size="10" text-anchor="middle">VAE + ViT</text>
+          <!-- arrow -->
+          <line x1="125" y1="65" x2="155" y2="65" stroke="#e0a878" stroke-width="2" marker-end="url(#arr)"/>
+
+          <!-- SiT -->
+          <rect x="160" y="40" width="100" height="50" rx="6" fill="#161b25" stroke="#2f384b"/>
+          <text x="210" y="62" fill="#7ec5d6" font-size="12" text-anchor="middle" font-weight="600">SiT</text>
+          <text x="210" y="78" fill="#97a0b3" font-size="10" text-anchor="middle">VAE + flow</text>
+          <line x1="265" y1="65" x2="295" y2="65" stroke="#e0a878" stroke-width="2" marker-end="url(#arr)"/>
+
+          <!-- REPA -->
+          <rect x="300" y="40" width="120" height="50" rx="6" fill="#161b25" stroke="#e0a878" stroke-width="1.5"/>
+          <text x="360" y="62" fill="#e0a878" font-size="12" text-anchor="middle" font-weight="600">REPA</text>
+          <text x="360" y="78" fill="#97a0b3" font-size="10" text-anchor="middle">VAE + 对齐 DINOv2</text>
+          <line x1="425" y1="65" x2="455" y2="65" stroke="#e0a878" stroke-width="2" marker-end="url(#arr)"/>
+
+          <!-- RAE -->
+          <rect x="460" y="40" width="120" height="50" rx="6" fill="rgba(224,168,120,0.10)" stroke="#e0a878" stroke-width="2"/>
+          <text x="520" y="62" fill="#e0a878" font-size="12" text-anchor="middle" font-weight="600">RAE v1</text>
+          <text x="520" y="78" fill="#e0a878" font-size="10" text-anchor="middle">冻 DINOv2 + 训 D</text>
+          <line x1="585" y1="65" x2="615" y2="65" stroke="#e0a878" stroke-width="2" marker-end="url(#arr)"/>
+
+          <!-- SRA / RAE v2 -->
+          <rect x="620" y="20" width="120" height="35" rx="6" fill="#161b25" stroke="#c192d8" stroke-width="1.5"/>
+          <text x="680" y="42" fill="#c192d8" font-size="11" text-anchor="middle" font-weight="600">SRA</text>
+          <rect x="620" y="65" width="120" height="35" rx="6" fill="#161b25" stroke="#c192d8" stroke-width="1.5"/>
+          <text x="680" y="87" fill="#c192d8" font-size="11" text-anchor="middle" font-weight="600">RAE v2</text>
+
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#e0a878"/>
+            </marker>
+          </defs>
+
+          <!-- legend -->
+          <text x="20" y="20" fill="#97a0b3" font-size="10" font-family="JetBrains Mono">外力介入的程度加深 →</text>
+          <text x="20" y="118" fill="#97a0b3" font-size="10" font-family="JetBrains Mono">主体：DiT/SiT 骨干</text>
+          <text x="160" y="118" fill="#97a0b3" font-size="10" font-family="JetBrains Mono">+ 训练动力学</text>
+          <text x="300" y="118" fill="#e0a878" font-size="10" font-family="JetBrains Mono">+ 拉齐表征</text>
+          <text x="460" y="118" fill="#e0a878" font-size="10" font-family="JetBrains Mono">+ 替换 VAE</text>
+          <text x="620" y="118" fill="#c192d8" font-size="10" font-family="JetBrains Mono">+ 规模化/自对齐</text>
+        </svg>
+        <div class="caption">从 DiT 到 RAE v2 的演进逻辑：让 diffusion 直接利用"会理解图像"的表征</div>
+      </div>
+    </section>
+
+    <!-- ============== 8. Formulas ============== -->
+    <section class="block" id="formulas">
+      <h2><span class="num">08</span>关键公式速查</h2>
+
+      <h3>F1. Latent Diffusion 的基本框架</h3>
+      <pre><code>x ──E──▶ z = E(x)            # 编码
+z_t = √ᾱ_t · z + √(1−ᾱ_t) · ε,   ε ~ N(0, I)
+# diffusion 在 z_t 上做去噪
+ẑ = D(DiT(z_t, t, y))         # 解码
+x̂ = D(ẑ)</code></pre>
+
+      <h3>F2. REPA 的对齐损失</h3>
+      <p>论文：arXiv:2410.06940</p>
+      <pre><code>L_REPA = E[ ‖ proj_φ( f_θ(x_t, t) ) − sg( g_ψ(x) ) ‖² ]
+#        └──────┬──────┘     └─────┬──────┘
+#        DiT 隐状态投影            DINOv2 干净表示
+# sg: stop-gradient
+
+L_total = L_diffusion + λ · L_REPA</code></pre>
+
+      <h3>F3. RAE 的训练：冻结 E、训 D</h3>
+      <pre><code>E: 冻结的 DINOv2-B / SigLIP2-B / MAE-B
+D: ViT-XL Decoder（要训）
+z = E(x),   x̂ = D(z)
+
+L_decoder = L1(x, x̂) + L_LPIPS(x, x̂) + L_adv(x, x̂)</code></pre>
+
+      <h3>F4. RAE 的噪声增强 Decoder</h3>
+      <pre><code>z_clean = E(x)
+z_noisy = z_clean + ε,    ε ~ N(0, σ²I)
+x̂ = D(z_noisy)
+# 让 Decoder 习惯"轻微偏离训练分布"的 latent</code></pre>
+
+      <h3>F5. Theorem 1：toy 模型下宽度不足的 loss 下界</h3>
+      <p>设 \(\mathbf{x} \sim p(\mathbf{x}) \in \mathbb{R}^n\)，\(\varepsilon \sim \mathcal{N}(0, I_n)\)，
+        \(\mathbf{x}_t = (1-t)\mathbf{x} + t\varepsilon\)。
+        考虑函数族</p>
+      <p style="text-align:center;">
+        \[ \mathcal{G}_d = \{ g(\mathbf{x}_t, t) = \mathbf{B} f(\mathbf{A}\mathbf{x}_t, t) : \mathbf{A} \in \mathbb{R}^{d \times n}, \mathbf{B} \in \mathbb{R}^{n \times d} \} \]
+      </p>
+      <p>则对任意 \(g \in \mathcal{G}_d\)（其中 \(d < n\)）：</p>
+      <p style="text-align:center;">
+        \[ \mathcal{L}(g, \theta) \geq \sum_{i=d+1}^{n} \lambda_i \]
+      </p>
+      <p>其中 \(\lambda_i\) 是随机变量 \(W = \varepsilon - \mathbf{x}\) 协方差矩阵的特征值。</p>
+
+      <p>对"单图过拟合"这个特殊情形，\(p(\mathbf{x}) = \delta(\mathbf{x} - \mathbf{x}_0)\)，
+        退化为 \(W \sim \mathcal{N}(-\mathbf{x}_0, I_n)\)，\(\lambda_i = 1\)，
+        因此：</p>
+      <p style="text-align:center;">
+        \[ \tilde{\mathcal{L}}(g, \theta) \geq \frac{1}{n} \sum_{i=d+1}^{n} 1 = \frac{n-d}{n} \]
+      </p>
+      <p>
+        这就是图 4 的"宽度不到 token dim，loss 卡在 (n−d)/n 的平台上"的数学解释。
+        当 \(d \to n\)，下界趋近 0，模型才能完全拟合单图。
+      </p>
+
+      <h3>F6. RAE 的维度感知噪声调度</h3>
+      <pre><code># n_SD3 = 4096, m_RAE = token_num × token_dim = 256 × 768 = 196608
+α = √(m_RAE / n_SD3)
+t_shifted = (α · t) / (1 + (α − 1) · t)
+# 把 SD3 的 shifting 调度直接对齐到 RAE 的有效维度</code></pre>
+
+      <h3>F7. DiTDH：宽 Head + 窄主干</h3>
+      <pre><code>z = DDT_Head( z_patch_embed )        # 384 → 2048, 2 层
+for block in DiT_blocks:              # dim = 1152
+    z = block(z, t_emb, y_emb)
+ε̂ = Linear(z)                         # 输出噪声预测</code></pre>
+    </section>
+
+    <!-- ============== 9. Open Questions ============== -->
+    <section class="block" id="open">
+      <h2><span class="num">09</span>开放问题 & 讨论</h2>
+
+      <h3>Q1. 为什么 DINOv2 / SigLIP 这种"理解型"特征也能重建？</h3>
+      <p>
+        经典假设：理解 Encoder 丢弃了高频细节，所以重建差。
+        RAE 反驳了它，但并没有<b>完全解释</b>机制。可能的解释：
+      </p>
+      <ul class="bullets">
+        <li>DINOv2 的中间层（含 patch token 之前的特征）仍保留了相当多空间细节，<b>只是最终分类头把空间信息聚合了</b>。</li>
+        <li>Decoder（ViT-XL）容量足够大，能从高维语义 latent 里"反推"出细节——本质上是用<b>先验补全缺失</b>。</li>
+        <li>对抗损失在帮忙：它强迫 Decoder 输出"看起来真"的图片，本质上是在让 Decoder 学会 hallucinate 细节。</li>
+      </ul>
+
+      <h3>Q2. RAE 在 256 token × 768 dim 这种"高维稀疏"空间上 work，那更稀疏的呢？</h3>
+      <p>
+        比如 64 token × 1536 dim（信息密度更高）。或者反过来，4096 token × 48 dim（更多空间 token，更少语义）。
+        RAE v1 没系统探索。RAE v2 提到规模化下"高维约束"会弱化，但具体 sweet spot 没定。
+      </p>
+
+      <h3>Q3. RAE 的 latent 能跨模态用吗？</h3>
+      <p>
+        DINOv2 / SigLIP 都是视觉模型。RAE 复用它们的 latent，意味着 diffusion 的中间空间和理解模型
+        的中间空间是<b>同一个</b>。这是个 unification 的钩子：未来也许能用同一个 latent 做检测、分割、生成。
+        RAE v2 提到"多模态模型可以直接推理生成的 latent"，是这个方向的暗示。
+      </p>
+
+      <h3>Q4. RAE v2 抛弃了"宽 Head"和"噪声增强 Decoder"——这是不是说明 RAE v1 那些 trick 本质上是工程补丁？</h3>
+      <p>
+        可能的解释：当模型规模到 9.8B 时，<b>主干本身</b>已经有足够容量，
+        不再需要专门加宽的 Head。噪声增强 Decoder 的"必要性"也可能被大模型自己的 robustness 覆盖。
+        这暗示了一条经验法则：<b>小模型靠架构 trick，大模型靠规模</b>。
+      </p>
+
+      <h3>Q5. 如果 Sora / 视频生成也走 RAE 路线，会发生什么？</h3>
+      <p>
+        视频比图像难一个量级：需要时间一致性、需要大运动。VAE 当前的瓶颈在视频上更突出
+        （低维 latent 撑不住高帧率）。RAE 路线可能更值得做：
+        用 video-aware 的表征（如 VideoMAE）做 Encoder，配合 temporal-aware 的 Decoder。
+        目前没看到明确的工作，但 RAE v2 的 T2I 范式延伸很自然。
+      </p>
+    </section>
+
+    <!-- ============== 10. Reading Order ============== -->
+    <section class="block" id="reading">
+      <h2><span class="num">10</span>建议阅读顺序</h2>
+
+      <p>如果你想高效吃下这条线，按下面顺序读：</p>
+
+      <div class="reading-order">
+        <ol>
+          <li>
+            <strong>DiT (2212.09748)</strong> — 一晚能读完。建立"Diffusion Transformer 是什么"的 baseline。
+            重点看 Section 1 (Introduction) 和 Section 5 (Experiments)。代码开源，非常好上手。
+          </li>
+          <li>
+            <strong>SiT (2401.08740)</strong> — 一天。理解 flow matching 怎么搬到 DiT 上。
+            重点看 Section 3 (Method) 和那 4 个 ablation：interpolant type、time、target、sampler。
+          </li>
+          <li>
+            <strong>REPA (2410.06940)</strong> — 两天。理解"用外部表征辅助"这个核心动作。
+            重点是 Section 3 (Method) 的 REPA loss，和 Section 4 的"语义差距 / 特征对齐"两组实验。
+            Yann LeCun 转发过，可以顺带读一下 Sihyun Yu 的 X 长帖。
+          </li>
+          <li>
+            <strong>RAE v1 (2510.11690) ★ 你重点读的</strong> — 三天。
+            通读 + 重做 Figure 2 (重建) 和 Figure 4 (单图过拟合) 的实验，会有"啊哈"瞬间。
+            重点是 Section 3 (Method) 的 3 个 fixes 和 Section 5 (DiTDH 设计动机)。
+          </li>
+          <li>
+            <strong>SRA (2505.02831)</strong> — 一天。理解"不要外部 Encoder"这条平行分支。
+            当调节读：它和 RAE 互为对照，证明 RAE 的核心 idea 也能 self-supervised 实现。
+          </li>
+          <li>
+            <strong>RAE v2 (2601.16208)</strong> — 三天。最难但最有工业感。
+            重点看 "Stress-testing RAE Design" 一节：规模化下哪些 trick 留下、哪些被淘汰。
+            顺便读一下"微调阶段 VAE 过拟合"那段——是 RAE 工业落地的关键证据。
+          </li>
+        </ol>
+      </div>
+
+      <h3>配套代码 / 资源</h3>
+      <ul class="bullets">
+        <li><b>DiT</b>: <code>facebookresearch/DiT</code> （官方 PyTorch）</li>
+        <li><b>SiT</b>: <code>willisma/SiT</code></li>
+        <li><b>REPA</b>: <code>sihyun-yu/REPA</code></li>
+        <li><b>RAE</b>: <code>bytetriper/RAE</code> + 项目页 <code>rae-dit.github.io</code></li>
+        <li><b>SRA</b>: <code>vvvvvjdy/SRA</code></li>
+      </ul>
+
+      <h3>做实验时容易踩的坑</h3>
+      <div class="callout c-5">
+        <div class="tag">过来人经验</div>
+        <ol style="padding-left: 22px; margin: 6px 0;">
+          <li><b>DINOv2 不是所有尺寸都好用</b>。DINOv2-S (384 dim) 太弱，DINOv2-L 训练成本高但提升边际。Sweet spot 是 B 或 L。</li>
+          <li><b>SigLIP2 在 FID 上略输 DINOv2</b>，但对文字理解类任务更友好。T2I 场景建议直接 SigLIP2。</li>
+          <li><b>DDT Head 的 hidden dim 至少 ≥ 2 × Encoder token dim</b>，否则带宽不够（论文：2048 ≈ 2.67 × 768）。</li>
+          <li><b>维度感知 schedule 别忘</b>。直接拿 SD3 默认 schedule 用，FID 会显著变差。</li>
+          <li><b>噪声增强 Decoder 的 σ 别开太大</b>。论文没给完整 sweep，从 0.05 ~ 0.1 开始试。</li>
+        </ol>
+      </div>
+
+    </section>
+
+    <!-- Footer -->
+    <footer style="margin-top: 60px; padding: 32px 0 0; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 13px;">
+      <p>本笔记由 Mavis 整理 · 数据截至 2026.06 · 论文列表见上方 "系列时间线" 一节</p>
+      <p style="margin-top: 8px;">
+        如果你想就其中某一节展开（比如定理 1 的更详细推导、DiTDH 的代码实现、T2I 规模实验对比），
+        告诉我哪一节，我可以再深挖一层。
+      </p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // KaTeX auto-render (math mode via $...$)
+  document.addEventListener("DOMContentLoaded", function() {
+    if (window.renderMathInElement) {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ]
+      });
+    }
+  });
+
+  // TOC active section highlight (scrollspy)
+  (function() {
+    const links = document.querySelectorAll('aside.toc a');
+    const sections = Array.from(links).map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+    function onScroll() {
+      const scrollPos = window.scrollY + 120;
+      let activeIdx = 0;
+      for (let i = 0; i < sections.length; i++) {
+        if (sections[i].offsetTop <= scrollPos) activeIdx = i;
+      }
+      links.forEach((a, i) => a.classList.toggle('active', i === activeIdx));
+    }
+    window.addEventListener('scroll', onScroll, {passive: true});
+    onScroll();
+  })();
+
+  // Smooth scroll for in-page links
+  document.querySelectorAll('aside.toc a').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
+    });
+  });
+</script>
+
+</body>
+</html>
