@@ -2,6 +2,9 @@
 # Playwright test artifacts
 .playwright-mcp/
 
+# Local MCP config (contains personal extension token — never commit)
+.mcp.json
+
 # Temp files
 __x_article_raw.html
 *.png

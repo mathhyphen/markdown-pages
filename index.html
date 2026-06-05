@@ -65,6 +65,19 @@
             background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(129, 140, 248, 0.1) 100%);
             border: 1px solid rgba(56, 189, 248, 0.2);
         }
+        .featured-card-emerald {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+        .glow-emerald::before {
+            background: linear-gradient(135deg, #10b981, #14b8a6, #06b6d4) !important;
+        }
+        .side-card {
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .side-card:hover {
+            transform: translateY(-2px);
+        }
         .tag {
             display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 9999px;
             font-size: 12px; font-weight: 500; transition: all 0.2s ease;
@@ -136,7 +149,7 @@
 
             <!-- Section 01: Latest Updates -->
             <section id="latest" class="mb-20">
-                <div class="flex items-center justify-between mb-8">
+                <div class="flex items-end justify-between mb-8 gap-4 flex-wrap">
                     <div class="flex items-center space-x-4">
                         <div class="relative">
                             <span class="absolute w-3 h-3 bg-sky-400 rounded-full top-0 right-0 pulse-badge"></span>
@@ -144,135 +157,159 @@
                         </div>
                         <div>
                             <h2 class="text-3xl font-bold text-white">最近更新</h2>
-                            <p class="text-sm text-slate-400 mt-1">Latest Updates</p>
+                            <p class="text-sm text-slate-400 mt-1">Latest Updates · 2026 W23</p>
                         </div>
+                    </div>
+                    <div class="hidden md:flex items-center gap-3 text-xs">
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-400/25 text-emerald-300">
+                            <span class="relative flex w-2 h-2">
+                                <span class="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
+                                <span class="relative inline-flex w-2 h-2 rounded-full bg-emerald-400"></span>
+                            </span>
+                            <span class="font-medium">本周新增 2 篇</span>
+                        </div>
+                        <a href="#llm-thoughts" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-slate-300 hover:text-sky-300 transition-colors">
+                            <span>查看全部</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Featured Article -->
-                    <article class="lg:col-span-2 glass rounded-2xl overflow-hidden card-hover glow featured-card relative group cursor-pointer">
-                        <a href="./papers/rae-representation-autoencoders.html" class="block p-0">
-                            <div class="relative h-48 md:h-56 overflow-hidden">
-                                <div class="absolute inset-0 bg-gradient-to-br from-pink-500/40 via-purple-500/40 to-amber-500/40 flex items-center justify-center">
-                                    <i class="fa-solid fa-cube text-7xl text-white/25 drop-shadow-2xl"></i>
-                                </div>
-                                <div class="absolute inset-0 bg-gradient-to-t from-[#0b0e14]/85 via-[#0b0e14]/40 to-transparent pointer-events-none"></div>
-                                <div class="absolute bottom-4 left-6 right-6">
-                                    <div class="flex items-center space-x-3 mb-2">
-                                        <span class="tag tag-arxiv">Diffusion</span>
-                                        <span class="text-xs text-slate-400 font-mono">P-07</span>
-                                        <span class="text-xs text-slate-500">2026-06-05</span>
+                    <!-- FEATURED: LEAP (new) -->
+                    <article class="lg:col-span-2 glass rounded-2xl overflow-hidden card-hover glow glow-emerald featured-card-emerald relative group cursor-pointer">
+                        <a href="./articles/leap_paper_summary.html" class="block p-0">
+                            <div class="relative h-64 md:h-72 overflow-hidden">
+                                <!-- Math-symbol backdrop -->
+                                <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/35 via-teal-600/25 to-cyan-600/35">
+                                    <div class="absolute inset-0 flex items-center justify-end pr-6 select-none">
+                                        <div class="text-[180px] font-black text-white/[0.08] leading-none tracking-tighter">∃∀→</div>
                                     </div>
-                                    <h3 class="text-xl lg:text-2xl font-bold text-white leading-tight drop-shadow-lg">
-                                        RAE &amp; 系列论文深度学习笔记 · Diffusion Transformers with Representation Autoencoders
+                                    <div class="absolute top-6 left-6 text-[110px] font-black text-white/[0.06] leading-none">⇒</div>
+                                    <div class="absolute bottom-20 right-32 text-[80px] font-black text-white/[0.05] leading-none">∴</div>
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#0b0e14]/95 via-[#0b0e14]/55 to-transparent"></div>
+
+                                <!-- NEW badge -->
+                                <div class="absolute top-5 right-5 flex items-center gap-2 bg-emerald-500/20 backdrop-blur-md border border-emerald-400/40 rounded-full px-3 py-1.5 shadow-lg shadow-emerald-500/10">
+                                    <span class="relative flex w-2 h-2">
+                                        <span class="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
+                                        <span class="relative inline-flex w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    </span>
+                                    <span class="text-[11px] font-bold text-emerald-200 tracking-widest">NEW · 刚刚</span>
+                                </div>
+
+                                <div class="absolute bottom-6 left-7 right-7">
+                                    <div class="flex items-center flex-wrap gap-x-3 gap-y-2 mb-3">
+                                        <span class="tag tag-arxiv">arxiv · Agentic</span>
+                                        <span class="text-xs text-slate-400 font-mono">L-03</span>
+                                        <span class="text-xs text-slate-500">·</span>
+                                        <span class="text-xs text-slate-400">2026-06-05</span>
+                                        <span class="text-xs text-slate-500">·</span>
+                                        <span class="text-xs text-slate-400">Google · DeepMind</span>
+                                    </div>
+                                    <h3 class="text-2xl lg:text-[28px] font-bold text-white leading-[1.2] drop-shadow-lg mb-3 tracking-tight">
+                                        LEAP：用 Agentic 框架让通用 LLM 在形式化数学上起飞
                                     </h3>
+                                    <p class="text-slate-300 leading-relaxed text-sm lg:text-[15px] max-w-2xl line-clamp-2">
+                                        Google 的反问——形式化数学的瓶颈不在「更强 prover」，而在「工程结构」。AND-OR DAG + 蓝图 + Lean 反馈循环，让 Gemini 3.1 Pro 解出 Putnam 2025 全部 12 题。
+                                    </p>
                                 </div>
                             </div>
-                            <div class="p-6">
-                                <p class="text-slate-300 mb-4 leading-relaxed text-sm">
-                                    从 DiT → SiT → REPA → SRA → RAE v1/v2 完整演进路线：解码 Saining Xie 团队 Representation Autoencoder 如何重塑 latent diffusion 表征空间，含 DiTDH 架构与三处关键修复。
-                                </p>
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center space-x-2 text-sm text-sky-400 font-medium">
-                                        <span>阅读全文</span>
-                                        <i class="fa-solid fa-arrow-right ml-1 group-hover:translate-x-1 transition-transform"></i>
+                            <div class="px-7 py-5 flex items-center justify-between border-t border-white/5">
+                                <div class="flex items-center gap-4 lg:gap-5 text-sm">
+                                    <div class="flex items-center gap-1.5 text-slate-300">
+                                        <i class="fa-solid fa-trophy text-amber-400 text-xs"></i>
+                                        <span><strong class="text-white">Putnam 12/12</strong></span>
                                     </div>
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 via-purple-500 to-amber-500 flex items-center justify-center text-white font-bold text-base shadow-lg group-hover:scale-110 transition-transform">
-                                        <i class="fa-solid fa-arrow-right"></i>
+                                    <div class="w-px h-4 bg-slate-700 hidden sm:block"></div>
+                                    <div class="hidden sm:flex items-center gap-1.5 text-slate-300">
+                                        <i class="fa-solid fa-diagram-project text-emerald-400 text-xs"></i>
+                                        <span>9 章节</span>
+                                    </div>
+                                    <div class="w-px h-4 bg-slate-700 hidden sm:block"></div>
+                                    <div class="hidden sm:flex items-center gap-1.5 text-slate-300">
+                                        <i class="fa-solid fa-chart-line text-emerald-400 text-xs"></i>
+                                        <span>Lean-IMO 70%</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 shrink-0">
+                                    <span class="text-sky-400 font-semibold text-sm hidden sm:inline">阅读全文</span>
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 group-hover:scale-110 group-hover:rotate-[-8deg] transition-all">
+                                        <i class="fa-solid fa-arrow-right text-sm"></i>
                                     </div>
                                 </div>
                             </div>
                         </a>
-                        <div class="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-pink-500/10 to-transparent rounded-tl-full pointer-events-none"></div>
                     </article>
 
-                    <!-- Side Stack -->
-                    <div class="space-y-4">
-                        <article class="glass rounded-xl p-6 card-hover cursor-pointer group">
-                            <a href="./articles/harness-engineering-complete-guide.html" class="block">
-                                <div class="flex items-start justify-between mb-3">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="tag tag-guide">Guide</span>
-                                        <span class="text-xs text-slate-500 font-mono">H-14</span>
+                    <!-- SIDE STACK: 3 cards (date desc) -->
+                    <div class="flex flex-col gap-4">
+                        <!-- RAE (moved from featured) -->
+                        <article class="glass rounded-xl p-5 card-hover side-card cursor-pointer group border-l-2 border-pink-400/60 hover:border-pink-400">
+                            <a href="./papers/rae-representation-autoencoders.html" class="block">
+                                <div class="flex items-center justify-between mb-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="tag tag-arxiv text-[10px] py-0 px-2">Diffusion</span>
+                                        <span class="text-[11px] text-slate-500 font-mono">P-07</span>
                                     </div>
-                                    <span class="text-xs text-slate-500">2026-04-03</span>
+                                    <time class="text-[11px] text-slate-500 font-mono">2026-06-05</time>
                                 </div>
-                                <h4 class="text-base font-semibold text-white mb-2 group-hover:text-sky-300 transition-colors leading-snug">
-                                    Harness Engineering 完全实践指南
+                                <h4 class="text-[15px] font-semibold text-white mb-2 group-hover:text-pink-300 transition-colors leading-snug">
+                                    RAE &amp; DiT 系列论文深度学习笔记
                                 </h4>
-                                <p class="text-sm text-slate-400 mb-3 line-clamp-2">
-                                    系统梳理 Harness 工程的核心架构、设计模式与实战技巧
+                                <p class="text-[13px] text-slate-400 leading-relaxed line-clamp-2 mb-3">
+                                    DiT → SiT → REPA → SRA → RAE 完整演进：解码 Representation Autoencoder 如何重塑 latent diffusion 表征空间
                                 </p>
                                 <div class="flex items-center text-xs text-sky-400 font-medium">
                                     <span>阅读全文</span>
-                                    <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                                    <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform text-[10px]"></i>
                                 </div>
                             </a>
                         </article>
 
-                        <article class="glass rounded-xl p-6 card-hover cursor-pointer group">
-                            <a href="./articles/martin-fowler-harness-engineering.html" class="block">
-                                <div class="flex items-start justify-between mb-3">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="tag tag-guide">Guide</span>
-                                        <span class="text-xs text-slate-500 font-mono">H-13</span>
+                        <!-- L-02: JEPA -->
+                        <article class="glass rounded-xl p-5 card-hover side-card cursor-pointer group border-l-2 border-violet-400/60 hover:border-violet-400">
+                            <a href="./articles/llm-agi-blueprint.html" class="block">
+                                <div class="flex items-center justify-between mb-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="tag tag-arxiv text-[10px] py-0 px-2">世界模型</span>
+                                        <span class="text-[11px] text-slate-500 font-mono">L-02</span>
                                     </div>
-                                    <span class="text-xs text-slate-500">2026-04-06</span>
+                                    <time class="text-[11px] text-slate-500 font-mono">2026-05-29</time>
                                 </div>
-                                <h4 class="text-base font-semibold text-white mb-2 group-hover:text-sky-300 transition-colors leading-snug">
+                                <h4 class="text-[15px] font-semibold text-white mb-2 group-hover:text-violet-300 transition-colors leading-snug">
+                                    通用智能演进蓝图：JEPA + TTT 世界模型
+                                </h4>
+                                <p class="text-[13px] text-slate-400 leading-relaxed line-clamp-2 mb-3">
+                                    LeCun JEPA 架构与 TTT 自适应突触的深度融合，剖析世界模型与 AGI 演进的四大神经层级
+                                </p>
+                                <div class="flex items-center text-xs text-sky-400 font-medium">
+                                    <span>阅读全文</span>
+                                    <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform text-[10px]"></i>
+                                </div>
+                            </a>
+                        </article>
+
+                        <!-- H-13: Martin Fowler -->
+                        <article class="glass rounded-xl p-5 card-hover side-card cursor-pointer group border-l-2 border-amber-400/60 hover:border-amber-400">
+                            <a href="./articles/martin-fowler-harness-engineering.html" class="block">
+                                <div class="flex items-center justify-between mb-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="tag tag-guide text-[10px] py-0 px-2">Guide</span>
+                                        <span class="text-[11px] text-slate-500 font-mono">H-13</span>
+                                    </div>
+                                    <time class="text-[11px] text-slate-500 font-mono">2026-04-06</time>
+                                </div>
+                                <h4 class="text-[15px] font-semibold text-white mb-2 group-hover:text-amber-300 transition-colors leading-snug">
                                     Martin Fowler 深度解读 Harness Engineering
                                 </h4>
-                                <p class="text-sm text-slate-400 mb-3 line-clamp-2">
-                                    从 Martin Fowler 的视角拆解 Harness 的定义、Guides / Sensors 与 Steering Loop，建立完整概念框架。
+                                <p class="text-[13px] text-slate-400 leading-relaxed line-clamp-2 mb-3">
+                                    从 Martin Fowler 视角拆解 Harness 定义、Guides / Sensors 与 Steering Loop
                                 </p>
                                 <div class="flex items-center text-xs text-sky-400 font-medium">
                                     <span>阅读全文</span>
-                                    <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                                </div>
-                            </a>
-                        </article>
-
-                        <article class="glass rounded-xl p-6 card-hover cursor-pointer group">
-                            <a href="./articles/llm-agi-blueprint.html" class="block">
-                                <div class="flex items-start justify-between mb-3">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="tag tag-arxiv">世界模型</span>
-                                        <span class="text-xs text-slate-500 font-mono">L-02</span>
-                                    </div>
-                                    <span class="text-xs text-slate-500">2026-05-29</span>
-                                </div>
-                                <h4 class="text-base font-semibold text-white mb-2 group-hover:text-sky-300 transition-colors leading-snug">
-                                    通用智能演进蓝图：JEPA + TTT 世界模型深度解密
-                                </h4>
-                                <p class="text-sm text-slate-400 mb-3 line-clamp-2">
-                                    解密 LeCun JEPA 架构与 TTT 自适应突触的深度融合，剖析世界模型与 AGI 演进的核心神经层级
-                                </p>
-                                <div class="flex items-center text-xs text-sky-400 font-medium">
-                                    <span>阅读全文</span>
-                                    <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                                </div>
-                            </a>
-                        </article>
-
-                        <article class="glass rounded-xl p-6 card-hover cursor-pointer group">
-                            <a href="./articles/leap_paper_summary.html" class="block">
-                                <div class="flex items-start justify-between mb-3">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="tag tag-arxiv">arxiv</span>
-                                        <span class="text-xs text-slate-500 font-mono">L-03</span>
-                                    </div>
-                                    <span class="text-xs text-slate-500">2026-06-05</span>
-                                </div>
-                                <h4 class="text-base font-semibold text-white mb-2 group-hover:text-sky-300 transition-colors leading-snug">
-                                    LEAP：Agentic 框架让通用 LLM 在形式化数学上起飞
-                                </h4>
-                                <p class="text-sm text-slate-400 mb-3 line-clamp-2">
-                                    Google 用 AND-OR DAG + 蓝图 + Lean 反馈循环，让 Gemini 3.1 Pro 解出 Putnam 2025 全部 12 题
-                                </p>
-                                <div class="flex items-center text-xs text-sky-400 font-medium">
-                                    <span>阅读全文</span>
-                                    <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                                    <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform text-[10px]"></i>
                                 </div>
                             </a>
                         </article>
