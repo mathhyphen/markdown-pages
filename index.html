@@ -166,7 +166,7 @@
                                 <span class="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
                                 <span class="relative inline-flex w-2 h-2 rounded-full bg-emerald-400"></span>
                             </span>
-                            <span class="font-medium">本周新增 2 篇</span>
+                            <span class="font-medium">本周新增 3 篇</span>
                         </div>
                         <a href="#llm-thoughts" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-slate-300 hover:text-sky-300 transition-colors">
                             <span>查看全部</span>
@@ -245,21 +245,21 @@
 
                     <!-- SIDE STACK: 3 cards (date desc) -->
                     <div class="flex flex-col gap-4">
-                        <!-- RAE (moved from featured) -->
-                        <article class="glass rounded-xl p-5 card-hover side-card cursor-pointer group border-l-2 border-pink-400/60 hover:border-pink-400">
-                            <a href="./papers/rae-representation-autoencoders.html" class="block">
+                        <!-- CTM (L-04) -->
+                        <article class="glass rounded-xl p-5 card-hover side-card cursor-pointer group border-l-2 border-teal-400/60 hover:border-teal-400">
+                            <a href="./articles/Continuous%20Thought%20Machine-MNIST.html" class="block">
                                 <div class="flex items-center justify-between mb-2.5">
                                     <div class="flex items-center gap-2">
-                                        <span class="tag tag-arxiv text-[10px] py-0 px-2">Diffusion</span>
-                                        <span class="text-[11px] text-slate-500 font-mono">P-07</span>
+                                        <span class="tag tag-arxiv text-[10px] py-0 px-2">神经网络</span>
+                                        <span class="text-[11px] text-slate-500 font-mono">L-04</span>
                                     </div>
                                     <time class="text-[11px] text-slate-500 font-mono">2026-06-05</time>
                                 </div>
-                                <h4 class="text-[15px] font-semibold text-white mb-2 group-hover:text-pink-300 transition-colors leading-snug">
-                                    RAE &amp; DiT 系列论文深度学习笔记
+                                <h4 class="text-[15px] font-semibold text-white mb-2 group-hover:text-teal-300 transition-colors leading-snug">
+                                    Continuous Thought Machine：把"思考"展开成 15 步
                                 </h4>
                                 <p class="text-[13px] text-slate-400 leading-relaxed line-clamp-2 mb-3">
-                                    DiT → SiT → REPA → SRA → RAE 完整演进：解码 Representation Autoencoder 如何重塑 latent diffusion 表征空间
+                                    SakanaAI CTM 教程：每个 tick 都在想，每步都可能答；用基于置信度的 loss 让模型「既答对又自信」
                                 </p>
                                 <div class="flex items-center text-xs text-sky-400 font-medium">
                                     <span>阅读全文</span>
@@ -822,6 +822,24 @@
                         <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-emerald-300 transition-colors leading-snug">LEAP：用 Agentic 框架让通用 LLM 在形式化数学上起飞</h3>
                         <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">Google 的反问：形式化数学的瓶颈不在「更强 prover」，而在「工程结构」。AND-OR DAG + 蓝图 + Lean 反馈循环，让 Gemini 3.1 Pro 解出 Putnam 2025 全部 12 题。</p>
                         <div class="flex items-center text-xs text-emerald-400 font-medium">
+                            <span>阅读全文</span>
+                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </a>
+
+                    <!-- L-04 -->
+                    <a href="./articles/Continuous%20Thought%20Machine-MNIST.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-teal-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400 font-mono text-sm font-bold">04</span>
+                                <span class="tag tag-arxiv text-[11px] py-0.5 px-2">神经网络</span>
+                            </div>
+                            <time class="text-xs text-slate-500">2026-06-05</time>
+                        </div>
+                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-teal-300 transition-colors leading-snug">Continuous Thought Machine：把"思考"展开成 15 步</h3>
+                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">SakanaAI CTM：不分类，它"思考"出分类。每个 tick 在想、每步都可能答；用置信度 loss 让模型「既答对又自信」。</p>
+                        <div class="flex items-center text-xs text-teal-400 font-medium">
                             <span>阅读全文</span>
                             <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
                         </div>
