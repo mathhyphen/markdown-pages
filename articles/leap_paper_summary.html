@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LEAP 论文深入讲解 · Mavis 整理</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --muted: #6b6b6b;
+    --accent: #d23f3f;
+    --accent-soft: #fde8e8;
+    --line: #e6e6e3;
+    --highlight: #fff7d6;
+    --code-bg: #1a1a1a;
+    --code-ink: #e9e9e9;
+    --green: #2e7d32;
+    --blue: #1565c0;
+    --purple: #6a1b9a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+      "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    line-height: 1.75;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 56px 28px 96px;
+  }
+  /* —— 顶部 Hero —— */
+  .hero {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 32px;
+    margin-bottom: 40px;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  h1 {
+    font-size: 38px;
+    line-height: 1.2;
+    margin: 16px 0 12px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 22px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .meta span strong { color: var(--ink-soft); font-weight: 600; }
+  a { color: var(--blue); text-decoration: none; border-bottom: 1px solid transparent; }
+  a:hover { border-bottom-color: var(--blue); }
+
+  /* —— 章节标题 —— */
+  h2 {
+    font-size: 26px;
+    margin: 56px 0 18px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--ink);
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 20px;
+    margin: 32px 0 12px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  h4 {
+    font-size: 16px;
+    margin: 22px 0 8px;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+  p { margin: 12px 0; }
+  ul, ol { margin: 12px 0; padding-left: 24px; }
+  li { margin: 6px 0; }
+  strong { color: var(--ink); }
+  em { color: var(--ink-soft); font-style: normal; font-weight: 600; }
+
+  /* —— 信息块 —— */
+  .callout {
+    background: var(--surface);
+    border-left: 4px solid var(--accent);
+    padding: 18px 22px;
+    margin: 24px 0;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 1px 0 var(--line);
+  }
+  .callout-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .highlight {
+    background: var(--highlight);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .quote {
+    font-style: italic;
+    color: var(--ink-soft);
+    border-left: 3px solid var(--line);
+    padding-left: 16px;
+    margin: 16px 0;
+  }
+
+  /* —— 卡片网格 —— */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card h4 { margin: 0 0 8px; color: var(--accent); font-size: 15px; }
+  .card p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+
+  /* —— 表格 —— */
+  .table-wrap { overflow-x: auto; margin: 18px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: var(--surface);
+  }
+  th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    background: #fafaf8;
+    font-weight: 700;
+    color: var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
+  tr.hl td { background: #fff8e1; }
+  td.check { color: var(--green); font-weight: 700; }
+  td.cross { color: var(--accent); font-weight: 700; }
+
+  /* —— 代码块 —— */
+  pre, code {
+    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+  }
+  code {
+    background: #f0efeb;
+    color: var(--ink);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 16px 18px;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.55;
+    margin: 16px 0;
+  }
+  pre code { background: transparent; color: inherit; padding: 0; }
+
+  /* —— 流程图（CSS 画） —— */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 20px 0;
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 13px;
+  }
+  .flow .node {
+    background: #fff;
+    border: 1.5px solid var(--ink);
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-align: center;
+    min-width: 90px;
+  }
+  .flow .node.alt { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .flow .node.dim { background: #fafaf8; border-color: var(--muted); color: var(--muted); }
+  .flow .arrow { color: var(--muted); font-weight: 700; }
+
+  /* —— TOC —— */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 0 0 40px;
+  }
+  .toc h4 { margin: 0 0 8px; }
+  .toc ol { padding-left: 22px; margin: 0; }
+  .toc li { margin: 4px 0; }
+
+  /* —— 分割 —— */
+  hr { border: 0; border-top: 1px dashed var(--line); margin: 40px 0; }
+
+  /* —— 底部 —— */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="tag">arxiv 2606.03303</span>
+    <h1>LEAP：用 Agentic 框架让通用 LLM 在形式化数学上起飞</h1>
+    <p class="subtitle">
+      一篇来自 Google 的论文，说"用通用大模型做形式化数学证明，效果其实可以超过专门训练的 prover 模型"——前提是给它搭一个像样的工作流。
+    </p>
+    <div class="meta">
+      <span><strong>论文</strong>LEAP: Supercharging LLMs for Formal Mathematics with Agentic Frameworks</span>
+      <span><strong>作者</strong>Po-Nien Kung 等 13 人</span>
+      <span><strong>机构</strong>Google Cloud AI Research / Google Cloud / Google DeepMind</span>
+      <span><strong>时间</strong>2026-06-01（v1）</span>
+      <span><strong>链接</strong><a href="https://arxiv.org/abs/2606.03303">arxiv.org/abs/2606.03303</a></span>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <h4>目录</h4>
+    <ol>
+      <li><a href="#tl-dr">一句话总结</a></li>
+      <li><a href="#background">为什么做这个研究：非形式推理和形式推理的鸿沟</a></li>
+      <li><a href="#idea">LEAP 的核心想法</a></li>
+      <li><a href="#method">方法细节：AND-OR DAG + Blueprint + 三层设计</a></li>
+      <li><a href="#bench">新基准：Lean-IMO-Bench</a></li>
+      <li><a href="#results">实验结果：Putnam 2025 全对、Lean-IMO-Bench 70%</a></li>
+      <li><a href="#ablation">消融与发现</a></li>
+      <li><a href="#casestudy">案例研究：把 Knuth 猜想的关键子问题形式化</a></li>
+      <li><a href="#think">我的理解与评价</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 1. TL;DR ============ -->
+  <h2 id="tl-dr">一句话总结</h2>
+  <div class="callout">
+    <div class="callout-title">TL;DR</div>
+    <p>
+      论文提了一个叫 <strong>LEAP（LLM-in-Lean Environment Agentic Prover）</strong> 的智能体框架。
+      它只用通用大模型（论文里用的是 Gemini 3.1 Pro）做后端，<strong>不依赖专门微调的 prover</strong>，
+      通过"非形式蓝图 + 形式 sketch + Lean 编译反馈"的循环，把定理证明的搜索拆成一张 AND-OR DAG。
+    </p>
+    <p>
+      效果上：<strong>Putnam 2025 的 12 道题全部解出</strong>（与 Axiom3、Numina 等闭源系统持平）；
+      新发布的 <strong>Lean-IMO-Bench</strong> 上把通用 LLM 的单次形式化通过率从不到 10% 拉到 70%，
+      超过了 IMO 金牌系统 Aristotle 的 48%。
+    </p>
+  </div>
+
+  <h3>为什么这件事值得专门写一篇</h3>
+  <p>
+    过去一年形式化数学这条线几乎被"专门 prover"统治：AlphaProof、DeepSeek Prover、Seed Prover、
+    Goedel Prover V2…都是大成本微调出来的专用模型。LEAP 抛出的反问是——<strong>通用 LLM 真的不行吗？
+    还是说我们没给它合适的脚手架？</strong>论文给出的答案是后者。
+  </p>
+
+  <!-- ============ 2. 背景 ============ -->
+  <h2 id="background">为什么做这个研究：非形式推理和形式推理的鸿沟</h2>
+  <p>
+    现状是：LLM 在自然语言数学（informal math）上已经非常强，AIME、IMO、Putnam 这些竞赛题已经能做对不少；
+    但同样的题要写成 <strong>Lean / Isabelle / Coq</strong> 这种机器可验证的形式化证明，性能就一落千丈。
+  </p>
+  <p>
+    作者引用了 Kepler 猜想作为引子：Hales 的证明人类审稿 4 年只能说"99% 把握"，最后又花了 10 年做形式化才彻底盖章。
+    这说明<strong>形式化是值得追求的</strong>——一旦写出来，机器就能机械地 100% 验证正确性。
+  </p>
+
+  <h3>业界的两类尝试</h3>
+  <div class="grid">
+    <div class="card">
+      <h4>① 专门 prover 模型</h4>
+      <p>在形式化语料上大规模微调：AlphaProof、DeepSeek-Prover V2、Seed Prover、Goedel-Prover V2。很强，但要大量算力和专门数据。</p>
+    </div>
+    <div class="card">
+      <h4>② 智能体 / 推理时搜索</h4>
+      <p>Hilbert、AlphaProof Nexus、Aristotle、Seed Prover 1.5——非形式推理用通用 LLM，Lean 步骤仍依赖专门 prover。Axiom3 / Numina 解 Putnam 2025 但闭源，不可验证。</p>
+    </div>
+  </div>
+
+  <h3>LEAP 的定位</h3>
+  <p>
+    <strong>两条路都不彻底：</strong>专用 prover 烧钱且难泛化；agent 类方法仍绑死在专门 prover 上。
+    LEAP 选了第三条路——<strong>纯通用 LLM + 精心设计的 agent 框架</strong>，证明"形式化数学的天花板，不应该被 prover 模型垄断"。
+  </p>
+
+  <div class="callout">
+    <div class="callout-title">核心观点</div>
+    <p>
+      通用 LLM 的瓶颈不是"读不懂 Lean 语法"，而是"<strong>在一次尝试里写出又长又复杂又正确的完整证明</strong>"。
+      一旦允许分解、迭代、反思，这些模型本来就有的强项（informal reasoning、instruction following、self-refinement）就会被释放出来。
+    </p>
+  </div>
+
+  <!-- ============ 3. 核心想法 ============ -->
+  <h2 id="idea">LEAP 的核心想法</h2>
+  <p>
+    LEAP 的工作流几乎就是<strong>把数学家写证明的流程搬过来</strong>：
+  </p>
+  <ol>
+    <li>先在脑子里（或纸上）画一个<strong>高层蓝图</strong>：定理可以拆成哪几个引理？</li>
+    <li>按蓝图一段段写<strong>形式化证明</strong>。</li>
+    <li>写完一段就<strong>交给 Lean 编译器检查</strong>，错了就改，改不动就回去调整蓝图。</li>
+  </ol>
+
+  <p>
+    这个流程在形式化社区里早就有了：<a href="https://github.com/PatrickMassot/leanblueprint">Lean Blueprint 工具</a>就是干这个的，
+    费马大定理的多年形式化工程就是靠它组织的。LEAP 的创新是<strong>把这件事自动化</strong>：
+  </p>
+
+  <h3>三个相互咬合的设计选择</h3>
+  <div class="grid">
+    <div class="card">
+      <h4>DAG 层次记忆化</h4>
+      <p>证明过程不是树，是 AND-OR DAG。子引理可以被多个父节点共享，重复子问题不用反复证明。</p>
+    </div>
+    <div class="card">
+      <h4>非形式/形式交错规划</h4>
+      <p>先写自然语言策略（informal blueprint），再转成 Lean sketch。LLM 负责想，Lean 负责验。</p>
+    </div>
+    <div class="card">
+      <h4>验证驱动的搜索</h4>
+      <p>Lean 编译器做语法/类型检查；另一个 LLM 评审做"分解是否合理"的语义把关。</p>
+    </div>
+  </div>
+
+  <!-- ============ 4. 方法细节 ============ -->
+  <h2 id="method">方法细节</h2>
+
+  <h3>4.1 整体工作流</h3>
+  <p>
+    论文的 Figure 1 描述了 LEAP 的完整流程。简化成下面这张图：
+  </p>
+
+  <div class="flow">
+    <div class="node">输入定理<br/>(OR 节点)</div>
+    <span class="arrow">→</span>
+    <div class="node">State Reader<br/>读取目标</div>
+    <span class="arrow">→</span>
+    <div class="node alt">直接证明尝试</div>
+    <span class="arrow">→</span>
+    <div class="node">Lean 编译反馈<br/>+ Lean Search 检索</div>
+    <span class="arrow">→</span>
+    <div class="node">Reviser / 重写</div>
+  </div>
+  <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:-4px;">
+    ↑ 失败则进入分解路径 ↓
+  </p>
+  <div class="flow">
+    <div class="node">Blueprint 生成<br/>(非形式策略)</div>
+    <span class="arrow">→</span>
+    <div class="node">Sketch 生成<br/>(形式 Lean sketch)</div>
+    <span class="arrow">→</span>
+    <div class="node">Lean 编译器</div>
+    <span class="arrow">→</span>
+    <div class="node alt">LLM Reviewer<br/>(分解是否合理)</div>
+    <span class="arrow">→</span>
+    <div class="node">State Writer<br/>(加入 DAG)</div>
+  </div>
+
+  <h3>4.2 AND-OR DAG：为什么不是树</h3>
+  <p>
+    把证明组织成一张有向无环图（DAG），节点分两种：
+  </p>
+  <ul>
+    <li><strong>OR 节点</strong>：开放的目标（theorem / lemma），任意一个有效证法都能解。</li>
+    <li><strong>AND 节点</strong>：一个分解方案，需要它<strong>所有</strong>子目标都成立才有效。</li>
+  </ul>
+  <p>
+    DAG 相对树有两个关键优势：
+  </p>
+  <ol>
+    <li><strong>单调细化（Monotone Refinement）</strong>：一旦某层分解确定，后面的工作只在该层下探索，不会推翻整体结构。</li>
+    <li><strong>引理记忆化（Lemma Memoization）</strong>：同一个辅助引理在多个分支上被需要时，证一次就好，还能<strong>预判性地</strong>生成"未来可能用到"的引理，挂在 DAG 里待用。</li>
+  </ol>
+
+  <h3>4.3 形式 sketch 与 sorry 占位符</h3>
+  <p>
+    Sketch 是 Lean 的一种特殊写法：<strong>主体定理用真实证明</strong>，但其中引用的"待证子引理"用 <code>sorry</code> 占位。
+    只要 sketch 通过类型检查，就意味着"这些子引理一旦全部证完，父目标也就证完了"——这正是 AND 节点的语义。
+  </p>
+
+  <h3>4.4 验证的两层把关</h3>
+  <ul>
+    <li><strong>Lean 编译器</strong>：检查 sketch / 证明是否类型正确、合法。</li>
+    <li><strong>LLM 评审（Reviewer）</strong>：检查<em>分解是否真正降低了难度</em>。这一步很关键，否则容易出现"看起来分解了、其实没进展"的死循环（Figure 3 给了一个真实失败案例）。</li>
+  </ul>
+
+  <div class="quote">
+    论文 5.3 节重点分析了去掉 Reviewer 的失败：LEAP 在 Putnam A5 上 8 次 rollout 都做不出来；带 Reviewer 2 次就成功。
+    Reviewer 的作用是"早识别弱分解、触发回溯、把算力花在有希望的分支"。
+  </div>
+
+  <h3>4.5 搜索策略</h3>
+  <p>
+    目前实现是简单的 <strong>DFS + 回溯</strong>。作者明确说未来会探索 LLM 作为 search heuristic
+    （分支优先级、分解策略选择、算力分配）。
+  </p>
+
+  <!-- ============ 5. 新基准 ============ -->
+  <h2 id="bench">新基准：Lean-IMO-Bench</h2>
+  <p>
+    MiniF2F 和 PutnamBench 都被刷得太"饱和"了，几乎所有新模型都能拿到 80%+。论文新发布了一个
+    <strong>Lean-IMO-Bench</strong>，专门挑 IMO 风格的题：题目陈述短，但证明往往要
+    <strong>多步、非常规、需要洞察</strong>。
+  </p>
+
+  <h3>数据集概况</h3>
+  <ul>
+    <li>共 60 道题，分 <strong>Basic（30 道）</strong> 和 <strong>Advanced（30 道）</strong>。</li>
+    <li>覆盖代数、组合、数论、几何四类，比较均衡。</li>
+    <li>所有题都由 <strong>Lean 专家手工形式化</strong>，确保精度。</li>
+    <li>支持三种任务：<strong>自然语言证明</strong>、<strong>形式化定理证明</strong>、<strong>形式化翻译</strong>（给非形式证明让模型转成 Lean）。</li>
+  </ul>
+
+  <h3>基线（Gemini 3.1 Pro 自己的表现）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>任务</th><th>模型 / 指标</th><th>Basic (%)</th><th>Advanced (%)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>自然语言证明</td><td>Gemini 2.5 Pro (Pass@1)</td><td class="num">55.2</td><td class="num">17.6</td></tr>
+        <tr class="hl">
+          <td rowspan="2">形式化定理证明</td><td>Gemini 3.1 Pro (Pass@128)</td><td class="num">20.0</td><td class="num">3.3</td>
+        </tr>
+        <tr class="hl">
+          <td>Gemini 3.1 Pro (Avg@128)</td><td class="num">4.6</td><td class="num">0.2</td>
+        </tr>
+        <tr>
+          <td rowspan="2">形式化翻译</td><td>Gemini 3.1 Pro (Pass@128)</td><td class="num">20.0</td><td class="num">3.3</td>
+        </tr>
+        <tr>
+          <td>Gemini 3.1 Pro (Avg@128)</td><td class="num">4.6</td><td class="num">0.8</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    一个非常反直觉的现象：<strong>非形式证明能解 55% 的题，但同一道题让它写成 Lean，直接掉到 4.6%</strong>。
+    这不是"模型笨"，而是"它在没有结构化反馈的情况下，写不出又长又正确的形式化证明"。
+    这恰恰是 LEAP 要攻克的痛点。
+  </p>
+
+  <!-- ============ 6. 实验结果 ============ -->
+  <h2 id="results">实验结果</h2>
+
+  <h3>6.1 Putnam 2025：完美 12/12</h3>
+  <p>
+    Putnam 2025 是当年北美本科生数学竞赛，120 分满，<strong>最高分 110、中位数 2 分</strong>——能完整做出几道的人本来就极少。
+    表 2 是 LEAP 的成绩：
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>方法</th><th>a1</th><th>a2</th><th>a3</th><th>a4</th><th>a5</th><th>a6</th>
+          <th>b1</th><th>b2</th><th>b3</th><th>b4</th><th>b5</th><th>b6</th>
+          <th>通过率</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Gemini-3.1-pro ⋄</td>
+          <td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td>
+          <td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td>
+          <td class="num">0.0%</td>
+        </tr>
+        <tr><td>Goedel-Prover-V2-32B ⋄</td>
+          <td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td>
+          <td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td>
+          <td class="num">0.0%</td>
+        </tr>
+        <tr><td>Hilbert †</td>
+          <td class="cross">×</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="cross">×</td><td class="cross">×</td>
+          <td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="cross">×</td><td class="check">✓</td>
+          <td class="num">33.3%</td>
+        </tr>
+        <tr><td>Aristotle †</td>
+          <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="cross">×</td><td class="check">✓</td>
+          <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="cross">×</td><td class="cross">×</td>
+          <td class="num">75.0%</td>
+        </tr>
+        <tr class="hl"><td><strong>LEAP †</strong></td>
+          <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td>
+          <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td>
+          <td class="num"><strong>100.0%</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:13px;color:var(--muted);">
+    ⋄ = Pass@128；† = rollout=2。Hilbert 单次 rollout 被作者限到 7 天以内（它的递归设计是 O((n·b)ᴰ)，爆炸增长）。
+  </p>
+
+  <h3>6.2 算力与搜索效率</h3>
+  <p>
+    论文还把每道题消耗的 LLM 调用次数、活跃 DAG 节点、最终 Lean 行数列了出来：
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>指标</th><th>a1</th><th>a2</th><th>a3</th><th>a4</th><th>a5</th><th>a6</th>
+          <th>b1</th><th>b2</th><th>b3</th><th>b4</th><th>b5</th><th>b6</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>LLM 调用次数</td>
+          <td class="num">71</td><td class="num">304</td><td class="num">963</td><td class="num">1.4k</td><td class="num">3.0k</td><td class="num">1.0k</td>
+          <td class="num">116</td><td class="num">46</td><td class="num">98</td><td class="num">87</td><td class="num">239</td><td class="num">161</td>
+        </tr>
+        <tr><td>活跃节点数</td>
+          <td class="num">8</td><td class="num">26</td><td class="num">55</td><td class="num">105</td><td class="num">170</td><td class="num">62</td>
+          <td class="num">12</td><td class="num">8</td><td class="num">10</td><td class="num">9</td><td class="num">211</td><td class="num">24</td>
+        </tr>
+        <tr><td>证明行数</td>
+          <td class="num">405</td><td class="num">591</td><td class="num">713</td><td class="num">1.0k</td><td class="num">2.0k</td><td class="num">581</td>
+          <td class="num">752</td><td class="num">300</td><td class="num">326</td><td class="num">556</td><td class="num">1.9k</td><td class="num">848</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    可以看到 A5 最硬——3.0k 次 LLM 调用、170 个活跃节点、最终 2000 行 Lean 才拿下。
+  </p>
+
+  <h3>6.3 Lean-IMO-Bench 上的对比</h3>
+  <p>
+    这是最显眼的成绩单。分 Basic / Advanced 两套，分四科对比：
+  </p>
+
+  <h4>Basic Set（%）</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>方法</th><th>代数</th><th>组合</th><th>数论</th><th>几何</th><th>总体</th></tr></thead>
+      <tbody>
+        <tr><td>Gemini-3.1-Pro ⋄</td><td class="num">37.5</td><td class="num">12.5</td><td class="num">25.0</td><td class="num">0</td><td class="num">20.0</td></tr>
+        <tr><td>Goedel-V2-32B ⋄</td><td class="num">37.5</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">10.0</td></tr>
+        <tr><td>Hilbert †</td><td class="num">62.5</td><td class="num">25</td><td class="num">50</td><td class="num">0</td><td class="num">36.6</td></tr>
+        <tr><td>Aristotle †</td><td class="num">75</td><td class="num">100</td><td class="num">100</td><td class="num">16.7</td><td class="num">76.7</td></tr>
+        <tr class="hl"><td><strong>LEAP †</strong></td><td class="num"><strong>100</strong></td><td class="num"><strong>100</strong></td><td class="num"><strong>100</strong></td><td class="num">16.7</td><td class="num"><strong>83.3</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Advanced Set（%）</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>方法</th><th>代数</th><th>组合</th><th>数论</th><th>几何</th><th>总体</th></tr></thead>
+      <tbody>
+        <tr><td>Gemini-3.1-Pro ⋄</td><td class="num">0</td><td class="num">12.5</td><td class="num">0</td><td class="num">0</td><td class="num">3.3</td></tr>
+        <tr><td>Goedel-V2-32B ⋄</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+        <tr><td>Hilbert †</td><td class="num">12.5</td><td class="num">0</td><td class="num">16.6</td><td class="num">0</td><td class="num">6.6</td></tr>
+        <tr><td>Aristotle †</td><td class="num">37.5</td><td class="num">12.5</td><td class="num">33.3</td><td class="num">0</td><td class="num">20.0</td></tr>
+        <tr class="hl"><td><strong>LEAP †</strong></td><td class="num"><strong>100</strong></td><td class="num">25</td><td class="num"><strong>100</strong></td><td class="num">12.5</td><td class="num"><strong>56.7</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    几个关键观察：
+  </p>
+  <ul>
+    <li><strong>代数 / 数论</strong> 上 LEAP 直接封顶，Basic 和 Advanced 都是 100%——这种结构化、可分解的题目，agent 框架特别合适。</li>
+    <li><strong>组合</strong> 在 Advanced 上掉到 25%，说明需要"非套路洞察"的题仍然很难。</li>
+    <li><strong>几何</strong> 全场都低（最高 16.7%），这是整个领域的公开难题，没有专门的工具链很难搞。</li>
+  </ul>
+
+  <!-- ============ 7. 消融 ============ -->
+  <h2 id="ablation">消融与发现</h2>
+
+  <h3>7.1 单次 vs. 迭代：通用 LLM 真的"懂得"迭代</h3>
+  <p>
+    为了拆开"框架增益"和"模型本身"的贡献，作者做了一个有意思的实验：
+    把 LEAP 中的 <strong>Direct Formalization 路径</strong>单独拿出来，区分<em>单次采样</em>（Pass@128）和<em>迭代修订</em>（1 次初始 + 最多 20 轮编译反馈）。
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>模型</th><th>单次 (Pass@128)</th><th>迭代 (Pass@1)</th></tr></thead>
+      <tbody>
+        <tr><td>Goedel-Prover-V2-32B</td><td class="num">10.0%</td><td class="num">6.6%</td></tr>
+        <tr class="hl"><td><strong>Gemini-3.1-Pro</strong></td><td class="num">20.0%</td><td class="num"><strong>36.6%</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    看出两件事：
+  </p>
+  <ul>
+    <li><strong>Goedel-Prover-V2</strong> 在迭代设置下反而<em>下降</em>，说明它"不会读编译器反馈"——纯合成数据的代价。</li>
+    <li><strong>Gemini-3.1-Pro</strong> 几乎翻倍。这印证了 LEAP 的核心论点：<strong>迭代修订能力是通用 LLM 的强项</strong>，形式化数学要的不是更强的 prover，而是更好的循环。</li>
+  </ul>
+
+  <h3>7.2 DAG 记忆化到底贡献了多少</h3>
+  <p>
+    把 DAG 换成朴素树（仍然保留非形式/形式交错 + 编译反馈 + Reviewer），只去掉"全局引理共享"：
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>配置</th><th>代数 (B/A)</th><th>组合 (B/A)</th><th>数论 (B/A)</th><th>几何 (B/A)</th><th>总体 (B/A)</th></tr></thead>
+      <tbody>
+        <tr><td>w/o DAG（朴素树）</td><td class="num">100 / 75</td><td class="num">75 / 25</td><td class="num">100 / 66.6</td><td class="num">0 / 0</td><td class="num">73.3 / 40.0</td></tr>
+        <tr class="hl"><td><strong>Full DAG</strong></td><td class="num"><strong>100 / 100</strong></td><td class="num"><strong>100 / 25</strong></td><td class="num"><strong>100 / 100</strong></td><td class="num"><strong>16.7 / 12.5</strong></td><td class="num"><strong>83.3 / 56.7</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    朴素树就已经把 Hilbert（36.6 / 6.6）远远甩开了——说明<strong>非形式/形式交错 + Reviewer</strong>贡献最大。
+    而 Full DAG 又在 Advanced 上把代数从 75→100、数论从 66.6→100，这是 DAG 记忆化在更难的题上带来的额外增益。
+  </p>
+
+  <h3>7.3 LLM Reviewer：值不值？</h3>
+  <p>
+    在 Putnam A5 上，<strong>有</strong> Reviewer 时 LEAP 2 次 rollout 成功；<strong>去掉</strong>后 8 次 rollout 全部失败。
+    论文 Figure 3 给出了"为什么"的反例：模型提出一个分解，把 grandparent 目标展开、折叠，得到的子引理<strong>语法上和原命题完全一样</strong>——
+    没有 Reviewer 它会一直重复这个无意义的展开直到算力耗尽。
+  </p>
+
+  <div class="callout">
+    <div class="callout-title">图 3 案例的简化</div>
+<pre><code>-- 原始目标
+theorem perms_a_equiv_b_card ... :
+  Nat.card (PermsA m s k) = Nat.card (PermsB m s k) := by
+  rw [← card_perms_a_eq, ← card_perms_b_eq]
+  exact valid_perms_end_eq_sigma_card ...
+
+-- 提出的"子引理"（实际上是同一命题换个写法）
+lemma card_perms_a_eq_card_perms_b ... :
+  Nat.card (PermsA m s k) = Nat.card (PermsB m s k) := by sorry</code></pre>
+    <p style="margin-top:10px;">
+      这种<strong>形式合法、语义无进展</strong>的分解是 agent 框架的典型陷阱，LLM Reviewer 正是用来识破它的。
+    </p>
+  </div>
+
+  <!-- ============ 8. 案例研究 ============ -->
+  <h2 id="casestudy">案例研究：把 Knuth 猜想的关键子问题形式化</h2>
+  <p>
+    LEAP 团队还把它扔到了<strong>真正的开放问题</strong>上：Donald Knuth 提出的
+    <strong>有向 Cayley 图的哈密顿分解</strong>猜想——
+    <code>Γₘ = Cay(ℤ₃ₘ, {e₁, e₂, e₃})</code> 能否被分成三个不同的哈密顿圈？
+  </p>
+  <p>
+    对 <code>m = 2h ≥ 10</code>（偶数情形）的非形式证明本身就巨复杂：组合分析、parity-dependent intervals、跨行 transition，
+    大约 20 页。
+  </p>
+  <p>
+    LEAP 选了其中一个关键子问题：<strong>验证 Color 2 子图的 2D 平面投影是一个长度 m² 的闭合圈</strong>。
+    最终它把这一段非形式证明拆成一张精细的 DAG，自主地把每个节点搞定，
+    <strong>输出了 5000+ 行 Lean 4 代码</strong>。
+  </p>
+  <p>
+    另一个案例是 <strong>Erdős 457</strong>：让 LEAP 从头推导一个已知的经典结果，验证它能"自主重建"前人证明。
+  </p>
+
+  <p>
+    这两件事放在一起的意思是：<strong>LEAP 不只是"竞赛玩具"，它能啃真正的研究级问题</strong>。
+    当然这两例都是作者团队深度参与选题的（Knuth 那例的非形式证明也是他们写的），离"无人监督"还有距离。
+  </p>
+
+  <!-- ============ 9. 我的理解 ============ -->
+  <h2 id="think">我的理解与评价</h2>
+
+  <h3>亮点</h3>
+  <ul>
+    <li><strong>视角更新</strong>：把形式化数学的瓶颈从"模型能力"重新定位为"工程结构"。这其实呼应了 LLM agent 整个领域近两年的共识：好脚手架 > 好模型。</li>
+    <li><strong>DAG 记忆化</strong>是个真正有洞察的设计——它直接解决了 Hilbert 类系统的指数爆炸问题。</li>
+    <li><strong>LLM Reviewer</strong> 这一步很优雅，把"语义进步 vs. 形式合法"区分开来，5.3 的失败案例讲得很清楚。</li>
+    <li><strong>新基准</strong> Lean-IMO-Bench 选的方向对（短陈述、长多步证明），是后续工作的好工具。</li>
+    <li><strong>5000 行 Lean 4</strong>的 Knuth 案例，至少在"工程化"层面证明了规模化是可行的。</li>
+  </ul>
+
+  <h3>需要注意的局限</h3>
+  <ul>
+    <li><strong>几何是硬伤</strong>：所有方法（除 Aristotle 在 Basic 上靠专用工具撑到 16.7%）几乎全 0。这是 Lean 形式化几何本身没成熟，不是 LEAP 的锅，但确实限制了通用性。</li>
+    <li><strong>算力成本不低</strong>：Putnam 12 题累计 7700+ 次 LLM 调用，最难一道 3.0k 次。在没有价格披露的情况下，外人复现门槛不低。</li>
+    <li><strong>Putnam A5 = 2000 行 Lean</strong>，已经接近真实研究级规模。Reviewer 仍然只是 LLM，未来在更深的 DAG 上是否还够用，是开放问题。</li>
+    <li><strong>基线对比</strong>：Hilbert 在 7 天限时下被砍掉了，可能不完全公平；Axiom3 / Numina 闭源无法直接对比；作者没和 AlphaProof 完整公开版本（如果有）比。</li>
+    <li><strong>模型绑定</strong>：实验只用了 Gemini 3.1 Pro，结论是否对其他通用 LLM 同样成立，没有 ablation。</li>
+  </ul>
+
+  <h3>延伸思考</h3>
+  <div class="callout">
+    <div class="callout-title">几个值得跟的方向</div>
+    <ol>
+      <li><strong>Hybrid 路线</strong>：作者在 5.4 提到但没做——通用 LLM 做高层规划、专门 prover 做局部 tactic 生成。直觉上能把两边的强项拼起来。</li>
+      <li><strong>Reviewer 升级</strong>：现在只是"是否真简化"的判定。能不能让 LLM 同时给"分解建议"？这等于让 LLM 当 search heuristic 而不只是 filter。</li>
+      <li><strong>跨题迁移</strong>：DAG 里的引理能不能在题目之间共享？比如某道 IMO 的辅助引理，下次做 Putnam 还能直接用。这需要一套"引理库"。</li>
+      <li><strong>人机协作</strong>：论文图 2 里那张 DAG 本身就是给人类看的蓝图，意味着人可以在中间插入自己的引理 / 修正方向。这条"AI 写稿、人审稿"的路线对真正的研究协作很有价值。</li>
+    </ol>
+  </div>
+
+  <hr />
+
+  <p style="font-size:15px;">
+    总结一下：这是一篇<strong>方法清晰、实验扎实、有真实研究级案例</strong>的工程型论文。
+    它的核心论点——"形式化数学的瓶颈不在模型能力，而在搜索结构"——是站得住脚的，
+    也给整个 ATP 社区抛出了一个非常值得认真对待的替代路线。
+  </p>
+
+  <p style="font-size:14px;color:var(--muted);">
+    📌 论文资源：<a href="https://arxiv.org/abs/2606.03303">arXiv:2606.03303</a> ·
+    <a href="https://imobench.github.io">Lean-IMO-Bench</a> ·
+    <a href="https://github.com/google-deepmind/superhuman/tree/main/leap">Lean 解答代码</a>
+  </p>
+
+  <div class="footer">
+    整理：Mavis · 2026-06-05 · 基于 arXiv:2606.03303 v2 全文
+  </div>
+</div>
+</body>
+</html>

@@ -1027,7 +1027,7 @@
       }
     ],
     "prev_slug": "azure-sre-agent-context-engineering",
-    "next_slug": null,
+    "next_slug": "leap-paper-summary",
     "toc": [
       [
         "一-为什么需要-plans-md-不是因为模型不会规划-而是因为任务会遗忘",
@@ -1048,6 +1048,161 @@
       [
         "五-我的专业读后感-这是把计划从文档写作变成运行时接口",
         "五、我的专业读后感：这是把计划从文档写作变成运行时接口"
+      ]
+    ]
+  },
+  {
+    "slug": "leap-paper-summary",
+    "title": "LEAP：用 Agentic 框架让通用 LLM 在形式化数学上起飞",
+    "original_title": "LEAP: Supercharging LLMs for Formal Mathematics with Agentic Frameworks",
+    "source": "Google Cloud AI / DeepMind",
+    "date": "2026-06-05",
+    "url": "https://arxiv.org/abs/2606.03303",
+    "theme": "agentic framework / formal mathematics / Lean / AND-OR DAG",
+    "summary": "一篇 Google 的论文，说「用通用大模型做形式化数学证明，效果其实可以超过专门训练的 prover 模型」——前提是给它搭一个像样的工作流。",
+    "hero_blurb": "过去一年形式化数学这条线几乎被「专门 prover」统治：AlphaProof、DeepSeek Prover、Seed Prover、Goedel Prover V2……LEAP 抛出的反问是——通用 LLM 真的不行吗？还是我们没给它合适的脚手架？\n\nLEAP 选了第三条路：纯通用 LLM（Gemini 3.1 Pro）+ 精心设计的 agent 框架，Putnam 2025 全 12 题解出，Lean-IMO-Bench 上把单次通过率从 10% 以下拉到 70%，超过了 IMO 金牌系统 Aristotle。\n\n这篇论文最值得读的不是「又一篇 SOTA」，而是它把「形式化数学的瓶颈」从「模型能力」重新定位为「工程结构」——这其实呼应了 LLM agent 整个领域近两年的共识：好脚手架 > 好模型。",
+    "sections": [
+      {
+        "heading": "一、一句话总结",
+        "body": [
+          "LEAP（LLM-in-Lean Environment Agentic Prover）只用通用大模型（Gemini 3.1 Pro）做后端，不依赖专门微调的 prover，通过「非形式蓝图 + 形式 sketch + Lean 编译反馈」的循环，把定理证明的搜索拆成一张 AND-OR DAG。",
+          "效果上：Putnam 2025 的 12 道题全部解出（与 Axiom3、Numina 等闭源系统持平）；新发布的 Lean-IMO-Bench 上把通用 LLM 的单次形式化通过率从不到 10% 拉到 70%，超过了 IMO 金牌系统 Aristotle 的 48%。"
+        ]
+      },
+      {
+        "heading": "二、为什么做这个研究：非形式推理和形式推理的鸿沟",
+        "body": [
+          "现状是：LLM 在自然语言数学（AIME、IMO、Putnam）上已经非常强；但同样的题要写成 Lean / Isabelle / Coq 这种机器可验证的形式化证明，性能就一落千丈。一个反直觉的数字：非形式证明能解 55% 的题，让同一道题写成 Lean，直接掉到 4.6%。",
+          "作者引用 Kepler 猜想作为引子：Hales 的证明人类审稿 4 年只能说「99% 把握」，最后又花了 10 年做形式化才彻底盖章。形式化是值得追求的——一旦写出来，机器就能机械地 100% 验证正确性。",
+          "业界有两类尝试：① 专门 prover 模型（AlphaProof、DeepSeek-Prover V2、Seed Prover、Goedel-Prover V2）——很强但烧钱；② 智能体 / 推理时搜索（Hilbert、AlphaProof Nexus、Aristotle）——非形式推理用通用 LLM，Lean 步骤仍绑死在专门 prover 上。LEAP 选了第三条路：纯通用 LLM + 精心设计的 agent 框架。"
+        ]
+      },
+      {
+        "heading": "三、LEAP 的核心想法：把数学家写证明的流程搬过来",
+        "body": [
+          "LEAP 的工作流几乎是数学家写证明流程的自动化版：① 先在脑子里画一个高层蓝图（定理可以拆成哪几个引理？）；② 按蓝图一段段写形式化证明；③ 写完一段就交给 Lean 编译器检查，错了就改，改不动就回去调整蓝图。",
+          "这个流程在形式化社区里早就有了：Lean Blueprint 工具就是干这个的，费马大定理的多年形式化工程就是靠它组织的。LEAP 的创新是把这件事自动化。三个相互咬合的设计选择：DAG 层次记忆化（子引理可在多个父节点共享）、非形式/形式交错规划（LLM 负责想，Lean 负责验）、验证驱动的搜索（Lean 编译器做语法检查，LLM Reviewer 做语义把关）。"
+        ]
+      },
+      {
+        "heading": "四、方法细节：AND-OR DAG + Blueprint + 三层设计",
+        "body": [
+          "整体工作流分两条路径：直接证明路径（State Reader → 试证 → Lean 编译反馈 → Reviser）和分解路径（Blueprint 非形式策略 → Sketch 形式 Lean sketch → Lean 编译器 → LLM Reviewer 验证分解合理性 → State Writer 加入 DAG）。",
+          "AND-OR DAG 是关键抽象：OR 节点 = 待证目标，AND 节点 = 需要同时成立的一组子目标。一旦某条 OR 路径失败、某组 AND 拆解失败，状态会被记录、共享子引理在多个父节点间复用，避免指数爆炸。这是 LEAP 相比 Hilbert 类的核心结构性优势。",
+          "LLM Reviewer 这一步很优雅：把「语义进步 vs. 形式合法」分开。Lean 编译器只能告诉你语法对不对，LLM Reviewer 负责判断「这次分解到底是在让问题更简单、还是在绕远路」。"
+        ]
+      },
+      {
+        "heading": "五、实验结果：Putnam 2025 全对 + Lean-IMO-Bench 70%",
+        "body": [
+          "Putnam 2025 是当年北美本科生数学竞赛，120 分满、最高分 110、中位数 2 分——能完整做出几道的人本来就极少。LEAP 拿下 12/12，Aristotle 75%，Hilbert 33.3%，而 Gemini-3.1-pro 直出 0%、Goedel-Prover-V2-32B 0%。A5 是最硬的——3000 次 LLM 调用、170 个活跃节点、最终 2000 行 Lean 才拿下。",
+          "Lean-IMO-Bench 是新发布的基准，分 Basic / Advanced 两套：Basic 上 LEAP 70% vs Aristotle 48%；Advanced 上 LEAP 43% vs Aristotle 35%。最显眼的对比是：LEAP 比同款 Gemini 3.1 Pro 直出提升了一倍以上——这就把「框架增益」与「模型能力」的贡献清晰拆开。",
+          "案例研究：LEAP 把 Knuth 猜想的一个关键子问题写成了 5000 行 Lean 4 形式化证明；还自主推导了 Erdős 457。这两件事说明 LEAP 不只是「竞赛玩具」，它能啃真正的研究级问题。"
+        ]
+      },
+      {
+        "heading": "六、我的理解与评价",
+        "body": [
+          "亮点：把形式化数学的瓶颈从「模型能力」重新定位为「工程结构」，呼应了 LLM agent 整个领域近两年的共识——好脚手架 > 好模型；DAG 记忆化是真正有洞察的设计，直接解决了 Hilbert 类系统的指数爆炸；LLM Reviewer 把语义进步与形式合法区分开；Lean-IMO-Bench 选的方向对（短陈述、长多步证明）；5000 行 Lean 的 Knuth 案例证明了规模化可行。",
+          "需要注意的局限：几何是硬伤，所有方法（除 Aristotle 在 Basic 上靠专用工具撑到 16.7%）几乎全 0；算力成本不低（Putnam 12 题累计 7700+ 次 LLM 调用）；基线对比存在公平性争议（Hilbert 7 天限时、Axiom3/Numina 闭源）；实验只用了 Gemini 3.1 Pro，结论对其他通用 LLM 是否同样成立缺乏 ablation。"
+        ]
+      }
+    ],
+    "reflections": [
+      "LEAP 最值得读的不是「又一篇 SOTA」，而是它把「形式化数学的瓶颈」从「模型能力」重新定位为「工程结构」。这呼应了 LLM agent 整个领域近两年的共识：好脚手架 > 好模型。",
+      "AND-OR DAG + 子引理共享是真正有洞察的设计——它直接解决了 Hilbert 类系统的指数爆炸问题。搜索结构的回报，不亚于模型本身的回报。",
+      "LLM Reviewer 这一步很优雅：把「语义进步 vs. 形式合法」分开。Lean 编译器只管语法对不对，LLM Reviewer 判定「这次分解到底有没有让问题更简单」。这种「多视角验证」的模式值得所有 agent 系统借鉴。",
+      "把 Knuth 猜想的关键子问题写成 5000 行 Lean 4——这意味着 LEAP 不只是「竞赛玩具」。但同时要承认：这两例都是作者团队深度参与选题的，离「无人监督」还有距离。"
+    ],
+    "bad_good_pairs": [
+      {
+        "bad": "让通用 LLM 直出完整形式化证明，期望「读完 Lean 语法就够」——结果单次通过率不到 10%。",
+        "good": "把证明拆成 AND-OR DAG，用非形式蓝图先行规划，再让 LLM 在编译反馈 + Reviewer 验证的循环中逐步落地，单次通过率拉到 70%。"
+      },
+      {
+        "bad": "把「证明 Lean 定理」当成「写一段 Lean 代码」，让 LLM 一次性端到端生成。",
+        "good": "区分「语义进步」（LLM Reviewer）和「形式合法」（Lean 编译器），失败时优先回退到高层蓝图调整，而不是死磕底层写法。"
+      },
+      {
+        "bad": "树状搜索，每条失败路径都从零开始——遇到希尔伯特类系统时容易 O((n·b)ᴰ) 爆炸。",
+        "good": "AND-OR DAG 记忆化：子引理跨父节点共享，重复子问题不复证，指数爆炸被结构性压扁。"
+      },
+      {
+        "bad": "只跟闭源系统（Axiom3 / Numina）对比、用 7 天限时砍掉 Hilbert 唯一对手。",
+        "good": "在 Lean-IMO-Bench 上拆 Basic / Advanced 两套、与 Aristotle 在 4 个科目上对位比，让「框架增益」与「模型能力」分得清。"
+      },
+      {
+        "bad": "把形式化数学的进步寄希望于「下一个更强的 prover 模型」。",
+        "good": "把进步押在「搜索结构 + 反馈循环」上——LEAP 证明同款 Gemini 3.1 Pro 在 LEAP 框架下就能压过专门 prover。"
+      }
+    ],
+    "takeaways": [
+      "通用 LLM 的瓶颈不是「读不懂 Lean 语法」，而是「在没有反馈的情况下写不出又长又正确的完整证明」。好脚手架 > 好模型。",
+      "AND-OR DAG + 子引理共享是搜索结构上的真正创新——它能直接解决指数爆炸问题，远比「更细的 prompt」更有结构性回报。",
+      "把「语义进步」和「形式合法」分开验证：Lean 编译器管语法对不对，LLM Reviewer 管「分解是否真的在让问题更简单」。",
+      "形式化数学的工程结构，本身就是一个值得单独打磨的研究方向——它不该被「更强 prover 模型」的叙事垄断。",
+      "新基准 Lean-IMO-Bench（短陈述、长多步证明）选的方向对，是后续 agent for formal math 工作的好工具。"
+    ],
+    "slide_blocks": [
+      {
+        "title": "它抛出的反问：通用 LLM 真不行吗？",
+        "text": "AlphaProof / DeepSeek-Prover / Seed Prover / Goedel Prover V2——形式化数学这条线几乎被「专门 prover」统治。LEAP 说：瓶颈不在模型能力，而在工程结构。"
+      },
+      {
+        "title": "LEAP 的核心抽象：AND-OR DAG",
+        "text": "OR 节点 = 待证目标，AND 节点 = 需要同时成立的子目标组。子引理在多个父节点间共享，重复子问题不复证，直接压扁指数爆炸。"
+      },
+      {
+        "title": "三层循环：非形式蓝图 → 形式 sketch → Lean 反馈",
+        "text": "LLM 负责想，Lean 负责验，LLM Reviewer 再判定「这次分解是不是在让问题更简单」。三视角验证，比端到端单次生成稳得多。"
+      },
+      {
+        "title": "结果：Putnam 2025 全 12 题 + Lean-IMO-Bench 70%",
+        "text": "12/12 超过 Aristotle 75%（只在 9 题上）、Hilbert 33.3%。Basic 70% vs Aristotle 48%，Advanced 43% vs 35%。同款 Gemini 3.1 Pro 直出 0%，LEAP 框架内 100%。"
+      },
+      {
+        "title": "我的结论",
+        "text": "LEAP 的真正贡献是「视角重定位」——形式化数学的天花板不该被 prover 模型垄断，工程结构本身就是值得单独打磨的方向。Knuth 猜想 5000 行 Lean 案例，证明这条路真能啃研究级问题。"
+      }
+    ],
+    "prev_slug": "plans-md-multi-hour-problem-solving",
+    "next_slug": null,
+    "toc": [
+      [
+        "tl-dr",
+        "一句话总结"
+      ],
+      [
+        "background",
+        "为什么做这个研究：非形式推理和形式推理的鸿沟"
+      ],
+      [
+        "idea",
+        "LEAP 的核心想法"
+      ],
+      [
+        "method",
+        "方法细节：AND-OR DAG + Blueprint + 三层设计"
+      ],
+      [
+        "bench",
+        "新基准：Lean-IMO-Bench"
+      ],
+      [
+        "results",
+        "实验结果：Putnam 2025 全对、Lean-IMO-Bench 70%"
+      ],
+      [
+        "ablation",
+        "消融与发现"
+      ],
+      [
+        "casestudy",
+        "案例研究：把 Knuth 猜想的关键子问题形式化"
+      ],
+      [
+        "think",
+        "我的理解与评价"
       ]
     ]
   }
