@@ -2062,3 +2062,101 @@ main h1,
 .hero {
   display: block !important;
 }
+
+/* ===== 让 TOC 在首屏可见:缩小 hero + article-layout 提前 ===== */
+.article-page .hero {
+  padding: 40px 0 20px !important;
+}
+.article-page .hero .hero-card {
+  padding: 28px 32px !important;
+}
+.article-page .hero h1 {
+  font-size: clamp(32px, 4.2vw, 48px) !important;
+  line-height: 1.1 !important;
+}
+.article-page .hero p.lead {
+  font-size: clamp(15px, 1.4vw, 18px) !important;
+  margin-top: 14px !important;
+  max-width: 70ch !important;
+}
+.article-page .hero .quote-box,
+.article-page .hero .source-box {
+  padding: 14px 18px !important;
+  margin: 16px 0 0 !important;
+}
+.article-page .quote-box p,
+.article-page .source-box p {
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+.article-page .article-layout {
+  margin-top: 16px;
+}
+/* paper 的 .page-layout 同样:hero 别撑太高 */
+.page-layout .hero {
+  padding: 36px 0 16px !important;
+}
+.page-layout .hero h1 {
+  font-size: clamp(28px, 3.8vw, 44px) !important;
+  line-height: 1.1 !important;
+}
+.page-layout .hero .eyebrow {
+  margin-bottom: 12px !important;
+}
+
+/* 更激进:hero 占首屏 ≤ 380px,让 article-layout 顶到 ~480px */
+.article-page .hero {
+  padding: 28px 0 12px !important;
+}
+.article-page .hero .hero-card {
+  padding: 20px 28px !important;
+}
+.article-page .hero h1 {
+  font-size: clamp(26px, 3.4vw, 40px) !important;
+  line-height: 1.12 !important;
+  max-width: 28ch !important;
+}
+.article-page .hero p.lead {
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+  margin-top: 10px !important;
+  max-width: 75ch !important;
+}
+.article-page .hero .quote-box,
+.article-page .hero .source-box {
+  padding: 10px 16px !important;
+  margin: 10px 0 0 !important;
+  font-size: 13.5px !important;
+}
+.article-page .hero .meta-row {
+  margin-bottom: 14px !important;
+  gap: 6px !important;
+}
+.article-page .hero .meta-row .badge {
+  padding: 4px 10px !important;
+  font-size: 12px !important;
+  min-height: 0 !important;
+}
+
+/* 再缩:hero 控制在 ~400px */
+.article-page .hero {
+  padding: 20px 0 8px !important;
+}
+.article-page .hero .hero-card {
+  padding: 18px 24px !important;
+  gap: 12px !important;
+}
+.article-page .hero h1 {
+  font-size: clamp(24px, 3vw, 36px) !important;
+  line-height: 1.15 !important;
+}
+.article-page .hero p.lead {
+  font-size: 14.5px !important;
+  margin-top: 8px !important;
+}
+.article-page .hero .meta-row {
+  margin-bottom: 8px !important;
+}
+.article-page .hero .quote-box::before {
+  margin-bottom: 8px !important;
+}
