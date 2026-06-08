@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Continuous Thought Machine · MNIST 训练教程深度解读</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html" aria-label="Neural Reading Room 首页">
+        <span class="brand-mark">NR</span>
+        <span class="brand-copy">
+          <span class="brand-title">Neural Reading Room</span>
+          <span class="brand-subtitle">AI 技术阅读站</span>
+        </span>
+      </a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="../index.html">← 返回首页</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6m11-11h-6m-10 0H1m17.07-7.07l-4.24 4.24m-7.07 7.07l-4.24 4.24m12.73 0l-4.24-4.24M5.93 5.93L1.69 1.69"/></svg>
+          Sakana AI · CTM 教程
+        </span>
+        <h1 class="font-serif">Continuous Thought Machine — MNIST 训练教程深度解读</h1>
+        <p class="lede">把"思考"展开成 15 步显式时间过程：每个 tick 都在想，每一步都可能答；用基于置信度的 loss 让模型"既答对又自信"。</p>
+        <div class="meta-row">
+          <span>📍 教程 01 · MNIST 分类</span>
+          <span>· 1×10⁴ steps</span>
+          <span>· 15 internal ticks</span>
+          <span>· ~1M 参数</span>
+        </div>
+      </div>
+
+      <div class="neuron-vis">
+        <div class="neuron-vis-title">
+          <span>NEURAL ACTIVITY · tick 1 → 15</span>
+          <span class="live"><span class="live-dot"></span>LIVE</span>
+        </div>
+        <svg viewBox="0 0 320 200" preserveAspectRatio="none">
+          <g stroke="#f0ebde" stroke-width="1">
+            <line x1="0" y1="50" x2="320" y2="50"/>
+            <line x1="0" y1="100" x2="320" y2="100"/>
+            <line x1="0" y1="150" x2="320" y2="150"/>
+          </g>
+          <path d="M0,100 Q20,80 40,95 T80,70 Q100,90 120,85 T160,30 Q180,60 200,50 T240,90 Q260,100 280,80 T320,95"
+                fill="none" stroke="#2f6f5e" stroke-width="1.6" opacity="0.85">
+            <animate attributeName="stroke-dashoffset" from="0" to="-40" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="stroke-dasharray" values="0 1000;1000 0" dur="3s" repeatCount="indefinite"/>
+          </path>
+          <path d="M0,120 Q20,110 40,115 T80,140 Q100,100 120,130 T160,110 Q180,150 200,120 T240,60 Q260,90 280,75 T320,50"
+                fill="none" stroke="#c97b3f" stroke-width="1.6" opacity="0.85">
+            <animate attributeName="stroke-dashoffset" from="0" to="-50" dur="2.5s" repeatCount="indefinite"/>
+            <animate attributeName="stroke-dasharray" values="0 1000;1000 0" dur="3.5s" repeatCount="indefinite"/>
+          </path>
+          <path d="M0,80 Q20,90 40,70 T80,110 Q100,80 120,90 T160,60 Q180,80 200,110 T240,130 Q260,110 280,120 T320,100"
+                fill="none" stroke="#7c7a72" stroke-width="1.2" opacity="0.6" stroke-dasharray="3 3"/>
+          <circle cx="160" cy="30" r="4" fill="#2f6f5e">
+            <animate attributeName="r" values="3;6;3" dur="1.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="240" cy="60" r="4" fill="#c97b3f">
+            <animate attributeName="r" values="3;6;3" dur="1.8s" begin="0.3s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="320" cy="95" r="4" fill="#2f6f5e">
+            <animate attributeName="r" values="3;6;3" dur="1.6s" begin="0.6s" repeatCount="indefinite"/>
+          </circle>
+          <g font-family="JetBrains Mono" font-size="9" fill="#7c7a72">
+            <text x="0" y="195">t=1</text>
+            <text x="155" y="195">t=8</text>
+            <text x="305" y="195">t=15</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CORE IDEA ============ -->
+<section>
+  <div class="wrap">
+    <small class="lead">01 · 一句话核心</small>
+    <h2 class="font-serif" style="margin-top:8px;">它不分类，它"思考"出分类。</h2>
+    <div class="quote-block">
+      Modern deep learning models ignore time as a core computational element. In contrast, the CTM introduces internal recurrence and neural synchronization to model <em>thinking as a temporal process</em>.
+      <div class="source">— SakanaAI, CTM Tutorial 01</div>
+    </div>
+
+    <p style="margin-top:18px;">传统分类器一次 forward 出结果。CTM 在内部跑 <code class="pill">iterations=15</code> 个 tick，每个 tick 都在"想"，每一步都可能给一个 10 维 logits。最后用一个<strong>基于置信度的 loss</strong>，鼓励模型在 15 步里至少有一个 tick 既答对又自信，并以此 tick 为优化目标。</p>
+  </div>
+</section>
+
+<!-- ============ THREE MECHANISMS ============ -->
+<section>
+  <div class="wrap">
+    <small class="lead">02 · 三大核心机制</small>
+    <h2 class="font-serif" style="margin-top:8px;">CTM 跟普通 RNN/Transformer 都不一样在哪</h2>
+
+    <div class="mech-grid">
+      <div class="card featured">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <h3>Internal Ticks · 时间是思考的维度</h3>
+        <p>CTM 跑在<strong>自己生成的时间轴</strong>上，固定 <code class="pill">15</code> 步。这跟输入序列长度无关，跟 Transformer 的 token 位置也无关。它是把"思考展开"这件事本身当成一个维度来用。</p>
+        <p style="font-size:13px; color: var(--ink-3); margin-top:6px;">难样本自然会用更多 tick 才"确信"，简单样本早早收敛——<strong>自适应计算</strong>。</p>
+      </div>
+
+      <div class="card">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        </span>
+        <h3>Neuron-Level Models</h3>
+        <p>每个神经元有<strong>自己的 MLP</strong>，处理自己过去 <code class="pill">10</code> 步的 pre-activation 历史（<code>SuperLinear</code>，参数 shape 是 <code>(in, out, N)</code>，N = 神经元数）。</p>
+        <p style="font-size:13px; color: var(--ink-3); margin-top:6px;">"神经元"不再只是标量，是有内部时间动力学的单元。</p>
+      </div>
+
+      <div class="card">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </span>
+        <h3>Synchronization as Rep.</h3>
+        <p>不用激活值本身做表征，用<strong>两两神经元的乘积 + 时间衰减 EMA</strong> 当表征。同步信号同时被用作 attention 的 query 和 final output。</p>
+        <p style="font-size:13px; color: var(--ink-3); margin-top:6px;">"哪些神经元在同一时刻一起放电" = 思考状态。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 15 TICKS ============ -->
+<section>
+  <div class="wrap">
+    <small class="lead">03 · 15 个 Ticks</small>
+    <h2 class="font-serif" style="margin-top:8px;">一个数字的 15 步思考过程</h2>
+    <p>下图演示模型识别一个 MNIST 数字时，15 个 tick 的状态。两个高亮 tick 是 loss 选中的：<span class="pill" style="background:var(--primary-soft); color:var(--primary);">●</span> <strong>loss 最小</strong> 的 tick，<span class="pill warn">●</span> <strong>置信度最高</strong> 的 tick。</p>
+
+    <div class="tick-vis">
+      <div class="tick-row" id="tickRow">
+        <div class="tick-cell">1</div>
+        <div class="tick-cell">2</div>
+        <div class="tick-cell">3</div>
+        <div class="tick-cell">4</div>
+        <div class="tick-cell">5</div>
+        <div class="tick-cell">6</div>
+        <div class="tick-cell">7</div>
+        <div class="tick-cell">8</div>
+        <div class="tick-cell">9</div>
+        <div class="tick-cell">10</div>
+        <div class="tick-cell">11</div>
+        <div class="tick-cell">12</div>
+        <div class="tick-cell">13</div>
+        <div class="tick-cell">14</div>
+        <div class="tick-cell">15</div>
+      </div>
+      <div class="tick-legend">
+        <span><i style="background:var(--primary);"></i>loss 最低 tick</span>
+        <span><i style="background:var(--accent);"></i>置信度最高 tick</span>
+        <span style="margin-left:auto;">15 步循环 · 每个 tick 都产生 logits</span>
+      </div>
+    </div>
+
+    <p style="margin-top:18px; font-size:14px;">训练目标不是让"最后一步答对"，而是让"15 步里<strong>至少一步既答对又自信</strong>"。这个看似微小的差别同时实现了：① 自适应计算；② 可解释（你能在 GIF 里直接看到模型"想明白"的那一刻）；③ 避免"早答错 → loss 回传破坏权重"的陷阱。</p>
+  </div>
+</section>
+
+<!-- ============ ARCHITECTURE ============ -->
+<section>
+  <div class="wrap">
+    <small class="lead">04 · 模型架构</small>
+    <h2 class="font-serif" style="margin-top:8px;">一图看清 CTM 的 5 层结构</h2>
+
+    <div class="arch-diagram">
+      <div class="arch-row">
+        <div class="arch-tier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          Backbone
+        </div>
+        <div class="arch-blocks">
+          <span class="arch-block">LazyConv2d <span class="num">3×3</span> <span class="desc-mini">28→28</span></span>
+          <span class="arch-block">BatchNorm + ReLU</span>
+          <span class="arch-block">MaxPool <span class="num">2×2</span></span>
+          <span class="arch-block">LazyConv2d <span class="num">3×3</span> <span class="desc-mini">14→14</span></span>
+          <span class="arch-block">BatchNorm + ReLU</span>
+          <span class="arch-block">MaxPool <span class="num">2×2</span></span>
+          <span class="arch-block highlight">→ (B, 128, 7, 7)</span>
+        </div>
+      </div>
+
+      <div class="arch-row">
+        <div class="arch-tier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M3 12h3m12 0h3M12 3v3m0 12v3"/></svg>
+          Attention K/V
+        </div>
+        <div class="arch-blocks">
+          <span class="arch-block">kv_proj = Linear + LayerNorm</span>
+          <span class="arch-block highlight">kv: (B, 49, 128) <span class="desc-mini">整个 15 tick 共用</span></span>
+        </div>
+      </div>
+
+      <div class="arch-row">
+        <div class="arch-tier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path d="M9 12l2 2 4-4"/></svg>
+          Synapses
+        </div>
+        <div class="arch-blocks">
+          <span class="arch-block">Linear(d_model*2)</span>
+          <span class="arch-block">GLU</span>
+          <span class="arch-block">LayerNorm</span>
+          <span class="arch-block highlight">→ state (B, 128)</span>
+        </div>
+      </div>
+
+      <div class="arch-row">
+        <div class="arch-tier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          NLM · 每神经元 MLP
+        </div>
+        <div class="arch-blocks">
+          <span class="arch-block highlight">trace: (B, 128, 10) <span class="desc-mini">每神经元滑动窗口</span></span>
+          <span class="arch-block">SuperLinear(10→16) + GLU</span>
+          <span class="arch-block">SuperLinear(8→2) + GLU</span>
+          <span class="arch-block accent">→ activated_state (B, 128)</span>
+        </div>
+      </div>
+
+      <div class="arch-row">
+        <div class="arch-tier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Synch &amp; Output
+        </div>
+        <div class="arch-blocks">
+          <span class="arch-block">pairwise product (16×17/2 = 136)</span>
+          <span class="arch-block highlight">EMA decay · r = exp(-decay_params)</span>
+          <span class="arch-block">output_projector: Linear(136→10)</span>
+          <span class="arch-block accent">→ logits (B, 10)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FORWARD PASS ============ -->
+<section>
+  <div class="wrap">
+    <small class="lead">05 · Forward 详解</small>
+    <h2 class="font-serif" style="margin-top:8px;">每个 tick 内部到底干了啥</h2>
+    <p>15 步循环，每步的流程如下。理解了这 8 步，就理解了 CTM 全部。</p>
+
+    <div class="step-timeline">
+      <div class="step">
+        <div class="step-icon">A</div>
+        <h3>1. 算 attention 用的同步信号 <code>synch_action</code></h3>
+        <p>取 <code>activated_state</code> <strong>末尾</strong>的 <code class="pill">n_synch_action=16</code> 个神经元，做两两乘积（上三角），得到 136 维向量，再用 <strong>带衰减的 EMA</strong> 累积。</p>
+        <div class="detail">
+          <code>decay_alpha = r * decay_alpha + pairwise_product</code><br>
+          <code>decay_beta = r * decay_beta + 1</code><br>
+          <code>synch = decay_alpha / sqrt(decay_beta)</code>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-icon">B</div>
+        <h3>2. 用同步信号当 attention 的 query</h3>
+        <p><code>q = q_proj(synch_action)</code> 生成 1 个 query token，对 backbone 出来的 K/V 做 cross-attention。模型<strong>现在在看图的哪里</strong>由这一步决定。</p>
+        <div class="detail">Multi-head Attention，<code class="pill">2</code> heads，输出 attn_out (B, 128)。</div>
+      </div>
+
+      <div class="step">
+        <div class="step-icon">C</div>
+        <h3>3. 拼接 + 通过 Synapses 更新状态</h3>
+        <p>把 <code>attn_out</code> 和当前 <code>activated_state</code> 拼起来，过 <code>Linear→GLU→LayerNorm</code>，拿到新 state (B, 128)。</p>
+      </div>
+
+      <div class="step">
+        <div class="step-icon">D</div>
+        <h3>4. 把新 state 塞进每神经元的 trace 滑动窗口</h3>
+        <p>每个神经元有自己的 trace 长度 <code class="pill">10</code>，新 state 是最新一列，旧的最早一列被挤出去。这等价于"每个神经元看着自己过去 10 步的 pre-activation"。</p>
+        <div class="detail"><code>state_trace = cat(state_trace[:,:,1:], state.unsqueeze(-1), dim=-1)</code></div>
+      </div>
+
+      <div class="step">
+        <div class="step-icon">E</div>
+        <h3>5. NLM 处理 → 新的 activated_state</h3>
+        <p>每个神经元独立地把自己的 10 维历史过一个小 MLP，得到 1 个新激活。这是 NLM（<code>SuperLinear</code> 实现的并行版本）。</p>
+        <div class="detail">GLU + SuperLinear(10→16) + GLU + SuperLinear(8→1)，对 128 个神经元并行做。</div>
+      </div>
+
+      <div class="step">
+        <div class="step-icon alt">F</div>
+        <h3>6. 算 output 用的同步信号 <code>synch_out</code></h3>
+        <p>取 <code>activated_state</code> <strong>开头</strong>的 <code class="pill">n_synch_out=16</code> 个神经元（注意：跟 action 用的是不同的神经元！），同样两两乘积 + EMA。</p>
+        <div class="detail alt">action 用末尾 16 个（控制"看哪"），out 用开头 16 个（控制"答啥"），中间 96 个是工作记忆。</div>
+      </div>
+
+      <div class="step">
+        <div class="step-icon alt">G</div>
+        <h3>7. 投影到 logits + 算 certainty</h3>
+        <p><code>current_prediction = output_projector(synch_out)</code> → (B, 10)。同时算 normalized entropy，转成 <strong>certainty = 1 − entropy</strong>。</p>
+        <div class="detail alt">把这一步的 logits 和 certainty 存到 predictions / certainties 的第 stepi 列。</div>
+      </div>
+
+      <div class="step">
+        <div class="step-icon">↻</div>
+        <h3>8. 循环 15 次，收集 15 个 tick 的 (logits, certainty)</h3>
+        <p>最终输出 shape：<code class="pill">predictions (B, 10, 15)</code>，<code class="pill">certainties (B, 2, 15)</code>。Loss 会从这 15 个时间步里挑。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LOSS ============ -->
+<section>
+  <div class="wrap">
+    <small class="lead">06 · Loss 函数</small>
+    <h2 class="font-serif" style="margin-top:8px;">15 步里挑两步的 loss 是怎么回事</h2>
+    <p>CTM 最巧妙的地方就在这个 loss：<strong>不在最后一步算 cross-entropy</strong>，而是从 15 个 tick 的 loss 曲线里挑两个特殊 tick 来优化。</p>
+
+    <div class="loss-grid">
+      <div class="chart-card">
+        <h3>15 个 tick 的 loss &amp; certainty 曲线</h3>
+        <div class="sub">实线 = loss（越低越好），虚线 = certainty（越高越好）。★ 是 loss 选中的 tick。</div>
+        <div class="chart-wrap"><canvas id="lossChart"></canvas></div>
+      </div>
+
+      <div class="formula-box">
+        <h3>Loss 公式</h3>
+        <div class="formula">
+<span class="c"># 15 个 tick 各自的 CE loss</span>
+losses = <span class="hl">CE</span>(predictions, targets)  <span class="c"># (B, 15)</span>
+
+<span class="c"># 挑两个 tick</span>
+i1 = losses.argmin(dim=<span class="n">1</span>)             <span class="hl3">★ loss 最低</span>
+i2 = certainties[:,<span class="n">1</span>].argmax(-<span class="n">1</span>)   <span class="hl2">★ 置信度最高</span>
+
+<span class="c"># 取这两个 tick 的 loss 的平均</span>
+loss = <span class="hl">(losses[i1] + losses[i2])</span> / <span class="n">2</span>
+        </div>
+        <ul class="formula-notes">
+          <li><strong>不强制每步都答对</strong>：难的样本可以"先乱答一会儿"，后面 tick 再想明白。</li>
+          <li><strong>鼓励自信</strong>：选 certainty 最高的那个 tick，逼模型在某一步集中表达确定性。</li>
+          <li><strong>准确率也按"最确信 tick"算</strong>，跟 loss 对齐。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRAINING ============ -->
+<section>
+  <div class="wrap">
+    <small class="lead">07 · 训练配置</small>
+    <h2 class="font-serif" style="margin-top:8px;">10000 步里具体跑的是什么</h2>
+
+    <div class="config-card">
+      <div class="kv-row"><div class="k">optimizer</div><div class="v"><code>AdamW</code> <small>lr=1e-4, eps=1e-8</small></div></div>
+      <div class="kv-row"><div class="k">batch_size</div><div class="v"><code>256</code></div></div>
+      <div class="kv-row"><div class="k">iterations</div><div class="v"><code>10,000</code> steps</div></div>
+      <div class="kv-row"><div class="k">eval_every</div><div class="v">每 <code>500</code> 步在测试集全量评估</div></div>
+      <div class="kv-row"><div class="k">augment</div><div class="v"><code>RandomAffine(15°, 0.1, 0.9-1.1)</code> + <code>RandomRotation(10°)</code></div></div>
+      <div class="kv-row"><div class="k">compile</div><div class="v"><code>torch.compile(model)</code> 加速</div></div>
+      <div class="kv-row"><div class="k">trick</div><div class="v">forward_pre_hook 把 <code>decay_params</code> clamp 到 <code>[0, 15]</code>，防数值爆</div></div>
+      <div class="kv-row"><div class="k">iterations (T)</div><div class="v"><code>15</code> · 内部 tick 数</div></div>
+      <div class="kv-row"><div class="k">d_model</div><div class="v"><code>128</code> · 总神经元数</div></div>
+      <div class="kv-row"><div class="k">d_input</div><div class="v"><code>128</code> · backbone 输出维度</div></div>
+      <div class="kv-row"><div class="k">memory_length</div><div class="v"><code>10</code> · 每神经元滑动窗口长度</div></div>
+      <div class="kv-row"><div class="k">heads</div><div class="v"><code>2</code> · attention heads</div></div>
+      <div class="kv-row"><div class="k">n_synch_out / action</div><div class="v">各 <code>16</code> · 同步信号用的神经元数</div></div>
+      <div class="kv-row"><div class="k">memory_hidden_dims</div><div class="v"><code>8</code> · NLM 中间维度</div></div>
+      <div class="kv-row"><div class="k">out_dims</div><div class="v"><code>10</code> · 分类数</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ USAGE ============ -->
+<section>
+  <div class="wrap">
+    <small class="lead">08 · 训完之后怎么用</small>
+    <h2 class="font-serif" style="margin-top:8px;">推理 + 可视化"思考过程"</h2>
+    <p>notebook 里没有单独写"推理函数"，就是 <code>model.eval()</code> + <code>inference_mode</code> 再 forward 一次。重点是 <code>track=True</code>：</p>
+
+    <div class="code-block">
+<span class="c"># 推理：拿每个 tick 的轨迹</span>
+model.<span class="f">eval</span>()
+<span class="k">with</span> torch.<span class="f">inference_mode</span>():
+    predictions, certainties, (synch_out, synch_action), \
+        pre_act, post_act, attention = model(inputs, <span class="v">track</span>=<span class="k">True</span>)
+    <span class="c"># shape: predictions   (B, 10, 15)</span>
+    <span class="c">#        certainties   (B,  2, 15)</span>
+    <span class="c">#        attention     (B,  1, 15, 49)</span>
+
+<span class="c"># 预测：取最确信 tick 的 argmax</span>
+where = certainties[:, <span class="n">1</span>].<span class="f">argmax</span>(-<span class="n">1</span>)           <span class="c"># (B,)</span>
+pred   = predictions.<span class="f">argmax</span>(<span class="n">1</span>)[<span class="f">arange</span>(B), where]  <span class="c"># (B,)</span>
+
+<span class="c"># 可视化：把 15 帧叠成 GIF</span>
+<span class="f">make_gif</span>(predictions, certainties, targets,
+         pre_act, post_act, attention, inputs,
+         filename=<span class="s">"mnist_logs/prediction.gif"</span>)
+    </div>
+
+    <p style="margin-top:18px;">这个 GIF 就是 CTM 论文最 fancy 的卖点：你能<strong>直接看到</strong>模型怎么"想"，包括：原图、注意力随时间漂移到哪、certainty 曲线何时起来、不同神经元的 pre/post-activation 发火模式。这是普通分类器给不出来的副产品。</p>
+  </div>
+</section>
+
+<!-- ============ WHY IT MATTERS ============ -->
+<section>
+  <div class="wrap">
+    <small class="lead">09 · 为什么这件事有意思</small>
+    <h2 class="font-serif" style="margin-top:8px;">MNIST 上能跑 ≠ 这个工作只是在跑 MNIST</h2>
+
+    <div class="why-grid">
+      <div class="card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          不是"分类"，是"分类过程"
+        </h3>
+        <p>把推理过程显式拉到时间轴上，每步都参与优化。你能定义自己的 tick-loss 鼓励各种行为（早答、晚答、犹豫再确认……）。</p>
+      </div>
+      <div class="card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+          同步信号是新型表征
+        </h3>
+        <p>不是 attention，也不是 hidden state。靠两两神经元乘积 + EMA，能区分"哪些神经元在同步放电"——这本身就是一个有意义的信号。</p>
+      </div>
+      <div class="card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM9 9h6v6H9z"/></svg>
+          架构和任务解耦
+        </h3>
+        <p>backbone 换一下（CNN / RNN / Transformer），主体不动就能套到不同任务——Sakana 后续的 maze、sorting、RL 实验都是这么做的。</p>
+      </div>
+      <div class="card">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          可解释性是白送的
+        </h3>
+        <p>不需要事后解释方法，模型本身的轨迹就是解释。15 帧 GIF 告诉你它什么时候看哪儿、什么时候确信、哪些神经元参与决策。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>基于 <a href="https://github.com/SakanaAI/continuous-thought-machines/blob/main/examples/01_mnist.ipynb">SakanaAI/continuous-thought-machines · 01_mnist.ipynb</a> 整理 · arXiv:2505.05522</p>
+  </div>
+</footer>
+
+<script>
+  // ============ Tick timeline demo ============
+  (function() {
+    const cells = document.querySelectorAll('#tickRow .tick-cell');
+    cells.forEach((c, i) => {
+      c.classList.remove('active', 'certainty');
+      if (i + 1 === 8) c.classList.add('active');
+      if (i + 1 === 12) c.classList.add('certainty');
+    });
+  })();
+
+  // ============ Loss chart ============
+  (function() {
+    const ctx = document.getElementById('lossChart').getContext('2d');
+
+    const lossVals = [3.2, 2.6, 2.1, 1.7, 1.4, 1.1, 0.85, 0.62, 0.55, 0.48, 0.45, 0.42, 0.43, 0.44, 0.45];
+    const certVals = [0.05, 0.10, 0.15, 0.22, 0.30, 0.40, 0.52, 0.65, 0.72, 0.80, 0.86, 0.91, 0.89, 0.88, 0.87];
+    const lossMinIdx = 11;
+    const certMaxIdx = 11;
+    const tickLabels = Array.from({length: 15}, (_, i) => 't=' + (i + 1));
+
+    Chart.defaults.font.family = "'Outfit', sans-serif";
+    Chart.defaults.color = '#7c7a72';
+    Chart.defaults.borderColor = 'rgba(0,0,0,0.04)';
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: tickLabels,
+        datasets: [
+          {
+            label: 'CE Loss',
+            data: lossVals,
+            borderColor: '#2f6f5e',
+            backgroundColor: 'rgba(47, 111, 94, 0.10)',
+            borderWidth: 2,
+            tension: 0.35,
+            pointRadius: (c) => (c.dataIndex === lossMinIdx ? 8 : 3),
+            pointBackgroundColor: '#2f6f5e',
+            pointBorderColor: '#fff',
+            pointBorderWidth: (c) => (c.dataIndex === lossMinIdx ? 3 : 0),
+            fill: true,
+            yAxisID: 'y',
+          },
+          {
+            label: 'Certainty (1 - entropy)',
+            data: certVals,
+            borderColor: '#c97b3f',
+            backgroundColor: 'rgba(201, 123, 63, 0.05)',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            tension: 0.35,
+            pointRadius: (c) => (c.dataIndex === certMaxIdx ? 8 : 3),
+            pointBackgroundColor: '#c97b3f',
+            pointBorderColor: '#fff',
+            pointBorderWidth: (c) => (c.dataIndex === certMaxIdx ? 3 : 0),
+            fill: false,
+            yAxisID: 'y',
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: { usePointStyle: true, pointStyle: 'circle', font: { size: 12 } }
+          },
+          tooltip: {
+            backgroundColor: '#14171e',
+            titleFont: { size: 12 },
+            bodyFont: { size: 12 },
+            padding: 10,
+            cornerRadius: 6,
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 10 } }
+          },
+          y: {
+            beginAtZero: true,
+            max: 3.5,
+            grid: { color: 'rgba(0,0,0,0.04)' },
+            ticks: { font: { size: 11 } }
+          }
+        }
+      },
+      plugins: [{
+        id: 'annotate',
+        afterDatasetsDraw(chart) {
+          const { ctx, scales: { x, y } } = chart;
+          const draw = (idx, color) => {
+            const px = x.getPixelForValue(idx);
+            const pyL = y.getPixelForValue(lossVals[idx]);
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(px, pyL, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 10px JetBrains Mono';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('★', px, pyL);
+            ctx.restore();
+          };
+          draw(lossMinIdx, '#2f6f5e');
+          draw(certMaxIdx, '#c97b3f');
+
+          ctx.save();
+          ctx.font = "600 10px 'JetBrains Mono'";
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#2f6f5e';
+          ctx.fillText('i1 = argmin(loss)', x.getPixelForValue(lossMinIdx), y.getPixelForValue(lossVals[lossMinIdx]) - 18);
+          ctx.fillStyle = '#c97b3f';
+          ctx.fillText('i2 = argmax(cert)', x.getPixelForValue(certMaxIdx), y.getPixelForValue(certVals[certMaxIdx]) - 18);
+          ctx.restore();
+        }
+      }]
+    });
+  })();
+</script>  </main>
+</body>
+</html>

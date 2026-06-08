@@ -4,56 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026 顶级 LLM 底层架构演进追踪面板</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            950: '#030712',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #0b0f19;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #1f2937;
-            border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #374151;
-        }
-        .glow-blue {
-            box-shadow: 0 0 25px rgba(14, 165, 233, 0.2);
-        }
-        .glow-emerald {
-            box-shadow: 0 0 25px rgba(16, 185, 129, 0.2);
-        }
-        .glow-purple {
-            box-shadow: 0 0 25px rgba(168, 85, 247, 0.2);
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/style.css">
 </head>
-<body class="bg-gray-950 text-gray-100 font-sans min-h-screen custom-scrollbar">
-
-    <!-- Top Navigation Header -->
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html" aria-label="Neural Reading Room 首页">
+        <span class="brand-mark">NR</span>
+        <span class="brand-copy">
+          <span class="brand-title">Neural Reading Room</span>
+          <span class="brand-subtitle">AI 技术阅读站</span>
+        </span>
+      </a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="../index.html">← 返回首页</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+<!-- Top Navigation Header -->
     <header class="border-b border-gray-900 bg-gray-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -76,7 +48,7 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-12">
+    
 
         <!-- Intro Banner Card -->
         <div class="bg-gradient-to-br from-gray-900 via-gray-950 to-brand-950/30 border border-gray-800 rounded-3xl p-6 md:p-8 flex flex-col lg:flex-row items-center gap-8 shadow-2xl relative overflow-hidden">
@@ -619,7 +591,7 @@ class GPTSynapseLayer(nn.Module):
             </div>
         </section>
 
-    </main>
+    
 
     <!-- Footer -->
     <footer class="border-t border-gray-900 bg-gray-950 px-6 py-12 text-center text-sm text-gray-500">
@@ -971,6 +943,6 @@ class GPTSynapseLayer(nn.Module):
                 }
             });
         }
-    </script>
+    </script>  </main>
 </body>
 </html>

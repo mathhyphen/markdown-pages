@@ -4,73 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>通用智能演进蓝图 (AGI Next-Gen Blueprint) 探索面板</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        slate: {
-                            950: '#030712',
-                        },
-                        cortex: {
-                            500: '#a855f7',
-                            950: '#1e1b4b',
-                        },
-                        hippo: {
-                            500: '#10b981',
-                            950: '#064e3b',
-                        },
-                        planner: {
-                            500: '#f59e0b',
-                            950: '#451a03',
-                        },
-                        sleep: {
-                            500: '#3b82f6',
-                            950: '#172554',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #090d16;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #1e293b;
-            border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #334155;
-        }
-        .glow-cortex { box-shadow: 0 0 30px rgba(168, 85, 247, 0.15); }
-        .glow-hippo { box-shadow: 0 0 30px rgba(16, 185, 129, 0.15); }
-        .glow-planner { box-shadow: 0 0 30px rgba(245, 158, 11, 0.15); }
-        .glow-sleep { box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
-        
-        /* Pulse Animation for paths */
-        @keyframes pulsePath {
-            0%, 100% { stroke-dashoffset: 100; opacity: 0.3; }
-            50% { stroke-dashoffset: 0; opacity: 1; }
-        }
-        .active-path {
-            stroke-dasharray: 10;
-            animation: pulsePath 3s linear infinite;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/style.css">
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen custom-scrollbar">
-
-    <!-- Top Navigation Header -->
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html" aria-label="Neural Reading Room 首页">
+        <span class="brand-mark">NR</span>
+        <span class="brand-copy">
+          <span class="brand-title">Neural Reading Room</span>
+          <span class="brand-subtitle">AI 技术阅读站</span>
+        </span>
+      </a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="../index.html">← 返回首页</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+<!-- Top Navigation Header -->
     <header class="border-b border-slate-900 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -93,7 +48,7 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-12">
+    
 
         <!-- Blueprint Conceptual Intro -->
         <div class="bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950/30 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col lg:flex-row items-center gap-8 shadow-2xl relative overflow-hidden">
@@ -549,7 +504,7 @@
                 </div>
             </div>
         </section>
-    </main>
+    
 
     <!-- JavaScript for Simulation Interactivity -->
     <script>
@@ -756,6 +711,6 @@
                 solBox.className = 'bg-' + config.color + '-950/15 border border-' + config.color + '-500/20 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4';
             }
         }
-    </script>
+    </script>  </main>
 </body>
 </html>

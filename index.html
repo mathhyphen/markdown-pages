@@ -1,1113 +1,250 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neural Reading Room | AI 技术阅读站</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'Noto Sans SC', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #e2e8f0;
-            min-height: 100vh;
-        }
-        .bg-pattern {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.03;
-            background-image: radial-gradient(circle at 25% 25%, #38bdf8 1px, transparent 1px),
-                              radial-gradient(circle at 75% 75%, #38bdf8 1px, transparent 1px);
-            background-size: 60px 60px;
-            animation: float 20s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        .glass {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-        }
-        .gradient-text {
-            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        }
-        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(56, 189, 248, 0.15);
-            border-color: rgba(56, 189, 248, 0.3);
-        }
-        .glow { position: relative; }
-        .glow::before {
-            content: ''; position: absolute; inset: -2px;
-            background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
-            border-radius: inherit; opacity: 0; transition: opacity 0.3s ease;
-            z-index: -1; filter: blur(10px);
-        }
-        .glow:hover::before { opacity: 0.5; }
-        .featured-card {
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(129, 140, 248, 0.1) 100%);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-        }
-        .featured-card-emerald {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-        }
-        .glow-emerald::before {
-            background: linear-gradient(135deg, #10b981, #14b8a6, #06b6d4) !important;
-        }
-        .side-card {
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-        .side-card:hover {
-            transform: translateY(-2px);
-        }
-        .tag {
-            display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 9999px;
-            font-size: 12px; font-weight: 500; transition: all 0.2s ease;
-        }
-        .tag-openai { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
-        .tag-anthropic { background: rgba(168,85,247,0.15); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); }
-        .tag-microsoft { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
-        .tag-google { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
-        .tag-arxiv { background: rgba(234,179,8,0.15); color: #eab308; border: 1px solid rgba(234,179,8,0.3); }
-        .tag-instructkr { background: rgba(236,72,153,0.15); color: #ec4899; border: 1px solid rgba(236,72,153,0.3); }
-        .tag-guide { background: rgba(6,182,212,0.15); color: #06b6d4; border: 1px solid rgba(6,182,212,0.3); }
-        .tag-plan { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(56,189,248,0.4); }
-            50% { box-shadow: 0 0 0 8px rgba(56,189,248,0); }
-        }
-        .pulse-badge { animation: pulse-glow 2s cubic-bezier(0.4,0,0.6,1) infinite; }
-        .nav-link { position: relative; }
-        .nav-link::after {
-            content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
-            background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.3s ease;
-        }
-        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
-        .section-number {
-            font-family: 'Inter', monospace; font-weight: 700; font-size: 4rem; line-height: 1;
-            opacity: 0.08; position: absolute; top: -20px; right: 20px; pointer-events: none; user-select: none;
-        }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(30,41,59,0.5); }
-        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.3); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.5); }
-        a { transition: all 0.2s ease; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Reading Room · AI 技术阅读站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="assets/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
 </head>
-<body class="antialiased">
-    <div class="bg-pattern"></div>
+<body>
 
-    <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 glass">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
-                        <i class="fa-solid fa-brain text-white text-lg"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-lg font-bold gradient-text">Neural Reading Room</h1>
-                        <p class="text-xs text-slate-400">AI 技术阅读站</p>
-                    </div>
-                </div>
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#latest" class="nav-link active text-sm font-medium text-white hover:text-sky-400">最近更新</a>
-                    <a href="#runtime" class="nav-link text-sm font-medium text-slate-300 hover:text-sky-400">Harness 工程</a>
-                    <a href="#cookbooks" class="nav-link text-sm font-medium text-slate-300 hover:text-sky-400">Cookbooks</a>
-                    <a href="#llm-thoughts" class="nav-link text-sm font-medium text-slate-300 hover:text-sky-400">LLM 思考</a>
-                    <a href="#tools" class="nav-link text-sm font-medium text-slate-300 hover:text-sky-400">工具教程</a>
-                    <a href="#papers" class="nav-link text-sm font-medium text-slate-300 hover:text-sky-400">论文</a>
-                </div>
-                <a href="https://github.com/mathhyphen/markdown-pages" target="_blank" class="w-10 h-10 rounded-xl glass flex items-center justify-center text-slate-300 hover:text-sky-400 hover:bg-slate-700/50 transition-all">
-                    <i class="fa-brands fa-github"></i>
-                </a>
-            </div>
-        </div>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./index.html">
+      <span class="brand-mark">NR</span>
+      <span class="brand-text">
+        <span class="brand-name">Neural Reading Room</span>
+        <span class="brand-sub">AI · Reading · Notes</span>
+      </span>
+    </a>
+    <nav class="nav">
+      <a href="#latest" class="active">最近</a>
+      <a href="#harness">Harness</a>
+      <a href="#cookbooks">Cookbooks</a>
+      <a href="#llm">LLM 思考</a>
+      <a href="#papers">论文</a>
+      <a href="#tools">工具</a>
     </nav>
+    <a class="brand-mark" style="background:transparent;border:1px solid var(--line);color:var(--text-secondary);font-size:14px;" href="https://github.com">↗ GitHub</a>
+  </div>
+</header>
 
-    <!-- Main Content -->
-    <main class="pt-28 pb-20 px-6">
-        <div class="max-w-7xl mx-auto">
+<main class="container">
 
-            <!-- Section 01: Latest Updates -->
-            <section id="latest" class="mb-20">
-                <div class="flex items-end justify-between mb-8 gap-4 flex-wrap">
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                            <span class="absolute w-3 h-3 bg-sky-400 rounded-full top-0 right-0 pulse-badge"></span>
-                            <i class="fa-solid fa-bolt text-2xl text-sky-400"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-3xl font-bold text-white">最近更新</h2>
-                            <p class="text-sm text-slate-400 mt-1">Latest Updates · 2026 W23</p>
-                        </div>
-                    </div>
-                    <div class="hidden md:flex items-center gap-3 text-xs">
-                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-400/25 text-emerald-300">
-                            <span class="relative flex w-2 h-2">
-                                <span class="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
-                                <span class="relative inline-flex w-2 h-2 rounded-full bg-emerald-400"></span>
-                            </span>
-                            <span class="font-medium">本周新增 3 篇</span>
-                        </div>
-                        <a href="#llm-thoughts" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-slate-300 hover:text-sky-300 transition-colors">
-                            <span>查看全部</span>
-                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </a>
-                    </div>
-                </div>
+  <!-- HERO: Latest Updates -->
+  <section id="latest" class="section" style="padding-top:60px;">
+    <div class="section-header">
+      <div>
+        <span class="section-num">§ 01 — LATEST</span>
+        <h1 class="section-title">最近更新</h1>
+        <p class="section-desc">这一周读了什么、想了什么、写了什么</p>
+      </div>
+      <div class="section-meta">
+        2026 · W23<br>
+        <span style="color:var(--accent);">3 篇新增</span>
+      </div>
+    </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- FEATURED: LEAP (new) -->
-                    <article class="lg:col-span-2 glass rounded-2xl overflow-hidden card-hover glow glow-emerald featured-card-emerald relative group cursor-pointer">
-                        <a href="./articles/leap_paper_summary.html" class="block p-0">
-                            <div class="relative h-64 md:h-72 overflow-hidden">
-                                <!-- Math-symbol backdrop -->
-                                <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/35 via-teal-600/25 to-cyan-600/35">
-                                    <div class="absolute inset-0 flex items-center justify-end pr-6 select-none">
-                                        <div class="text-[180px] font-black text-white/[0.08] leading-none tracking-tighter">∃∀→</div>
-                                    </div>
-                                    <div class="absolute top-6 left-6 text-[110px] font-black text-white/[0.06] leading-none">⇒</div>
-                                    <div class="absolute bottom-20 right-32 text-[80px] font-black text-white/[0.05] leading-none">∴</div>
-                                </div>
-                                <div class="absolute inset-0 bg-gradient-to-t from-[#0b0e14]/95 via-[#0b0e14]/55 to-transparent"></div>
-
-                                <!-- NEW badge -->
-                                <div class="absolute top-5 right-5 flex items-center gap-2 bg-emerald-500/20 backdrop-blur-md border border-emerald-400/40 rounded-full px-3 py-1.5 shadow-lg shadow-emerald-500/10">
-                                    <span class="relative flex w-2 h-2">
-                                        <span class="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
-                                        <span class="relative inline-flex w-2 h-2 rounded-full bg-emerald-400"></span>
-                                    </span>
-                                    <span class="text-[11px] font-bold text-emerald-200 tracking-widest">NEW · 刚刚</span>
-                                </div>
-
-                                <div class="absolute bottom-6 left-7 right-7">
-                                    <div class="flex items-center flex-wrap gap-x-3 gap-y-2 mb-3">
-                                        <span class="tag tag-arxiv">arxiv · Agentic</span>
-                                        <span class="text-xs text-slate-400 font-mono">L-03</span>
-                                        <span class="text-xs text-slate-500">·</span>
-                                        <span class="text-xs text-slate-400">2026-06-05</span>
-                                        <span class="text-xs text-slate-500">·</span>
-                                        <span class="text-xs text-slate-400">Google · DeepMind</span>
-                                    </div>
-                                    <h3 class="text-2xl lg:text-[28px] font-bold text-white leading-[1.2] drop-shadow-lg mb-3 tracking-tight">
-                                        LEAP：用 Agentic 框架让通用 LLM 在形式化数学上起飞
-                                    </h3>
-                                    <p class="text-slate-300 leading-relaxed text-sm lg:text-[15px] max-w-2xl line-clamp-2">
-                                        Google 的反问——形式化数学的瓶颈不在「更强 prover」，而在「工程结构」。AND-OR DAG + 蓝图 + Lean 反馈循环，让 Gemini 3.1 Pro 解出 Putnam 2025 全部 12 题。
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="px-7 py-5 flex items-center justify-between border-t border-white/5">
-                                <div class="flex items-center gap-4 lg:gap-5 text-sm">
-                                    <div class="flex items-center gap-1.5 text-slate-300">
-                                        <i class="fa-solid fa-trophy text-amber-400 text-xs"></i>
-                                        <span><strong class="text-white">Putnam 12/12</strong></span>
-                                    </div>
-                                    <div class="w-px h-4 bg-slate-700 hidden sm:block"></div>
-                                    <div class="hidden sm:flex items-center gap-1.5 text-slate-300">
-                                        <i class="fa-solid fa-diagram-project text-emerald-400 text-xs"></i>
-                                        <span>9 章节</span>
-                                    </div>
-                                    <div class="w-px h-4 bg-slate-700 hidden sm:block"></div>
-                                    <div class="hidden sm:flex items-center gap-1.5 text-slate-300">
-                                        <i class="fa-solid fa-chart-line text-emerald-400 text-xs"></i>
-                                        <span>Lean-IMO 70%</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-3 shrink-0">
-                                    <span class="text-sky-400 font-semibold text-sm hidden sm:inline">阅读全文</span>
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 group-hover:scale-110 group-hover:rotate-[-8deg] transition-all">
-                                        <i class="fa-solid fa-arrow-right text-sm"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </article>
-
-                    <!-- SIDE STACK: 3 cards (date desc) -->
-                    <div class="flex flex-col gap-4">
-                        <!-- CTM (L-04) -->
-                        <article class="glass rounded-xl p-5 card-hover side-card cursor-pointer group border-l-2 border-teal-400/60 hover:border-teal-400">
-                            <a href="./articles/Continuous%20Thought%20Machine-MNIST.html" class="block">
-                                <div class="flex items-center justify-between mb-2.5">
-                                    <div class="flex items-center gap-2">
-                                        <span class="tag tag-arxiv text-[10px] py-0 px-2">神经网络</span>
-                                        <span class="text-[11px] text-slate-500 font-mono">L-04</span>
-                                    </div>
-                                    <time class="text-[11px] text-slate-500 font-mono">2026-06-05</time>
-                                </div>
-                                <h4 class="text-[15px] font-semibold text-white mb-2 group-hover:text-teal-300 transition-colors leading-snug">
-                                    Continuous Thought Machine：把"思考"展开成 15 步
-                                </h4>
-                                <p class="text-[13px] text-slate-400 leading-relaxed line-clamp-2 mb-3">
-                                    SakanaAI CTM 教程：每个 tick 都在想，每步都可能答；用基于置信度的 loss 让模型「既答对又自信」
-                                </p>
-                                <div class="flex items-center text-xs text-sky-400 font-medium">
-                                    <span>阅读全文</span>
-                                    <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform text-[10px]"></i>
-                                </div>
-                            </a>
-                        </article>
-
-                        <!-- L-02: JEPA -->
-                        <article class="glass rounded-xl p-5 card-hover side-card cursor-pointer group border-l-2 border-violet-400/60 hover:border-violet-400">
-                            <a href="./articles/llm-agi-blueprint.html" class="block">
-                                <div class="flex items-center justify-between mb-2.5">
-                                    <div class="flex items-center gap-2">
-                                        <span class="tag tag-arxiv text-[10px] py-0 px-2">世界模型</span>
-                                        <span class="text-[11px] text-slate-500 font-mono">L-02</span>
-                                    </div>
-                                    <time class="text-[11px] text-slate-500 font-mono">2026-05-29</time>
-                                </div>
-                                <h4 class="text-[15px] font-semibold text-white mb-2 group-hover:text-violet-300 transition-colors leading-snug">
-                                    通用智能演进蓝图：JEPA + TTT 世界模型
-                                </h4>
-                                <p class="text-[13px] text-slate-400 leading-relaxed line-clamp-2 mb-3">
-                                    LeCun JEPA 架构与 TTT 自适应突触的深度融合，剖析世界模型与 AGI 演进的四大神经层级
-                                </p>
-                                <div class="flex items-center text-xs text-sky-400 font-medium">
-                                    <span>阅读全文</span>
-                                    <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform text-[10px]"></i>
-                                </div>
-                            </a>
-                        </article>
-
-                        <!-- H-13: Martin Fowler -->
-                        <article class="glass rounded-xl p-5 card-hover side-card cursor-pointer group border-l-2 border-amber-400/60 hover:border-amber-400">
-                            <a href="./articles/martin-fowler-harness-engineering.html" class="block">
-                                <div class="flex items-center justify-between mb-2.5">
-                                    <div class="flex items-center gap-2">
-                                        <span class="tag tag-guide text-[10px] py-0 px-2">Guide</span>
-                                        <span class="text-[11px] text-slate-500 font-mono">H-13</span>
-                                    </div>
-                                    <time class="text-[11px] text-slate-500 font-mono">2026-04-06</time>
-                                </div>
-                                <h4 class="text-[15px] font-semibold text-white mb-2 group-hover:text-amber-300 transition-colors leading-snug">
-                                    Martin Fowler 深度解读 Harness Engineering
-                                </h4>
-                                <p class="text-[13px] text-slate-400 leading-relaxed line-clamp-2 mb-3">
-                                    从 Martin Fowler 视角拆解 Harness 定义、Guides / Sensors 与 Steering Loop
-                                </p>
-                                <div class="flex items-center text-xs text-sky-400 font-medium">
-                                    <span>阅读全文</span>
-                                    <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform text-[10px]"></i>
-                                </div>
-                            </a>
-                        </article>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Section 02: Harness Engineering -->
-            <section id="runtime" class="mb-20 relative">
-                <div class="section-number">01</div>
-                <div class="mb-10">
-                    <div class="flex items-center space-x-4 mb-2">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-                            <i class="fa-solid fa-cogs text-white text-xl"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-3xl font-bold text-white">Harness Engineering</h2>
-                            <p class="text-sm text-slate-400 mt-1">Agent 工程的核心架构与设计模式</p>
-                        </div>
-                    </div>
-                    <div class="w-24 h-1 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full mt-4"></div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- H-01 -->
-                    <a href="./articles/harness-engineering.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-mono text-sm font-bold">01</span>
-                                <span class="tag tag-openai text-[11px] py-0.5 px-2">OpenAI</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-02-11</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-emerald-300 transition-colors leading-snug">Harness Engineering：Agent First 世界里的工程生产力</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">当代码主要由 agent 产出时，工程团队真正要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
-                        <div class="flex items-center text-xs text-emerald-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-02 -->
-                    <a href="./articles/unlocking-codex-harness.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-mono text-sm font-bold">02</span>
-                                <span class="tag tag-openai text-[11px] py-0.5 px-2">OpenAI</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-02-04</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-blue-300 transition-colors leading-snug">Unlocking the Codex Harness：App Server 多客户端架构</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
-                        <div class="flex items-center text-xs text-blue-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-03 -->
-                    <a href="./articles/responses-computer-environment.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-violet-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center text-violet-400 font-mono text-sm font-bold">03</span>
-                                <span class="tag tag-openai text-[11px] py-0.5 px-2">OpenAI</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-03-11</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-violet-300 transition-colors leading-snug">Responses API：Agent 化的关键一跃</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
-                        <div class="flex items-center text-xs text-violet-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-04 -->
-                    <a href="./articles/unrolling-codex-agent-loop.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-pink-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400 font-mono text-sm font-bold">04</span>
-                                <span class="tag tag-openai text-[11px] py-0.5 px-2">OpenAI</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-01-23</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-pink-300 transition-colors leading-snug">Unrolling the Codex Agent Loop：可靠性细节</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">从请求结构、工具注入、提示前缀、缓存到 compaction，真正影响效率的运行时细节。</p>
-                        <div class="flex items-center text-xs text-pink-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-05 -->
-                    <a href="./articles/anthropic-long-running-harnesses.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-purple-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 font-mono text-sm font-bold">05</span>
-                                <span class="tag tag-anthropic text-[11px] py-0.5 px-2">Anthropic</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2025-11-26</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-purple-300 transition-colors leading-snug">Long Running Agents：长时间运行的 agent</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">长任务失败往往不是因为模型短期不会做，而是无法在多轮、多小时执行中保持稳定状态。</p>
-                        <div class="flex items-center text-xs text-purple-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-06 -->
-                    <a href="./articles/anthropic-context-engineering.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-yellow-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-400 font-mono text-sm font-bold">06</span>
-                                <span class="tag tag-anthropic text-[11px] py-0.5 px-2">Anthropic</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2025-09-29</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-yellow-300 transition-colors leading-snug">Context Engineering：上下文不是越多越好</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">真正的问题从来不是"有没有上下文"，而是"给模型的 token 是否在当前时刻最值得占用注意力"。</p>
-                        <div class="flex items-center text-xs text-yellow-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-07 -->
-                    <a href="./articles/azure-sre-agent-context-engineering.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-mono text-sm font-bold">07</span>
-                                <span class="tag tag-microsoft text-[11px] py-0.5 px-2">Microsoft</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2025-12-26</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-blue-300 transition-colors leading-snug">Azure SRE Agent：工具收敛的生产经验</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">微软在构建 Azure SRE Agent 时发现，复杂问题常常要靠删减、收敛和外化状态来解决。</p>
-                        <div class="flex items-center text-xs text-blue-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-08 -->
-                    <a href="./articles/plans-md-multi-hour-problem-solving.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400 font-mono text-sm font-bold">08</span>
-                                <span class="tag tag-arxiv text-[11px] py-0.5 px-2">Cookbook</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2025-10-07</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-green-300 transition-colors leading-snug">PLANS.md：活计划支撑数小时执行</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">把"计划"从一次性草稿变成贯穿执行全程的活文档，支撑 agent 在多小时任务里持续推进。</p>
-                        <div class="flex items-center text-xs text-green-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-09 -->
-                    <a href="./articles/harness-design-long-running-apps.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-violet-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center text-violet-400 font-mono text-sm font-bold">09</span>
-                                <span class="tag tag-anthropic text-[11px] py-0.5 px-2">Anthropic</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-03-24</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-violet-300 transition-colors leading-snug">Harness Design：三代理架构驱动的长时间应用开发</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">GAN 启发的三代理架构让 Claude 在前端设计和全栈开发中实现多小时稳定运行。</p>
-                        <div class="flex items-center text-xs text-violet-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-10 -->
-                    <a href="./articles/autoharness-deepmind.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-red-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center text-red-400 font-mono text-sm font-bold">10</span>
-                                <span class="tag tag-google text-[11px] py-0.5 px-2">DeepMind</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-02-10</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-red-300 transition-colors leading-snug">AutoHarness：让 LLM 自动合成 code harness</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">DeepMind 把 harness 从人工手写推进到自动合成：先解决非法动作与环境约束，再进一步把策略编译成代码外壳。</p>
-                        <div class="flex items-center text-xs text-red-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-11 -->
-                    <a href="./articles/natural-language-agent-harnesses.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 font-mono text-sm font-bold">11</span>
-                                <span class="tag tag-arxiv text-[11px] py-0.5 px-2">arXiv</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-03-26</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-amber-300 transition-colors leading-snug">Natural-Language Agent Harnesses</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">把高层 harness 逻辑从 controller code 里抽出来，表达成可编辑自然语言。</p>
-                        <div class="flex items-center text-xs text-amber-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-12 -->
-                    <a href="./articles/claw-code-architecture.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-pink-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400 font-mono text-sm font-bold">12</span>
-                                <span class="tag tag-instructkr text-[11px] py-0.5 px-2">instructkr</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-04-01</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-pink-300 transition-colors leading-snug">从泄露源码到完整复刻：深度解构 Claude Code</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">从源码泄露到完整复刻，团队从零理解其架构设计，复刻出完整的 Agent Harness 工程逻辑。</p>
-                        <div class="flex items-center text-xs text-pink-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-13 -->
-                    <a href="./articles/martin-fowler-harness-engineering.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 font-mono text-sm font-bold">13</span>
-                                <span class="tag tag-guide text-[11px] py-0.5 px-2">Guide</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-04-06</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-amber-300 transition-colors leading-snug">Martin Fowler 深度解读 Harness Engineering</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">从 Martin Fowler 的视角拆解 Harness 的定义、Guides / Sensors 与 Steering Loop，建立完整概念框架。</p>
-                        <div class="flex items-center text-xs text-amber-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- H-14 -->
-                    <a href="./articles/harness-building-framework.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-cyan-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-mono text-sm font-bold">14</span>
-                                <span class="tag tag-guide text-[11px] py-0.5 px-2">Guide</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-04-10</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-cyan-300 transition-colors leading-snug">Harness 构建逻辑框架：从通用方法到医学影像科研实验系统</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">把 harness 拆成可落地的构建顺序、通用模板、Meta-Harness 外环，以及医学影像生成科研的具体流程与 gate 设计。</p>
-                        <div class="flex items-center text-xs text-cyan-400 font-medium">
-                            <span>闃呰鍏ㄦ枃</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-                    <!-- H-15 -->
-                    <a href="./articles/harness-architecture-deep-dive.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-mono text-sm font-bold">15</span>
-                                <span class="tag tag-guide text-[11px] py-0.5 px-2">Guide</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-04-10</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-emerald-300 transition-colors leading-snug">Harness架构设计深度解析</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">Claude Code vs Qwen Code vs Codex CLI 的架构对比分析，深入理解 AI 编程工具的系统设计差异。</p>
-                        <div class="flex items-center text-xs text-emerald-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-                </div>
-            </section>
-
-            <!-- Section 03: Cookbooks -->
-            <section id="cookbooks" class="mb-20 relative">
-                <div class="section-number">02</div>
-                <div class="mb-10">
-                    <div class="flex items-center space-x-4 mb-2">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/25">
-                            <i class="fa-solid fa-book-open text-white text-xl"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-3xl font-bold text-white">Claude Cookbooks 中文导读</h2>
-                            <p class="text-sm text-slate-400 mt-1">系统补课与快速备课</p>
-                        </div>
-                    </div>
-                    <div class="w-24 h-1 bg-gradient-to-r from-orange-400 to-red-500 rounded-full mt-4"></div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <a href="./cookbooks/01-repo-overview.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-orange-500/20 flex items-center justify-center text-orange-400 font-mono text-xs font-bold">C-01</span>
-                            <span class="text-[11px] text-slate-400">Repo Overview</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-orange-300 transition-colors line-clamp-2">仓库概览与核心设计</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-orange-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <a href="./cookbooks/02-capabilities.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-orange-500/20 flex items-center justify-center text-orange-400 font-mono text-xs font-bold">C-02</span>
-                            <span class="text-[11px] text-slate-400">Capabilities</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-orange-300 transition-colors line-clamp-2">能力边界与功能矩阵</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-orange-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <a href="./cookbooks/03-tool-use.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-sky-500/20 flex items-center justify-center text-sky-400 font-mono text-xs font-bold">C-03</span>
-                            <span class="text-[11px] text-slate-400">Tool Use</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-sky-300 transition-colors line-clamp-2">工具使用深度指南</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-sky-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <a href="./cookbooks/04-multimodal.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-orange-500/20 flex items-center justify-center text-orange-400 font-mono text-xs font-bold">C-04</span>
-                            <span class="text-[11px] text-slate-400">Multimodal</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-orange-300 transition-colors line-clamp-2">多模态理解与图像工作流</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-orange-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <a href="./cookbooks/05-agent-patterns.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-violet-500/20 flex items-center justify-center text-violet-400 font-mono text-xs font-bold">C-05</span>
-                            <span class="text-[11px] text-slate-400">Agent Patterns</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-violet-300 transition-colors line-clamp-2">Agent 模式与多代理协作</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-violet-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <a href="./cookbooks/06-claude-agent-sdk.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-orange-500/20 flex items-center justify-center text-orange-400 font-mono text-xs font-bold">C-06</span>
-                            <span class="text-[11px] text-slate-400">Agent SDK</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-orange-300 transition-colors line-clamp-2">Claude Agent SDK 开发</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-orange-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <a href="./cookbooks/07-responses-and-performance.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-orange-500/20 flex items-center justify-center text-orange-400 font-mono text-xs font-bold">C-07</span>
-                            <span class="text-[11px] text-slate-400">Performance</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-orange-300 transition-colors line-clamp-2">Responses API 与性能调优</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-orange-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <a href="./cookbooks/08-integrations.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-sky-500/20 flex items-center justify-center text-sky-400 font-mono text-xs font-bold">C-08</span>
-                            <span class="text-[11px] text-slate-400">Integrations</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-sky-300 transition-colors line-clamp-2">第三方集成与 MCP 服务器</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-sky-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <a href="./cookbooks/09-skills-finetuning.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-violet-500/20 flex items-center justify-center text-violet-400 font-mono text-xs font-bold">C-09</span>
-                            <span class="text-[11px] text-slate-400">Skills</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-violet-300 transition-colors line-clamp-2">Skills 微调与定制</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-violet-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <a href="./cookbooks/10-full-inventory.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-orange-500/20 flex items-center justify-center text-orange-400 font-mono text-xs font-bold">C-10</span>
-                            <span class="text-[11px] text-slate-400">Inventory</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-orange-300 transition-colors line-clamp-2">完整工具清单速查</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-orange-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <a href="./cookbooks/11-github-pages-deploy.html" class="glass rounded-xl p-5 card-hover cursor-pointer group block">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="w-7 h-7 rounded-md bg-sky-500/20 flex items-center justify-center text-sky-400 font-mono text-xs font-bold">C-11</span>
-                            <span class="text-[11px] text-slate-400">Deploy</span>
-                        </div>
-                        <h4 class="text-base font-semibold text-white mb-2 group-hover:text-sky-300 transition-colors line-clamp-2">GitHub Pages 部署指南</h4>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right text-sky-400 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-                </div>
-            </section>
-
-            <!-- Section 04: 关于LLM的思考 -->
-            <section id="llm-thoughts" class="mb-20 relative">
-                <div class="section-number">03</div>
-                <div class="mb-10">
-                    <div class="flex items-center space-x-4 mb-2">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
-                            <i class="fa-solid fa-lightbulb text-white text-xl"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-3xl font-bold text-white">关于 LLM 的思考</h2>
-                            <p class="text-sm text-slate-400 mt-1">大模型底层架构、世界模型与 AGI 演进探索</p>
-                        </div>
-                    </div>
-                    <div class="w-24 h-1 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full mt-4"></div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- L-01 -->
-                    <a href="./articles/llm-architecture-tracking.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 font-mono text-sm font-bold">01</span>
-                                <span class="tag tag-guide text-[11px] py-0.5 px-2">LLM 架构</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-05-29</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-amber-300 transition-colors leading-snug">2026 旗舰大模型 TTT & 线性注意力架构剖析</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">解密第一梯队（GPT-5.5 / Claude 4.8 / DeepSeek 4 Pro）的 TTT 测试时训练与线性注意力融合算子，从静态死记走向动态自进化。</p>
-                        <div class="flex items-center text-xs text-amber-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- L-02 -->
-                    <a href="./articles/llm-agi-blueprint.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-violet-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center text-violet-400 font-mono text-sm font-bold">02</span>
-                                <span class="tag tag-arxiv text-[11px] py-0.5 px-2">世界模型</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-05-29</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-violet-300 transition-colors leading-snug">通用智能演进蓝图：JEPA + TTT 世界模型深度解密</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">解密 LeCun JEPA 架构与 TTT 自适应突触的深度融合，剖析世界模型与 AGI 演进的核心四大神经层级。</p>
-                        <div class="flex items-center text-xs text-violet-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- L-03 -->
-                    <a href="./articles/leap_paper_summary.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-mono text-sm font-bold">03</span>
-                                <span class="tag tag-arxiv text-[11px] py-0.5 px-2">arxiv · Agentic</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-06-05</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-emerald-300 transition-colors leading-snug">LEAP：用 Agentic 框架让通用 LLM 在形式化数学上起飞</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">Google 的反问：形式化数学的瓶颈不在「更强 prover」，而在「工程结构」。AND-OR DAG + 蓝图 + Lean 反馈循环，让 Gemini 3.1 Pro 解出 Putnam 2025 全部 12 题。</p>
-                        <div class="flex items-center text-xs text-emerald-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-
-                    <!-- L-04 -->
-                    <a href="./articles/Continuous%20Thought%20Machine-MNIST.html" class="glass rounded-xl p-6 card-hover cursor-pointer group relative overflow-hidden block">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-teal-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400 font-mono text-sm font-bold">04</span>
-                                <span class="tag tag-arxiv text-[11px] py-0.5 px-2">神经网络</span>
-                            </div>
-                            <time class="text-xs text-slate-500">2026-06-05</time>
-                        </div>
-                        <h3 class="text-lg font-semibold text-white mb-3 group-hover:text-teal-300 transition-colors leading-snug">Continuous Thought Machine：把"思考"展开成 15 步</h3>
-                        <p class="text-slate-400 text-sm mb-4 leading-relaxed line-clamp-2">SakanaAI CTM：不分类，它"思考"出分类。每个 tick 在想、每步都可能答；用置信度 loss 让模型「既答对又自信」。</p>
-                        <div class="flex items-center text-xs text-teal-400 font-medium">
-                            <span>阅读全文</span>
-                            <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-                </div>
-            </section>
-
-            <!-- Section 05 & 06: Tools + Papers side by side -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-20">
-                <!-- Tools -->
-                <section id="tools" class="relative">
-                    <div class="section-number">04</div>
-                    <div class="mb-6">
-                        <div class="flex items-center space-x-3 mb-2">
-                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/25">
-                                <i class="fa-solid fa-wrench text-white"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-bold text-white">工具教程</h2>
-                                <p class="text-xs text-slate-400">开发连接与实战技巧</p>
-                            </div>
-                        </div>
-                        <div class="w-16 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mt-3"></div>
-                    </div>
-
-                    <div class="space-y-3">
-                        <a href="./docs/local-vpn-ssh-tunnel.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-mono text-xs font-bold shrink-0 mt-0.5">NEW</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-1">本机 VPN 转发到远程服务器</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-openai text-[10px] py-0 px-1.5">SSH</span>
-                                    <time>2026-05-25</time>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-cyan-400 transition-colors text-xs mt-2"></i>
-                        </a>
-
-                        <a href="./articles/server-connection-guide.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-mono text-xs font-bold shrink-0 mt-0.5">T-01</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-1">服务器连接指南</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-openai text-[10px] py-0 px-1.5">Guide</span>
-                                    <time>2026-03-27</time>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-cyan-400 transition-colors text-xs mt-2"></i>
-                        </a>
-
-                        <a href="./articles/claude-code-boris-15-tips.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-mono text-xs font-bold shrink-0 mt-0.5">T-02</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-1">Claude Code 15 条高频实战技巧</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-plan text-[10px] py-0 px-1.5">Tips</span>
-                                    <time>2026-03-28</time>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-cyan-400 transition-colors text-xs mt-2"></i>
-                        </a>
-
-                        <a href="./articles/claude-code-harness-deep-dive.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-mono text-xs font-bold shrink-0 mt-0.5">T-03</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-1">Claude Code 架构深度解析</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-microsoft text-[10px] py-0 px-1.5">VS Code</span>
-                                    <time>2026-04-01</time>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-cyan-400 transition-colors text-xs mt-2"></i>
-                        </a>
-
-                    </div>
-                </section>
-
-                <!-- Papers -->
-                <section id="papers" class="relative">
-                    <div class="section-number">05</div>
-                    <div class="mb-6">
-                        <div class="flex items-center space-x-3 mb-2">
-                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/25">
-                                <i class="fa-solid fa-flask text-white"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-bold text-white">论文阅读</h2>
-                                <p class="text-xs text-slate-400">Flow Matching 与图像生成研究</p>
-                            </div>
-                        </div>
-                        <div class="w-16 h-1 bg-gradient-to-r from-pink-400 to-rose-500 rounded-full mt-3"></div>
-                    </div>
-
-                    <div class="space-y-3">
-                        <a href="./papers/temporal-flow-matching.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center text-pink-400 font-mono text-xs font-bold shrink-0 mt-0.5">P-01</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-pink-300 transition-colors line-clamp-1 mb-1">Temporal Flow Matching</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-arxiv text-[10px] py-0 px-1.5">Flow Matching</span>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-pink-400 transition-colors text-xs mt-2"></i>
-                        </a>
-
-                        <a href="./papers/treft-rectified-flow.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center text-pink-400 font-mono text-xs font-bold shrink-0 mt-0.5">P-02</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-pink-300 transition-colors line-clamp-1 mb-1">TReFT: Rectified Flow 重新表述</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-arxiv text-[10px] py-0 px-1.5">Rectified Flow</span>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-pink-400 transition-colors text-xs mt-2"></i>
-                        </a>
-
-                        <a href="./papers/mri-translation-benchmark.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center text-pink-400 font-mono text-xs font-bold shrink-0 mt-0.5">P-03</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-pink-300 transition-colors line-clamp-1 mb-1">MRI 翻译基准</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-arxiv text-[10px] py-0 px-1.5">MRI</span>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-pink-400 transition-colors text-xs mt-2"></i>
-                        </a>
-
-                        <a href="./papers/i2i-rectified-flow-reformulation.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center text-pink-400 font-mono text-xs font-bold shrink-0 mt-0.5">P-04</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-pink-300 transition-colors line-clamp-1 mb-1">I2I Rectified Flow 重新表述</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-arxiv text-[10px] py-0 px-1.5">I2I Flow</span>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-pink-400 transition-colors text-xs mt-2"></i>
-                        </a>
-
-                        <a href="./papers/regression-is-all-you-need-medical-image-translation.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center text-pink-400 font-mono text-xs font-bold shrink-0 mt-0.5">P-05</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-pink-300 transition-colors line-clamp-1 mb-1">Regression is all you need</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-arxiv text-[10px] py-0 px-1.5">Medical I2I</span>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-pink-400 transition-colors text-xs mt-2"></i>
-                        </a>
-
-                        <a href="./papers/lowfield-to-7t-mri-research.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center text-pink-400 font-mono text-xs font-bold shrink-0 mt-0.5">P-06</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-pink-300 transition-colors line-clamp-1 mb-1">低场 MRI 生成 7T 研究导航</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-arxiv text-[10px] py-0 px-1.5">Synthetic 7T</span>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-pink-400 transition-colors text-xs mt-2"></i>
-                        </a>
-
-                        <a href="./papers/rae-representation-autoencoders.html" class="glass rounded-lg p-4 card-hover cursor-pointer group flex items-start space-x-4 block">
-                            <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center text-pink-400 font-mono text-xs font-bold shrink-0 mt-0.5">P-07</div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-white group-hover:text-pink-300 transition-colors line-clamp-1 mb-1">RAE: Representation Autoencoders 系列论文深度学习笔记</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                                    <span class="tag tag-arxiv text-[10px] py-0 px-1.5">Diffusion / RAE</span>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-slate-600 group-hover:text-pink-400 transition-colors text-xs mt-2"></i>
-                        </a>
-                    </div>
-                </section>
-            </div>
-
+    <div class="hero">
+      <article class="featured">
+        <div class="featured-tag">FEATURED · arxiv · Agentic</div>
+        <h2>LEAP:用 Agentic 框架让通用 LLM 在形式化数学上起飞</h2>
+        <p class="lead">Google DeepMind 的反问:形式化数学的瓶颈不在「更强 prover」,而在「工程结构」。AND-OR DAG + 蓝图 + Lean 反馈循环,让 Gemini 3.1 Pro 解出 Putnam 2025 全部 12 题。</p>
+        <div class="featured-stats">
+          <div><strong>Putnam 12/12</strong> 题目通过</div>
+          <div><strong>Lean-IMO 70%</strong> 7 题解出</div>
+          <div><strong>9 章节</strong> 深入拆解</div>
         </div>
-    </main>
+      </article>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-800/50 backdrop-blur-sm bg-[#0f172a]/50">
-        <div class="max-w-7xl mx-auto px-6 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <div class="md:col-span-2">
-                    <div class="flex items-center space-x-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center">
-                            <i class="fa-solid fa-brain text-white text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold gradient-text">Neural Reading Room</h3>
-                        </div>
-                    </div>
-                    <p class="text-sm text-slate-400 max-w-md leading-relaxed">
-                        AI Agent、Harness Engineering、Claude Cookbooks 与论文的神经网络式导航阅读室。深度探索人工智能的前沿技术与工程实践。
-                    </p>
-                </div>
-                <div>
-                    <h4 class="text-sm font-semibold text-white mb-4">快速导航</h4>
-                    <ul class="space-y-2 text-sm text-slate-400">
-                        <li><a href="#latest" class="hover:text-sky-400 transition-colors">最新更新</a></li>
-                        <li><a href="#runtime" class="hover:text-sky-400 transition-colors">Harness Engineering</a></li>
-                        <li><a href="#cookbooks" class="hover:text-sky-400 transition-colors">Claude Cookbooks</a></li>
-                        <li><a href="#llm-thoughts" class="hover:text-sky-400 transition-colors">关于 LLM 的思考</a></li>
-                        <li><a href="#tools" class="hover:text-sky-400 transition-colors">工具教程</a></li>
-                        <li><a href="#papers" class="hover:text-sky-400 transition-colors">论文阅读</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-sm font-semibold text-white mb-4">关注我们</h4>
-                    <div class="flex space-x-3">
-                        <a href="https://github.com/mathhyphen/markdown-pages" target="_blank" class="w-10 h-10 rounded-lg glass flex items-center justify-center text-slate-400 hover:text-sky-400 hover:bg-slate-700/50 transition-all">
-                            <i class="fa-brands fa-github"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="pt-8 border-t border-slate-800/50 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500">
-                <p>&copy; 2026 Neural Reading Room. All rights reserved.</p>
-                <p class="mt-2 md:mt-0">站点技术：静态 HTML + GitHub Pages · <a href="https://github.com/mathhyphen/markdown-pages" class="text-sky-400 hover:underline">查看源码</a></p>
-            </div>
-        </div>
-    </footer>
+      <div class="side-stack">
+        <a class="side-card" href="#">
+          <div class="tag-row"><span>神经网络</span><span>L-04 · 06-05</span></div>
+          <h4>Continuous Thought Machine:把「思考」展开成 15 步</h4>
+          <p>SakanaAI CTM 教程:每个 tick 都在想,每步都可能答。</p>
+        </a>
+        <a class="side-card" href="#">
+          <div class="tag-row"><span>世界模型</span><span>L-02 · 05-29</span></div>
+          <h4>通用智能演进蓝图:JEPA + TTT 世界模型</h4>
+          <p>LeCun JEPA 架构与 TTT 自适应突触的深度融合。</p>
+        </a>
+        <a class="side-card" href="#">
+          <div class="tag-row"><span>Guide</span><span>H-13 · 04-06</span></div>
+          <h4>Martin Fowler 深度解读 Harness Engineering</h4>
+          <p>从 Martin Fowler 视角拆解 Guides / Sensors 与 Steering Loop。</p>
+        </a>
+      </div>
+    </div>
+  </section>
 
-    <!-- Back to Top -->
-    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
-            class="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/25 flex items-center justify-center hover:shadow-sky-500/40 hover:scale-110 transition-all duration-300 z-40"
-            title="回到顶部">
-        <i class="fa-solid fa-arrow-up"></i>
-    </button>
+  <!-- HARNESS ENGINEERING -->
+  <section id="harness" class="section">
+    <div class="section-header">
+      <div>
+        <span class="section-num">§ 02 — SERIES</span>
+        <h1 class="section-title">Harness Engineering</h1>
+        <p class="section-desc">Agent 工程的核心架构与设计模式</p>
+      </div>
+      <div class="section-meta">9 articles · 2025—2026</div>
+    </div>
 
-    <script>
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('.nav-link');
+    <div class="grid grid-3">
+      <a class="card" href="#">
+        <span class="card-num">01</span>
+        <div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2026-02-11</span></div>
+        <h3>Harness engineering:在 agent-first 世界里把 Codex 变成工程生产力</h3>
+        <p>当代码主要由 agent 产出时,工程团队要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
+        <div class="card-foot"><span>H-01</span><span class="card-cta">阅读 →</span></div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-num">02</span>
+        <div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2026-02-04</span></div>
+        <h3>Unlocking the Codex harness:App Server 多客户端架构</h3>
+        <p>同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
+        <div class="card-foot"><span>H-02</span><span class="card-cta">阅读 →</span></div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-num">03</span>
+        <div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2026-03-11</span></div>
+        <h3>From model to agent:Responses API 的「计算机环境」</h3>
+        <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
+        <div class="card-foot"><span>H-03</span><span class="card-cta">阅读 →</span></div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-num">04</span>
+        <div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2026-01-23</span></div>
+        <h3>Unrolling the Codex agent loop:可靠性细节</h3>
+        <p>从请求结构、工具注入、提示前缀、缓存到 compaction,真正影响效率的运行时细节。</p>
+        <div class="card-foot"><span>H-04</span><span class="card-cta">阅读 →</span></div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-num">05</span>
+        <div class="card-meta"><span class="card-source src-Anthropic">Anthropic</span><span>2025-11-26</span></div>
+        <h3>Effective harnesses for long-running agents</h3>
+        <p>长任务失败往往不是因为模型短期不会做,而是无法在多轮、多小时执行中保持稳定状态。</p>
+        <div class="card-foot"><span>H-05</span><span class="card-cta">阅读 →</span></div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-num">06</span>
+        <div class="card-meta"><span class="card-source src-Anthropic">Anthropic</span><span>2025-09-29</span></div>
+        <h3>Effective context engineering for AI agents</h3>
+        <p>真正的问题从来不是「有没有上下文」,而是「给模型的 token 是否在当前时刻最值得占用注意力」。</p>
+        <div class="card-foot"><span>H-06</span><span class="card-cta">阅读 →</span></div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-num">07</span>
+        <div class="card-meta"><span class="card-source src-Microsoft">Microsoft</span><span>2025-12-26</span></div>
+        <h3>Azure SRE Agent:工具收敛的生产经验</h3>
+        <p>微软在构建 Azure SRE Agent 时发现,复杂问题常常要靠删减、收敛和外化状态来解决。</p>
+        <div class="card-foot"><span>H-07</span><span class="card-cta">阅读 →</span></div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-num">08</span>
+        <div class="card-meta"><span class="card-source src-Cookbook">OpenAI Cookbook</span><span>2025-10-07</span></div>
+        <h3>PLANS.md:活计划支撑数小时执行</h3>
+        <p>把「计划」从一次性草稿变成贯穿执行全程的活文档,支撑 agent 在多小时任务里持续推进。</p>
+        <div class="card-foot"><span>H-08</span><span class="card-cta">阅读 →</span></div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-num">09</span>
+        <div class="card-meta"><span class="card-source src-Anthropic">Anthropic</span><span>2026-03-24</span></div>
+        <h3>Harness Design:三代理架构驱动的长时间应用开发</h3>
+        <p>GAN 启发的三代理架构让 Claude 在前端设计和全栈开发中实现多小时稳定运行。</p>
+        <div class="card-foot"><span>H-09</span><span class="card-cta">阅读 →</span></div>
+      </a>
+    </div>
+  </section>
 
-        function highlightActive() {
-            const scrollPos = window.scrollY + 200;
-            let activeId = 'latest';
-            sections.forEach(section => {
-                if (scrollPos >= section.offsetTop) activeId = section.id;
-            });
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                link.classList.remove('text-white');
-                link.classList.add('text-slate-300');
-                if (link.getAttribute('href') === '#' + activeId) {
-                    link.classList.add('active', 'text-white');
-                    link.classList.remove('text-slate-300');
-                }
-            });
-        }
+  <!-- COOKBOOKS -->
+  <section id="cookbooks" class="section">
+    <div class="section-header">
+      <div>
+        <span class="section-num">§ 03 — SERIES</span>
+        <h1 class="section-title">Cookbooks</h1>
+        <p class="section-desc">从 repo 概览到全栈部署,11 篇逐步深入</p>
+      </div>
+      <div class="section-meta">11 articles · Cookbook</div>
+    </div>
 
-        window.addEventListener('scroll', highlightActive, { passive: true });
-        highlightActive();
+    <div class="grid grid-3">
+      <a class="card" href="#"><span class="card-num">01</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Repo overview:从仓库结构理解 Claude Agent SDK</h3><div class="card-foot"><span>C-01</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><span class="card-num">02</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Capabilities:agent 能做什么、不能做什么</h3><div class="card-foot"><span>C-02</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><span class="card-num">03</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Tool use:把模型手伸进真实世界</h3><div class="card-foot"><span>C-03</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><span class="card-num">04</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Multimodal:看图、听音、读视频</h3><div class="card-foot"><span>C-04</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><span class="card-num">05</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Agent patterns:从单轮到多代理</h3><div class="card-foot"><span>C-05</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><span class="card-num">06</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Claude Agent SDK:把 agent 装进产品</h3><div class="card-foot"><span>C-06</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><span class="card-num">07</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Responses & performance:延迟、吞吐、成本</h3><div class="card-foot"><span>C-07</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><span class="card-num">08</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Integrations:把 agent 接入你的栈</h3><div class="card-foot"><span>C-08</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><span class="card-num">09</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Skills & fine-tuning:让模型更像你</h3><div class="card-foot"><span>C-09</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><span class="card-num">10</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Full inventory:能力清单与边界地图</h3><div class="card-foot"><span>C-10</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><span class="card-num">11</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>GitHub Pages 部署:把 cookbook 变成可访问的站点</h3><div class="card-foot"><span>C-11</span><span class="card-cta">阅读 →</span></div></a>
+    </div>
+  </section>
 
-        // Intersection Observer for fade-in animations
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
+  <!-- LLM 思考 -->
+  <section id="llm" class="section">
+    <div class="section-header">
+      <div>
+        <span class="section-num">§ 04 — NOTES</span>
+        <h1 class="section-title">LLM 思考</h1>
+        <p class="section-desc">架构、趋势、模型本身的演化</p>
+      </div>
+      <div class="section-meta">6 articles</div>
+    </div>
+    <div class="grid grid-2">
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-Google">Google</span><span>2026-05-29</span></div><h3>JEPA + TTT:通用智能演进的四大神经层级</h3><p>LeCun 世界模型与 TTT 自适应突触的深度融合,剖析 AGI 演进路径。</p><div class="card-foot"><span>L-02</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-arxiv">arxiv</span><span>2026-06-05</span></div><h3>CTM:连续思考机,让模型在 15 步里自己学会答题</h3><p>SakanaAI 教程:置信度 loss 让模型「既答对又自信」。</p><div class="card-foot"><span>L-04</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2025-11-26</span></div><h3>LLM 架构跟踪:从 Transformer 到 2026 的新尝试</h3><p>回顾 LLM 架构演化的关键节点与未走通的方向。</p><div class="card-foot"><span>L-01</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-Anthropic">Anthropic</span><span>2026-04-12</span></div><h3>Long-running agents 的上下文与状态</h3><p>当 agent 要跑 8 小时以上,context、memory、checkpoint 该怎么设计。</p><div class="card-foot"><span>L-03</span><span class="card-cta">阅读 →</span></div></a>
+    </div>
+  </section>
 
-        document.querySelectorAll('article, section').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observer.observe(el);
-        });
-    </script>
+  <!-- 论文 -->
+  <section id="papers" class="section">
+    <div class="section-header">
+      <div>
+        <span class="section-num">§ 05 — PAPERS</span>
+        <h1 class="section-title">论文笔记</h1>
+        <p class="section-desc">细读后留下的不只是摘要</p>
+      </div>
+      <div class="section-meta">5 papers</div>
+    </div>
+    <div class="grid grid-2">
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-Google">Google</span><span>2026-06-05</span></div><h3>LEAP:Agentic 框架做形式化数学</h3><p>AND-OR DAG + 蓝图 + Lean 反馈循环。Putnam 12/12。</p><div class="card-foot"><span>P-01</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-arxiv">arxiv</span><span>2026-04</span></div><h3>RAE:Representation Autoencoders 简化视觉生成</h3><p>把 representation learning 嵌入 diffusion 的统一框架。</p><div class="card-foot"><span>P-02</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-arxiv">arxiv</span><span>2025-12</span></div><h3>Rectified Flow 的 I2I 重新公式化</h3><p>把 image-to-image 当成 rectified flow 的特例统一处理。</p><div class="card-foot"><span>P-03</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-Research">Research</span><span>2025-08</span></div><h3>低场到 7T MRI 的研究综述</h3><p>从物理限制到模型补偿,医学影像迁移的边界在哪。</p><div class="card-foot"><span>P-04</span><span class="card-cta">阅读 →</span></div></a>
+    </div>
+  </section>
+
+  <!-- 工具 -->
+  <section id="tools" class="section">
+    <div class="section-header">
+      <div>
+        <span class="section-num">§ 06 — TOOLS</span>
+        <h1 class="section-title">工具教程</h1>
+        <p class="section-desc">真正用得上的工程实践</p>
+      </div>
+      <div class="section-meta">4 tutorials</div>
+    </div>
+    <div class="grid grid-3">
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-Guide">Guide</span></div><h3>Server connection:从本地到生产</h3><p>把本地 dev server 安全、稳定、可观测地暴露到外部。</p><div class="card-foot"><span>T-01</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-Guide">Guide</span></div><h3>Claw Code 架构解析</h3><p>类 Claude Code 的 agent IDE 是怎么搭起来的。</p><div class="card-foot"><span>T-02</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="#"><div class="card-meta"><span class="card-source src-Guide">Guide</span></div><h3>AutoHarness 思想实验</h3><p>让 agent 自己写 harness,这条路走不走得通。</p><div class="card-foot"><span>T-03</span><span class="card-cta">阅读 →</span></div></a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    © 2026 Neural Reading Room · 用心阅读,克制设计
+  </div>
+</footer>
+
 </body>
 </html>

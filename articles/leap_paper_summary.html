@@ -1,255 +1,30 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>LEAP 论文深入讲解 · Mavis 整理</title>
-<style>
-  :root {
-    --bg: #f7f7f5;
-    --surface: #ffffff;
-    --ink: #1a1a1a;
-    --ink-soft: #4a4a4a;
-    --muted: #6b6b6b;
-    --accent: #d23f3f;
-    --accent-soft: #fde8e8;
-    --line: #e6e6e3;
-    --highlight: #fff7d6;
-    --code-bg: #1a1a1a;
-    --code-ink: #e9e9e9;
-    --green: #2e7d32;
-    --blue: #1565c0;
-    --purple: #6a1b9a;
-  }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
-      "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    line-height: 1.75;
-    font-size: 16px;
-    -webkit-font-smoothing: antialiased;
-  }
-  .wrap {
-    max-width: 880px;
-    margin: 0 auto;
-    padding: 56px 28px 96px;
-  }
-  /* —— 顶部 Hero —— */
-  .hero {
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 32px;
-    margin-bottom: 40px;
-  }
-  .tag {
-    display: inline-block;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--accent);
-    background: var(--accent-soft);
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-weight: 600;
-  }
-  h1 {
-    font-size: 38px;
-    line-height: 1.2;
-    margin: 16px 0 12px;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-  }
-  .subtitle {
-    font-size: 18px;
-    color: var(--ink-soft);
-    margin: 0 0 20px;
-  }
-  .meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px 22px;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .meta span strong { color: var(--ink-soft); font-weight: 600; }
-  a { color: var(--blue); text-decoration: none; border-bottom: 1px solid transparent; }
-  a:hover { border-bottom-color: var(--blue); }
-
-  /* —— 章节标题 —— */
-  h2 {
-    font-size: 26px;
-    margin: 56px 0 18px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--ink);
-    font-weight: 700;
-  }
-  h3 {
-    font-size: 20px;
-    margin: 32px 0 12px;
-    font-weight: 700;
-    color: var(--ink);
-  }
-  h4 {
-    font-size: 16px;
-    margin: 22px 0 8px;
-    font-weight: 700;
-    color: var(--ink-soft);
-  }
-  p { margin: 12px 0; }
-  ul, ol { margin: 12px 0; padding-left: 24px; }
-  li { margin: 6px 0; }
-  strong { color: var(--ink); }
-  em { color: var(--ink-soft); font-style: normal; font-weight: 600; }
-
-  /* —— 信息块 —— */
-  .callout {
-    background: var(--surface);
-    border-left: 4px solid var(--accent);
-    padding: 18px 22px;
-    margin: 24px 0;
-    border-radius: 0 8px 8px 0;
-    box-shadow: 0 1px 0 var(--line);
-  }
-  .callout-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-  .highlight {
-    background: var(--highlight);
-    padding: 1px 4px;
-    border-radius: 3px;
-  }
-  .quote {
-    font-style: italic;
-    color: var(--ink-soft);
-    border-left: 3px solid var(--line);
-    padding-left: 16px;
-    margin: 16px 0;
-  }
-
-  /* —— 卡片网格 —— */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 14px;
-    margin: 20px 0;
-  }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 18px 20px;
-  }
-  .card h4 { margin: 0 0 8px; color: var(--accent); font-size: 15px; }
-  .card p { margin: 0; font-size: 14px; color: var(--ink-soft); }
-
-  /* —— 表格 —— */
-  .table-wrap { overflow-x: auto; margin: 18px 0; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    background: var(--surface);
-  }
-  th, td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--line);
-    vertical-align: top;
-  }
-  th {
-    background: #fafaf8;
-    font-weight: 700;
-    color: var(--ink);
-    border-bottom: 2px solid var(--ink);
-  }
-  td.num { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
-  tr.hl td { background: #fff8e1; }
-  td.check { color: var(--green); font-weight: 700; }
-  td.cross { color: var(--accent); font-weight: 700; }
-
-  /* —— 代码块 —— */
-  pre, code {
-    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-    font-size: 13px;
-  }
-  code {
-    background: #f0efeb;
-    color: var(--ink);
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-  pre {
-    background: var(--code-bg);
-    color: var(--code-ink);
-    padding: 16px 18px;
-    border-radius: 8px;
-    overflow-x: auto;
-    line-height: 1.55;
-    margin: 16px 0;
-  }
-  pre code { background: transparent; color: inherit; padding: 0; }
-
-  /* —— 流程图（CSS 画） —— */
-  .flow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 20px 0;
-    padding: 18px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    font-size: 13px;
-  }
-  .flow .node {
-    background: #fff;
-    border: 1.5px solid var(--ink);
-    padding: 8px 12px;
-    border-radius: 6px;
-    text-align: center;
-    min-width: 90px;
-  }
-  .flow .node.alt { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-  .flow .node.dim { background: #fafaf8; border-color: var(--muted); color: var(--muted); }
-  .flow .arrow { color: var(--muted); font-weight: 700; }
-
-  /* —— TOC —— */
-  .toc {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 18px 22px;
-    margin: 0 0 40px;
-  }
-  .toc h4 { margin: 0 0 8px; }
-  .toc ol { padding-left: 22px; margin: 0; }
-  .toc li { margin: 4px 0; }
-
-  /* —— 分割 —— */
-  hr { border: 0; border-top: 1px dashed var(--line); margin: 40px 0; }
-
-  /* —— 底部 —— */
-  .footer {
-    margin-top: 64px;
-    padding-top: 24px;
-    border-top: 1px solid var(--line);
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEAP 论文深入讲解 · Mavis 整理</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/style.css">
 </head>
-<body>
+<body class="article-page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html" aria-label="Neural Reading Room 首页">
+        <span class="brand-mark">NR</span>
+        <span class="brand-copy">
+          <span class="brand-title">Neural Reading Room</span>
+          <span class="brand-subtitle">AI 技术阅读站</span>
+        </span>
+      </a>
+      <div class="top-actions">
+        <a class="btn small ghost" href="../index.html">← 返回首页</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
 <div class="wrap">
 
   <header class="hero">
@@ -755,6 +530,6 @@ lemma card_perms_a_eq_card_perms_b ... :
   <div class="footer">
     整理：Mavis · 2026-06-05 · 基于 arXiv:2606.03303 v2 全文
   </div>
-</div>
+</div>  </main>
 </body>
 </html>
