@@ -2,6 +2,12 @@
 (function() {
   if (!document.body.classList.contains('article-page')) return;
 
+  // 隐藏文章正文里任何 class="toc" 但不在 article-layout 里的内嵌 toc
+  // (旧文章里可能嵌了 <nav class="toc"> 或 <div class="toc"> 列表)
+  document.querySelectorAll('.toc').forEach(el => {
+    if (!el.closest('.article-layout')) el.style.display = 'none';
+  });
+
   // 已有 toc — 强制它在右栏
   const existing = document.querySelector('.article-layout .toc');
   if (existing) {
