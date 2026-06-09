@@ -6,19 +6,18 @@
 <title>Neural Reading Room · AI 技术阅读站</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@1,500;1,600&family=Noto+Sans+SC:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
 </head>
-<body>
+<body class="home-page">
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="./index.html">
+    <a class="brand" href="index.html">
       <span class="brand-mark">NR</span>
-      <span class="brand-text">
-        <span class="brand-name">Neural Reading Room</span>
-        <span class="brand-sub">AI · Reading · Notes</span>
+      <span class="brand-copy">
+        <span class="brand-title">Neural Reading Room</span>
+        <span class="brand-subtitle">AI · Reading · Notes</span>
       </span>
     </a>
     <nav class="nav">
@@ -29,14 +28,14 @@
       <a href="#papers">论文</a>
       <a href="#tools">工具</a>
     </nav>
-    <a class="brand-mark" style="background:transparent;border:1px solid var(--line);color:var(--text-secondary);font-size:14px;" href="https://github.com">↗ GitHub</a>
+    <a class="btn small" href="https://github.com/mathhyphen/markdown-pages" target="_blank">↗ GitHub</a>
   </div>
 </header>
 
 <main class="container">
 
   <!-- HERO: Latest Updates -->
-  <section id="latest" class="section" style="padding-top:60px;">
+  <section id="latest" class="section" style="padding-top:40px;">
     <div class="section-header">
       <div>
         <span class="section-num">§ 01 — LATEST</span>
@@ -51,28 +50,28 @@
 
     <div class="hero">
       <a class="featured" href="./articles/leap_paper_summary.html">
-        <div class="featured-tag">FEATURED · arxiv · Agentic</div>
+        <div class="featured-tag">FEATURED · ARXIV · AGENTIC</div>
         <h2>LEAP:用 Agentic 框架让通用 LLM 在形式化数学上起飞</h2>
         <p class="lead">Google DeepMind 的反问:形式化数学的瓶颈不在「更强 prover」,而在「工程结构」。AND-OR DAG + 蓝图 + Lean 反馈循环,让 Gemini 3.1 Pro 解出 Putnam 2025 全部 12 题。</p>
         <div class="featured-stats">
-          <div><strong>Putnam 12/12</strong> 题目通过</div>
-          <div><strong>Lean-IMO 70%</strong> 7 题解出</div>
+          <div><strong>12/12</strong> Putnam</div>
+          <div><strong>70%</strong> Lean-IMO</div>
           <div><strong>9 章节</strong> 深入拆解</div>
         </div>
       </a>
 
       <div class="side-stack">
-        <a class="side-card" href="./articles/leap_paper_summary.html">
+        <a class="side-card" href="./articles/Continuous%20Thought%20Machine-MNIST.html">
           <div class="tag-row"><span>神经网络</span><span>L-04 · 06-05</span></div>
           <h4>Continuous Thought Machine:把「思考」展开成 15 步</h4>
           <p>SakanaAI CTM 教程:每个 tick 都在想,每步都可能答。</p>
         </a>
-        <a class="side-card" href="./articles/Continuous%20Thought%20Machine-MNIST.html">
+        <a class="side-card" href="./articles/llm-agi-blueprint.html">
           <div class="tag-row"><span>世界模型</span><span>L-02 · 05-29</span></div>
           <h4>通用智能演进蓝图:JEPA + TTT 世界模型</h4>
           <p>LeCun JEPA 架构与 TTT 自适应突触的深度融合。</p>
         </a>
-        <a class="side-card" href="./articles/llm-agi-blueprint.html">
+        <a class="side-card" href="./articles/martin-fowler-harness-engineering.html">
           <div class="tag-row"><span>Guide</span><span>H-13 · 04-06</span></div>
           <h4>Martin Fowler 深度解读 Harness Engineering</h4>
           <p>从 Martin Fowler 视角拆解 Guides / Sensors 与 Steering Loop。</p>
@@ -93,63 +92,63 @@
     </div>
 
     <div class="grid grid-3">
-      <a class="card" href="./articles/martin-fowler-harness-engineering.html">
+      <a class="card" href="./articles/harness-engineering.html">
         <span class="card-num">01</span>
         <div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2026-02-11</span></div>
         <h3>Harness engineering:在 agent-first 世界里把 Codex 变成工程生产力</h3>
         <p>当代码主要由 agent 产出时,工程团队要建设的是环境、知识、边界、反馈回路与垃圾回收机制。</p>
         <div class="card-foot"><span>H-01</span><span class="card-cta">阅读 →</span></div>
       </a>
-      <a class="card" href="./articles/harness-engineering.html">
+      <a class="card" href="./articles/unlocking-codex-harness.html">
         <span class="card-num">02</span>
         <div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2026-02-04</span></div>
         <h3>Unlocking the Codex harness:App Server 多客户端架构</h3>
         <p>同一个 Codex 核心如何通过 App Server 暴露给 Web、CLI、IDE、桌面客户端与第三方集成。</p>
         <div class="card-foot"><span>H-02</span><span class="card-cta">阅读 →</span></div>
       </a>
-      <a class="card" href="./articles/unlocking-codex-harness.html">
+      <a class="card" href="./articles/responses-computer-environment.html">
         <span class="card-num">03</span>
         <div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2026-03-11</span></div>
         <h3>From model to agent:Responses API 的「计算机环境」</h3>
         <p>为什么真正的 agent 需要一个受控、可持续、可压缩、可带状态的计算机环境。</p>
         <div class="card-foot"><span>H-03</span><span class="card-cta">阅读 →</span></div>
       </a>
-      <a class="card" href="./articles/responses-computer-environment.html">
+      <a class="card" href="./articles/unrolling-codex-agent-loop.html">
         <span class="card-num">04</span>
         <div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2026-01-23</span></div>
         <h3>Unrolling the Codex agent loop:可靠性细节</h3>
         <p>从请求结构、工具注入、提示前缀、缓存到 compaction,真正影响效率的运行时细节。</p>
         <div class="card-foot"><span>H-04</span><span class="card-cta">阅读 →</span></div>
       </a>
-      <a class="card" href="./articles/unrolling-codex-agent-loop.html">
+      <a class="card" href="./articles/anthropic-long-running-harnesses.html">
         <span class="card-num">05</span>
         <div class="card-meta"><span class="card-source src-Anthropic">Anthropic</span><span>2025-11-26</span></div>
         <h3>Effective harnesses for long-running agents</h3>
         <p>长任务失败往往不是因为模型短期不会做,而是无法在多轮、多小时执行中保持稳定状态。</p>
         <div class="card-foot"><span>H-05</span><span class="card-cta">阅读 →</span></div>
       </a>
-      <a class="card" href="./articles/anthropic-long-running-harnesses.html">
+      <a class="card" href="./articles/anthropic-context-engineering.html">
         <span class="card-num">06</span>
         <div class="card-meta"><span class="card-source src-Anthropic">Anthropic</span><span>2025-09-29</span></div>
         <h3>Effective context engineering for AI agents</h3>
         <p>真正的问题从来不是「有没有上下文」,而是「给模型的 token 是否在当前时刻最值得占用注意力」。</p>
         <div class="card-foot"><span>H-06</span><span class="card-cta">阅读 →</span></div>
       </a>
-      <a class="card" href="./articles/anthropic-context-engineering.html">
+      <a class="card" href="./articles/azure-sre-agent-context-engineering.html">
         <span class="card-num">07</span>
         <div class="card-meta"><span class="card-source src-Microsoft">Microsoft</span><span>2025-12-26</span></div>
         <h3>Azure SRE Agent:工具收敛的生产经验</h3>
         <p>微软在构建 Azure SRE Agent 时发现,复杂问题常常要靠删减、收敛和外化状态来解决。</p>
         <div class="card-foot"><span>H-07</span><span class="card-cta">阅读 →</span></div>
       </a>
-      <a class="card" href="./articles/azure-sre-agent-context-engineering.html">
+      <a class="card" href="./articles/plans-md-multi-hour-problem-solving.html">
         <span class="card-num">08</span>
         <div class="card-meta"><span class="card-source src-Cookbook">OpenAI Cookbook</span><span>2025-10-07</span></div>
         <h3>PLANS.md:活计划支撑数小时执行</h3>
         <p>把「计划」从一次性草稿变成贯穿执行全程的活文档,支撑 agent 在多小时任务里持续推进。</p>
         <div class="card-foot"><span>H-08</span><span class="card-cta">阅读 →</span></div>
       </a>
-      <a class="card" href="./articles/plans-md-multi-hour-problem-solving.html">
+      <a class="card" href="./articles/harness-design-long-running-apps.html">
         <span class="card-num">09</span>
         <div class="card-meta"><span class="card-source src-Anthropic">Anthropic</span><span>2026-03-24</span></div>
         <h3>Harness Design:三代理架构驱动的长时间应用开发</h3>
@@ -171,17 +170,17 @@
     </div>
 
     <div class="grid grid-3">
-      <a class="card" href="./articles/harness-design-long-running-apps.html"><span class="card-num">01</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Repo overview:从仓库结构理解 Claude Agent SDK</h3><div class="card-foot"><span>C-01</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./cookbooks/01-repo-overview.html"><span class="card-num">02</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Capabilities:agent 能做什么、不能做什么</h3><div class="card-foot"><span>C-02</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./cookbooks/02-capabilities.html"><span class="card-num">03</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Tool use:把模型手伸进真实世界</h3><div class="card-foot"><span>C-03</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./cookbooks/03-tool-use.html"><span class="card-num">04</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Multimodal:看图、听音、读视频</h3><div class="card-foot"><span>C-04</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./cookbooks/04-multimodal.html"><span class="card-num">05</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Agent patterns:从单轮到多代理</h3><div class="card-foot"><span>C-05</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./cookbooks/05-agent-patterns.html"><span class="card-num">06</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Claude Agent SDK:把 agent 装进产品</h3><div class="card-foot"><span>C-06</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./cookbooks/06-claude-agent-sdk.html"><span class="card-num">07</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Responses & performance:延迟、吞吐、成本</h3><div class="card-foot"><span>C-07</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./cookbooks/07-responses-and-performance.html"><span class="card-num">08</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Integrations:把 agent 接入你的栈</h3><div class="card-foot"><span>C-08</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./cookbooks/08-integrations.html"><span class="card-num">09</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Skills & fine-tuning:让模型更像你</h3><div class="card-foot"><span>C-09</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./cookbooks/09-skills-finetuning.html"><span class="card-num">10</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Full inventory:能力清单与边界地图</h3><div class="card-foot"><span>C-10</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./cookbooks/10-full-inventory.html"><span class="card-num">11</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>GitHub Pages 部署:把 cookbook 变成可访问的站点</h3><div class="card-foot"><span>C-11</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/01-repo-overview.html"><span class="card-num">01</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Repo overview:从仓库结构理解 Claude Agent SDK</h3><div class="card-foot"><span>C-01</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/02-capabilities.html"><span class="card-num">02</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Capabilities:agent 能做什么、不能做什么</h3><div class="card-foot"><span>C-02</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/03-tool-use.html"><span class="card-num">03</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Tool use:把模型手伸进真实世界</h3><div class="card-foot"><span>C-03</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/04-multimodal.html"><span class="card-num">04</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Multimodal:看图、听音、读视频</h3><div class="card-foot"><span>C-04</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/05-agent-patterns.html"><span class="card-num">05</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Agent patterns:从单轮到多代理</h3><div class="card-foot"><span>C-05</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/06-claude-agent-sdk.html"><span class="card-num">06</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Claude Agent SDK:把 agent 装进产品</h3><div class="card-foot"><span>C-06</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/07-responses-and-performance.html"><span class="card-num">07</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Responses & performance:延迟、吞吐、成本</h3><div class="card-foot"><span>C-07</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/08-integrations.html"><span class="card-num">08</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Integrations:把 agent 接入你的栈</h3><div class="card-foot"><span>C-08</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/09-skills-finetuning.html"><span class="card-num">09</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Skills & fine-tuning:让模型更像你</h3><div class="card-foot"><span>C-09</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/10-full-inventory.html"><span class="card-num">10</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>Full inventory:能力清单与边界地图</h3><div class="card-foot"><span>C-10</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./cookbooks/11-github-pages-deploy.html"><span class="card-num">11</span><div class="card-meta"><span class="card-source src-Cookbook">Cookbook</span></div><h3>GitHub Pages 部署:把 cookbook 变成可访问的站点</h3><div class="card-foot"><span>C-11</span><span class="card-cta">阅读 →</span></div></a>
     </div>
   </section>
 
@@ -196,10 +195,10 @@
       <div class="section-meta">6 articles</div>
     </div>
     <div class="grid grid-2">
-      <a class="card" href="./cookbooks/11-github-pages-deploy.html"><div class="card-meta"><span class="card-source src-Google">Google</span><span>2026-05-29</span></div><h3>JEPA + TTT:通用智能演进的四大神经层级</h3><p>LeCun 世界模型与 TTT 自适应突触的深度融合,剖析 AGI 演进路径。</p><div class="card-foot"><span>L-02</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./articles/llm-agi-blueprint.html"><div class="card-meta"><span class="card-source src-arxiv">arxiv</span><span>2026-06-05</span></div><h3>CTM:连续思考机,让模型在 15 步里自己学会答题</h3><p>SakanaAI 教程:置信度 loss 让模型「既答对又自信」。</p><div class="card-foot"><span>L-04</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./articles/Continuous%20Thought%20Machine-MNIST.html"><div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2025-11-26</span></div><h3>LLM 架构跟踪:从 Transformer 到 2026 的新尝试</h3><p>回顾 LLM 架构演化的关键节点与未走通的方向。</p><div class="card-foot"><span>L-01</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./articles/llm-architecture-tracking.html"><div class="card-meta"><span class="card-source src-Anthropic">Anthropic</span><span>2026-04-12</span></div><h3>Long-running agents 的上下文与状态</h3><p>当 agent 要跑 8 小时以上,context、memory、checkpoint 该怎么设计。</p><div class="card-foot"><span>L-03</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./articles/llm-agi-blueprint.html"><div class="card-meta"><span class="card-source src-Google">Google</span><span>2026-05-29</span></div><h3>JEPA + TTT:通用智能演进的四大神经层级</h3><p>LeCun 世界模型与 TTT 自适应突触的深度融合,剖析 AGI 演进路径。</p><div class="card-foot"><span>L-02</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./articles/Continuous%20Thought%20Machine-MNIST.html"><div class="card-meta"><span class="card-source src-arxiv">arxiv</span><span>2026-06-05</span></div><h3>CTM:连续思考机,让模型在 15 步里自己学会答题</h3><p>SakanaAI 教程:置信度 loss 让模型「既答对又自信」。</p><div class="card-foot"><span>L-04</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./articles/llm-architecture-tracking.html"><div class="card-meta"><span class="card-source src-OpenAI">OpenAI</span><span>2025-11-26</span></div><h3>LLM 架构跟踪:从 Transformer 到 2026 的新尝试</h3><p>回顾 LLM 架构演化的关键节点与未走通的方向。</p><div class="card-foot"><span>L-01</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./articles/anthropic-long-running-harnesses.html"><div class="card-meta"><span class="card-source src-Anthropic">Anthropic</span><span>2026-04-12</span></div><h3>Long-running agents 的上下文与状态</h3><p>当 agent 要跑 8 小时以上,context、memory、checkpoint 该怎么设计。</p><div class="card-foot"><span>L-03</span><span class="card-cta">阅读 →</span></div></a>
     </div>
   </section>
 
@@ -214,10 +213,10 @@
       <div class="section-meta">5 papers</div>
     </div>
     <div class="grid grid-2">
-      <a class="card" href="./articles/anthropic-long-running-harnesses.html"><div class="card-meta"><span class="card-source src-Google">Google</span><span>2026-06-05</span></div><h3>LEAP:Agentic 框架做形式化数学</h3><p>AND-OR DAG + 蓝图 + Lean 反馈循环。Putnam 12/12。</p><div class="card-foot"><span>P-01</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./papers/rae-representation-autoencoders.html"><div class="card-meta"><span class="card-source src-Google">Google</span><span>2026-06-05</span></div><h3>LEAP:Agentic 框架做形式化数学</h3><p>AND-OR DAG + 蓝图 + Lean 反馈循环。Putnam 12/12。</p><div class="card-foot"><span>P-01</span><span class="card-cta">阅读 →</span></div></a>
       <a class="card" href="./papers/rae-representation-autoencoders.html"><div class="card-meta"><span class="card-source src-arxiv">arxiv</span><span>2026-04</span></div><h3>RAE:Representation Autoencoders 简化视觉生成</h3><p>把 representation learning 嵌入 diffusion 的统一框架。</p><div class="card-foot"><span>P-02</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./papers/rae-representation-autoencoders.html"><div class="card-meta"><span class="card-source src-arxiv">arxiv</span><span>2025-12</span></div><h3>Rectified Flow 的 I2I 重新公式化</h3><p>把 image-to-image 当成 rectified flow 的特例统一处理。</p><div class="card-foot"><span>P-03</span><span class="card-cta">阅读 →</span></div></a>
-      <a class="card" href="./papers/i2i-rectified-flow-reformulation.html"><div class="card-meta"><span class="card-source src-Research">Research</span><span>2025-08</span></div><h3>低场到 7T MRI 的研究综述</h3><p>从物理限制到模型补偿,医学影像迁移的边界在哪。</p><div class="card-foot"><span>P-04</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./papers/i2i-rectified-flow-reformulation.html"><div class="card-meta"><span class="card-source src-arxiv">arxiv</span><span>2025-12</span></div><h3>Rectified Flow 的 I2I 重新公式化</h3><p>把 image-to-image 当成 rectified flow 的特例统一处理。</p><div class="card-foot"><span>P-03</span><span class="card-cta">阅读 →</span></div></a>
+      <a class="card" href="./papers/lowfield-to-7t-mri-research.html"><div class="card-meta"><span class="card-source src-Research">Research</span><span>2025-08</span></div><h3>低场到 7T MRI 的研究综述</h3><p>从物理限制到模型补偿,医学影像迁移的边界在哪。</p><div class="card-foot"><span>P-04</span><span class="card-cta">阅读 →</span></div></a>
     </div>
   </section>
 
@@ -242,7 +241,7 @@
 
 <footer class="footer">
   <div class="container">
-    © 2026 Neural Reading Room · 用心阅读,克制设计
+    Neural Reading Room · 用心阅读,克制设计 · © 2026
   </div>
 </footer>
 
