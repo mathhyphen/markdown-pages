@@ -471,7 +471,16 @@ pred   = predictions.<span class="f">argmax</span>(<span class="n">1</span>)[<sp
 
   // ============ Loss chart ============
   (function() {
-    const ctx = document.getElementById('lossChart').getContext('2d');
+    const canvas = document.getElementById('lossChart');
+    if (!canvas || !window.Chart) {
+      const chartCard = canvas && canvas.closest('.chart-card');
+      if (chartCard) {
+        chartCard.insertAdjacentHTML('beforeend', '<p class="sub">图表库未加载时隐藏曲线图；核心 loss 公式与训练逻辑见右侧说明。</p>');
+      }
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
 
     const lossVals = [3.2, 2.6, 2.1, 1.7, 1.4, 1.1, 0.85, 0.62, 0.55, 0.48, 0.45, 0.42, 0.43, 0.44, 0.45];
     const certVals = [0.05, 0.10, 0.15, 0.22, 0.30, 0.40, 0.52, 0.65, 0.72, 0.80, 0.86, 0.91, 0.89, 0.88, 0.87];
