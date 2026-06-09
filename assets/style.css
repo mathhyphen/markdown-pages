@@ -1236,6 +1236,49 @@ body {
   box-shadow: none !important;
 }
 
+/* Full table framing across every article shell. */
+.article-page table {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 22px 0 !important;
+  border-collapse: collapse !important;
+  border: 1px solid var(--line-strong) !important;
+  background: var(--bg-elevated) !important;
+  font-size: 14px;
+  line-height: 1.62;
+  table-layout: auto;
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+.article-page th,
+.article-page td {
+  padding: 10px 12px !important;
+  border: 1px solid var(--line) !important;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.article-page th {
+  background: var(--bg-elevated-2) !important;
+  color: var(--ink) !important;
+  font-weight: 700 !important;
+}
+
+.article-page tbody tr:hover td {
+  background: var(--accent-soft);
+}
+
+@media (min-width: 1021px) {
+  .article-page .article-layout > .toc {
+    position: fixed !important;
+    top: 90px !important;
+    right: max(28px, calc((100vw - 1440px) / 2 + 28px)) !important;
+    left: auto !important;
+    max-height: calc(100vh - 118px) !important;
+  }
+}
+
 @media (max-width: 1020px) {
   .topbar-inner {
     padding: 12px 20px;
