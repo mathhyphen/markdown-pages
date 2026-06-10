@@ -1360,6 +1360,67 @@ body {
   background: var(--line);
 }
 
+/* Compact architecture pipelines built from .arch / .step / .arrow markup. */
+.article-page .arch {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr) 28px minmax(0, 1fr);
+  align-items: stretch !important;
+  gap: 10px !important;
+  width: 100%;
+  margin: 20px 0 26px !important;
+  padding: 16px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius) !important;
+  background: var(--bg-elevated-2) !important;
+}
+
+.article-page .arch .step {
+  display: grid !important;
+  grid-template-rows: auto auto 1fr;
+  gap: 7px;
+  min-width: 0;
+  min-height: 118px;
+  padding: 14px 14px 13px !important;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--bg-elevated) !important;
+  box-shadow: 0 1px 0 rgba(26, 26, 26, 0.03);
+}
+
+.article-page .arch .step .n {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.article-page .arch .step .l {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.article-page .arch .step .d {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.article-page .arch > .arrow {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 118px;
+  color: var(--accent) !important;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+}
+
 @media (min-width: 1021px) {
   .article-page .article-layout > .toc {
     position: fixed !important;
@@ -1415,7 +1476,22 @@ body {
   }
 
   .article-page .flow .arrow {
+    align-self: center;
     min-height: 16px;
+    height: 18px;
+    transform: rotate(90deg);
+  }
+
+  .article-page .arch {
+    grid-template-columns: 1fr !important;
+  }
+
+  .article-page .arch > .arrow {
+    align-self: center;
+    justify-self: center;
+    width: 18px;
+    min-height: 0;
+    height: 18px;
     transform: rotate(90deg);
   }
 }
