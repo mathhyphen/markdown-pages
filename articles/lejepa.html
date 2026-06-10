@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeJEPA 详解 · 50 行代码干掉 JEPA 的"炼丹"传统</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --bg-card: #ffffff;
+    --bg-soft: #faf8f3;
+    --border: #e9e3d6;
+    --line-soft: #ece7da;
+    --text: #14171e;
+    --text-2: #3a4256;
+    --text-3: #7c7a72;
+    --primary: #2f6f5e;
+    --primary-2: #4a8e7c;
+    --primary-soft: rgba(47,111,94,0.08);
+    --accent: #c97b3f;
+    --accent-2: #d99162;
+    --accent-soft: rgba(201,123,63,0.10);
+    --warn: #b06367;
+    --warn-soft: rgba(176,99,103,0.10);
+    --code-bg: #1f2127;
+    --code-text: #e8e4d8;
+    --code-line: #2a2d35;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    top: -20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(47,111,94,0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    bottom: -20%;
+    left: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(201,123,63,0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ========== HERO ========== */
+  .hero {
+    padding: 88px 0 56px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--primary-soft);
+    border: 1px solid rgba(47,111,94,0.2);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .hero-tag-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--primary);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    font-size: 48px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+  h1 .accent { color: var(--primary); font-style: italic; }
+  h1 .warn { color: var(--warn); }
+  .hero-sub {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--text-2);
+    max-width: 720px;
+    margin-bottom: 40px;
+  }
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    max-width: 800px;
+    border-top: 2px solid var(--text);
+  }
+  .meta-cell {
+    padding: 18px 16px 4px 0;
+    border-right: 1px solid var(--line-soft);
+  }
+  .meta-cell:last-child { border-right: none; }
+  .meta-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .meta-num .unit { font-size: 20px; color: var(--text-3); margin-left: 2px; }
+  .meta-label {
+    font-size: 12px;
+    color: var(--text-3);
+    letter-spacing: 0.03em;
+  }
+
+  /* ========== SECTIONS ========== */
+  section {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  section:last-of-type { border-bottom: none; }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    font-size: 32px;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  h2 .accent { color: var(--primary); }
+  h2 .warn { color: var(--warn); }
+  .section-intro {
+    font-size: 16px;
+    color: var(--text-2);
+    max-width: 760px;
+    margin-bottom: 36px;
+  }
+  h3 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 19px;
+    color: var(--text);
+    margin: 28px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h3 svg { color: var(--primary); flex-shrink: 0; }
+  h4 {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    margin: 16px 0 8px;
+  }
+  p { color: var(--text-2); margin-bottom: 12px; }
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--accent); font-style: normal; font-weight: 500; }
+
+  code, .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* ========== CARDS ========== */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .card-grid { display: grid; gap: 16px; }
+  .card-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 768px) {
+    .card-grid-3, .card-grid-2 { grid-template-columns: 1fr; }
+    .hero-meta { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .meta-cell { border-right: none; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+    h1 { font-size: 32px; }
+  }
+
+  /* ========== INSIGHT BOX ========== */
+  .insight {
+    background: linear-gradient(135deg, rgba(47,111,94,0.06), rgba(47,111,94,0.02));
+    border-left: 3px solid var(--primary);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 22px 0;
+  }
+  .insight .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+  .insight p { color: var(--text); margin: 0; font-size: 14.5px; line-height: 1.6; }
+  .insight.accent {
+    background: linear-gradient(135deg, rgba(201,123,63,0.08), rgba(201,123,63,0.02));
+    border-left-color: var(--accent);
+  }
+  .insight.accent .label { color: var(--accent); }
+  .insight.warn {
+    background: linear-gradient(135deg, rgba(176,99,103,0.08), rgba(176,99,103,0.02));
+    border-left-color: var(--warn);
+  }
+  .insight.warn .label { color: var(--warn); }
+
+  /* ========== COMPARISON CARDS ========== */
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 20px 0;
+  }
+  @media (max-width: 768px) { .compare { grid-template-columns: 1fr; } }
+  .compare-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 20px;
+    text-align: center;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .compare-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  }
+  .compare-card .icon {
+    width: 56px; height: 56px;
+    margin: 0 auto 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .compare-card .name {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .compare-card .desc {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+  .compare-card.bad .name { color: var(--warn); }
+  .compare-card.mid .name { color: var(--accent); }
+  .compare-card.good .name { color: var(--primary); }
+  .compare-card.good {
+    border-color: rgba(47,111,94,0.4);
+    background: linear-gradient(180deg, rgba(47,111,94,0.04), white);
+  }
+
+  /* ========== CODE BLOCK ========== */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 18px 22px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.65;
+    margin: 14px 0;
+    border: 1px solid var(--code-line);
+  }
+  pre .k { color: #e8a55c; }
+  pre .s { color: #a3c585; }
+  pre .c { color: #6b6f7a; font-style: italic; }
+  pre .n { color: #82a9d4; }
+  pre .f { color: #d4a3e0; }
+
+  /* ========== DIAGRAM ========== */
+  .diagram {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin: 18px 0;
+  }
+  .diagram-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .diagram-sub {
+    font-size: 12.5px;
+    color: var(--text-3);
+    margin-bottom: 20px;
+  }
+  .diagram svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+
+  /* ========== KV ========== */
+  .kv {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+  .kv > div {
+    padding: 12px 18px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .kv > div:nth-last-child(-n+2) { border-bottom: none; }
+  .kv .k {
+    background: rgba(47,111,94,0.04);
+    font-weight: 600;
+    color: var(--text);
+    font-size: 13px;
+  }
+  .kv .v {
+    color: var(--text-2);
+    font-size: 14px;
+  }
+
+  /* ========== PIPELINE ========== */
+  .pipe {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+  .pipe-step {
+    flex: 1;
+    min-width: 180px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 16px;
+    position: relative;
+  }
+  .pipe-step .step-num {
+    position: absolute;
+    top: -10px;
+    left: 14px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .pipe-step .step-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    margin: 6px 0 4px;
+  }
+  .pipe-step .step-detail {
+    font-size: 12.5px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+  .pipe-arrow {
+    align-self: center;
+    color: var(--text-3);
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 768px) {
+    .pipe { flex-direction: column; }
+    .pipe-arrow { transform: rotate(90deg); padding: 4px 0; }
+  }
+
+  /* ========== BENCH BAR ========== */
+  .bench-list {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+  }
+  .bench-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 80px;
+    gap: 16px;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px dashed var(--line-soft);
+  }
+  .bench-row:last-child { border-bottom: none; }
+  .bench-row .label {
+    font-size: 13px;
+    color: var(--text-2);
+    font-weight: 500;
+  }
+  .bench-row .bar-bg {
+    height: 22px;
+    background: var(--line-soft);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .bench-row .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-2));
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .bench-row.highlight .bar-fill {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  }
+  .bench-row .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    text-align: right;
+    font-weight: 600;
+  }
+
+  /* ========== CHARTS ========== */
+  .chart-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    margin: 14px 0;
+  }
+  .chart-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .chart-sub {
+    font-size: 12.5px;
+    color: var(--text-3);
+    margin-bottom: 18px;
+  }
+  .chart-canvas { position: relative; height: 300px; }
+
+  /* ========== TIMELINE ========== */
+  .timeline {
+    position: relative;
+    margin: 32px 0 0;
+    padding: 0;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--warn) 100%);
+  }
+  .step {
+    position: relative;
+    padding-left: 56px;
+    margin-bottom: 28px;
+  }
+  .step:last-child { margin-bottom: 0; }
+  .step-marker {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .step.bad .step-marker { border-color: var(--warn); color: var(--warn); }
+  .step.major .step-marker {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 0 0 4px var(--bg);
+  }
+  .step-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 2px;
+  }
+  .step-title {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    font-size: 15px;
+  }
+  .step-desc {
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 1.55;
+  }
+
+  /* ========== LIST ========== */
+  ul.check {
+    list-style: none;
+    padding: 0;
+    margin: 14px 0;
+  }
+  ul.check li {
+    padding: 8px 0 8px 28px;
+    position: relative;
+    color: var(--text-2);
+    line-height: 1.55;
+    font-size: 14px;
+  }
+  ul.check li::before {
+    content: "✕";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    color: var(--warn);
+    font-weight: 700;
+    font-size: 14px;
+  }
+  ul.check.good li::before {
+    content: "✓";
+    color: var(--primary);
+  }
+
+  /* ========== TWO-COL LAYOUT ========== */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ========== FOOTER ========== */
+  footer {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--text-3);
+    font-size: 13px;
+  }
+
+  /* ========== UTILITY ========== */
+  .pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.accent { background: var(--accent-soft); color: var(--accent); }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 16px; }
+  .spacer-md { height: 32px; }
+  .num-circle {
+    display: inline-flex;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .home-return {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 50;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 13px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.86);
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(20,23,30,0.08);
+    backdrop-filter: blur(12px);
+  }
+  .home-return:hover {
+    color: var(--primary);
+    border-color: rgba(47,111,94,0.28);
+  }
+  @media (max-width: 720px) {
+    .home-return {
+      position: static;
+      margin: 16px 0 0 16px;
+    }
+  }
+</style>
+</head>
+<body>
+<a class="home-return" href="../index.html">← 返回首页</a>
+
+<div class="container">
+
+  <!-- ========== HERO ========== -->
+  <header class="hero">
+    <div class="hero-tag">
+      <span class="hero-tag-dot"></span>
+      论文深读 · 2025 年 11 月
+    </div>
+    <h1>LeJEPA:<br><span class="accent">50 行代码</span> 终结<br>JEPA 的"<span class="warn">炼丹</span>"传统</h1>
+    <p class="hero-sub">
+      Yann LeCun 和 Randall Balestriero 用一篇论文做了一件 LeCun 团队想了 3 年没做到的事:
+      给 JEPA 一个完整的理论,告诉世界"好"的自监督表征应该长什么样 —— 然后用 1 个超参把它跑出来。
+    </p>
+    <div class="hero-meta">
+      <div class="meta-cell">
+        <div class="meta-num">79<span class="unit">%</span></div>
+        <div class="meta-label">ImageNet 线性探测</div>
+      </div>
+      <div class="meta-cell">
+        <div class="meta-num">1<span class="unit">个</span></div>
+        <div class="meta-label">唯一超参数 λ</div>
+      </div>
+      <div class="meta-cell">
+        <div class="meta-num">99<span class="unit">%</span></div>
+        <div class="meta-label">训练-下游相关性</div>
+      </div>
+      <div class="meta-cell">
+        <div class="meta-num">~50<span class="unit">行</span></div>
+        <div class="meta-label">核心实现代码</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== §1 JEPA 的"炼丹"困境 ========== -->
+  <section>
+    <div class="section-num">§ 01</div>
+    <h2>JEPA 的"<span class="warn">炼丹</span>"困境</h2>
+    <p class="section-intro">
+      LeJEPA 之所以重要,是因为 JEPA 系列过去 3 年一直被"表征坍缩"问题困扰,
+      而所有现成的解法都是经验性的 —— 没人知道为什么 work,只是"反正它 work"。
+    </p>
+
+    <h3>表征坍缩:模型的"躺平"策略</h3>
+    <p>JEPA 训练时,模型要预测目标块的特征。一个"聪明但懒"的模型会很快发现一个完美作弊法:</p>
+    <pre><span class="c"># 模型的最优偷懒策略</span>
+<span class="k">def</span> <span class="f">cheat</span>(x):
+    <span class="k">return</span> torch.zeros_like(x)   <span class="c"># 不管输入什么都输出 0 向量</span>
+
+<span class="c"># 结果:预测损失 L2(0, 0) = 0 永远成立
+# 损失很低,但模型什么也没学到</span></pre>
+
+    <p>这个现象叫 <em>表征坍缩(Representation Collapse)</em>:所有输入被映射到同一个点。
+    无论图片里是猫、狗还是车,模型都说"这是个 0"。损失完美,信息全丢。</p>
+
+    <h3>过去的解法:一堆启发式"补丁"</h3>
+    <p>为了逼模型不偷懒,I-JEPA / BYOL / MoCo 等方法用了一堆看起来很玄学的技巧:</p>
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <h4 style="color: var(--warn);">Teacher-Student 双网络</h4>
+        <p>复制一份编码器当"教师",学生预测教师的输出。
+        打破"自己预测自己"的循环,让"输出 0"这个捷径失效。</p>
+      </div>
+      <div class="card">
+        <h4 style="color: var(--warn);">Stop-Gradient</h4>
+        <p>规定教师网络不接受梯度回传 —— 学生不能改变老师的答案。
+        这是一个"反直觉但有效"的硬约束。</p>
+      </div>
+      <div class="card">
+        <h4 style="color: var(--warn);">EMA 动量更新</h4>
+        <p>教师权重 = 0.996 × 旧教师 + 0.004 × 学生。
+        0.999 还是 0.9995?这个超参敏感得一塌糊涂。</p>
+      </div>
+      <div class="card">
+        <h4 style="color: var(--warn);">数据增强(对比学习)</h4>
+        <p>用 crop、color jitter 等手工增强创造"正样本对"。
+        增强策略本身就是一种偏置,可能反而不利于某些任务。</p>
+      </div>
+    </div>
+
+    <div class="insight warn">
+      <div class="label">核心痛点</div>
+      <p>这些方法<em>能用</em>,但没人知道为什么能用得这么好。
+      调参脆弱、实现繁琐、缺乏理论 —— 整个 JEPA 社区一直在"炼丹"风格里打转。
+      LeJEPA 论文标题里的"Without the Heuristics"就是冲这个来的。</p>
+    </div>
+  </section>
+
+  <!-- ========== §2 理论突破:各向同性高斯分布 ========== -->
+  <section>
+    <div class="section-num">§ 02</div>
+    <h2>理论突破:嵌入应该长 <span class="accent">什么</span> 样?</h2>
+    <p class="section-intro">
+      LeJEPA 的第一贡献,是从理论上回答一个根本问题:
+      一个"好的"自监督表征,它的分布应该是什么形状?
+    </p>
+
+    <h3>答案是:各向同性高斯分布</h3>
+    <p>
+      论文通过数学推导证明(覆盖线性探针、k-NN、核方法三大类下游任务):
+      <strong>为了让模型在所有未知下游任务上表现最好,嵌入必须服从各向同性高斯分布</strong>。
+      这不是启发式的选择,是严格的最优解。
+    </p>
+
+    <div class="compare">
+      <div class="compare-card bad">
+        <div class="icon">
+          <svg viewBox="0 0 100 100" width="56" height="56">
+            <circle cx="50" cy="50" r="20" fill="var(--warn)" opacity="0.3"/>
+            <circle cx="50" cy="50" r="3" fill="var(--warn)"/>
+            <circle cx="46" cy="48" r="1.5" fill="var(--warn)"/>
+            <circle cx="54" cy="52" r="1.5" fill="var(--warn)"/>
+            <circle cx="52" cy="46" r="1.5" fill="var(--warn)"/>
+          </svg>
+        </div>
+        <div class="name">完全坍缩</div>
+        <div class="desc">所有点挤到一个点,信息为 0</div>
+      </div>
+
+      <div class="compare-card mid">
+        <div class="icon">
+          <svg viewBox="0 0 100 100" width="56" height="56">
+            <ellipse cx="50" cy="50" rx="32" ry="8" fill="var(--accent)" opacity="0.3"/>
+            <ellipse cx="50" cy="50" rx="32" ry="8" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+            <circle cx="30" cy="50" r="2" fill="var(--accent)"/>
+            <circle cx="40" cy="48" r="2" fill="var(--accent)"/>
+            <circle cx="55" cy="52" r="2" fill="var(--accent)"/>
+            <circle cx="65" cy="50" r="2" fill="var(--accent)"/>
+            <circle cx="75" cy="49" r="2" fill="var(--accent)"/>
+          </svg>
+        </div>
+        <div class="name">各向异性</div>
+        <div class="desc">被拉扁,有方向偏见,信息有偏</div>
+      </div>
+
+      <div class="compare-card good">
+        <div class="icon">
+          <svg viewBox="0 0 100 100" width="56" height="56">
+            <circle cx="50" cy="50" r="32" fill="var(--primary)" opacity="0.15"/>
+            <circle cx="50" cy="50" r="32" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="3 2"/>
+            <circle cx="35" cy="40" r="2" fill="var(--primary)"/>
+            <circle cx="60" cy="35" r="2" fill="var(--primary)"/>
+            <circle cx="70" cy="55" r="2" fill="var(--primary)"/>
+            <circle cx="50" cy="70" r="2" fill="var(--primary)"/>
+            <circle cx="30" cy="60" r="2" fill="var(--primary)"/>
+            <circle cx="45" cy="50" r="2" fill="var(--primary)"/>
+            <circle cx="55" cy="55" r="2" fill="var(--primary)"/>
+            <circle cx="65" cy="45" r="2" fill="var(--primary)"/>
+          </svg>
+        </div>
+        <div class="name">各向同性高斯</div>
+        <div class="desc">"棉花糖"形状,均匀展开,无偏见</div>
+      </div>
+    </div>
+
+    <h3>为什么是"棉花糖"最好?</h3>
+    <p>直觉理解 —— 各向同性高斯就像一个"完美展开的棉花糖":</p>
+    <ul class="check">
+      <li><strong>无方向偏见</strong>:任何方向都同等重要,不会过度强调某类特征</li>
+      <li><strong>最大熵</strong>:在固定方差预算下,信息量最大</li>
+      <li><strong>几何稳定</strong>:分类、k-NN、核方法都给出低方差、低风险的结果</li>
+    </ul>
+
+    <div class="insight">
+      <div class="label">论文里的反直觉对比实验</div>
+      <p>论文做了一个 2D 对比:左图是各向同性嵌入(圆),右图是各向异性嵌入(扁椭圆)。
+      每次从中采 100 个点做二分类,训练 100 次。各向同性嵌入得到的决策边界<em>方差更小、更稳定</em>。
+      这意味着同一份数据,各向同性表示能让下游学习器学得更一致。</p>
+    </div>
+  </section>
+
+  <!-- ========== §3 SIGReg ========== -->
+  <section>
+    <div class="section-num">§ 03</div>
+    <h2>SIGReg:把高维问题切 <span class="accent">1024 刀</span></h2>
+    <p class="section-intro">
+      知道了目标分布长什么样,接下来是怎么"测量"当前嵌入距离这个目标有多远。
+      这看似简单,实际上是高维空间里的"维度灾难"难题。
+    </p>
+
+    <h3>问题:直接在高维算分布差异?算不动</h3>
+    <p>直接比较"高维高斯"和"高维高斯"的距离,计算上既贵又对样本数极敏感。
+      LeJEPA 的解法用一个经典统计定理,绕开高维:</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Cramér-Wold 定理:降维的"金钥匙"</div>
+      <div class="diagram-sub">如果每一个一维投影都像一维高斯,整体就一定是个各向同性高斯</div>
+      <svg viewBox="0 0 920 320" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="c1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2f6f5e" stop-opacity="0.3"/>
+            <stop offset="1" stop-color="#2f6f5e" stop-opacity="0.05"/>
+          </linearGradient>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c7a72"/>
+          </marker>
+        </defs>
+
+        <!-- Title -->
+        <text x="460" y="30" text-anchor="middle" font-family="DM Serif Display" font-size="18" fill="#14171e">SIGReg 工作流程</text>
+
+        <!-- Step 1: 高维点云 -->
+        <g transform="translate(40, 80)">
+          <rect x="0" y="0" width="180" height="180" rx="10" fill="white" stroke="#e9e3d6" stroke-width="1.5"/>
+          <text x="90" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#7c7a72">高维嵌入</text>
+          <text x="90" y="38" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#7c7a72">batch × N 维</text>
+          <!-- 2D 投影点云 -->
+          <g transform="translate(90, 110)">
+            <circle cx="-40" cy="-25" r="3" fill="#2f6f5e"/>
+            <circle cx="-25" cy="-10" r="3" fill="#2f6f5e"/>
+            <circle cx="-30" cy="15" r="3" fill="#2f6f5e"/>
+            <circle cx="-5" cy="-30" r="3" fill="#2f6f5e"/>
+            <circle cx="0" cy="-5" r="3" fill="#2f6f5e"/>
+            <circle cx="10" cy="20" r="3" fill="#2f6f5e"/>
+            <circle cx="20" cy="-25" r="3" fill="#2f6f5e"/>
+            <circle cx="35" cy="-10" r="3" fill="#2f6f5e"/>
+            <circle cx="40" cy="25" r="3" fill="#2f6f5e"/>
+            <circle cx="-15" cy="30" r="3" fill="#2f6f5e"/>
+            <circle cx="25" cy="5" r="3" fill="#2f6f5e"/>
+            <circle cx="-35" cy="5" r="3" fill="#2f6f5e"/>
+            <ellipse cx="0" cy="0" rx="55" ry="40" fill="none" stroke="#2f6f5e" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+          </g>
+        </g>
+
+        <!-- Arrow -->
+        <line x1="225" y1="170" x2="285" y2="170" stroke="#7c7a72" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="255" y="158" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#7c7a72">1024 随机方向</text>
+
+        <!-- Step 2: 切片 -->
+        <g transform="translate(290, 80)">
+          <rect x="0" y="0" width="180" height="180" rx="10" fill="white" stroke="#e9e3d6" stroke-width="1.5"/>
+          <text x="90" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#7c7a72">一维投影</text>
+          <text x="90" y="38" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#7c7a72">1024 组切片</text>
+          <!-- 3 条投影示意 -->
+          <g transform="translate(0, 60)">
+            <line x1="30" y1="0" x2="150" y2="0" stroke="#7c7a72" stroke-width="1" stroke-dasharray="2 2"/>
+            <circle cx="50" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="65" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="80" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="100" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="120" cy="0" r="2" fill="#c97b3f"/>
+          </g>
+          <g transform="translate(0, 100)">
+            <line x1="30" y1="0" x2="150" y2="0" stroke="#7c7a72" stroke-width="1" stroke-dasharray="2 2"/>
+            <circle cx="40" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="55" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="75" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="90" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="110" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="130" cy="0" r="2" fill="#c97b3f"/>
+          </g>
+          <g transform="translate(0, 140)">
+            <line x1="30" y1="0" x2="150" y2="0" stroke="#7c7a72" stroke-width="1" stroke-dasharray="2 2"/>
+            <circle cx="45" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="60" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="70" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="85" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="105" cy="0" r="2" fill="#c97b3f"/>
+            <circle cx="125" cy="0" r="2" fill="#c97b3f"/>
+          </g>
+        </g>
+
+        <!-- Arrow -->
+        <line x1="475" y1="170" x2="535" y2="170" stroke="#7c7a72" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="505" y="158" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#7c7a72">Epps-Pulley</text>
+
+        <!-- Step 3: 检验 -->
+        <g transform="translate(540, 80)">
+          <rect x="0" y="0" width="180" height="180" rx="10" fill="white" stroke="#e9e3d6" stroke-width="1.5"/>
+          <text x="90" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#7c7a72">正态性检验</text>
+          <text x="90" y="38" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#7c7a72">17 点特征函数</text>
+          <!-- 钟形曲线 -->
+          <g transform="translate(20, 110)">
+            <path d="M 0 0 Q 30 -55 70 -55 Q 110 -55 140 0" fill="none" stroke="#2f6f5e" stroke-width="2"/>
+            <text x="70" y="-65" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#7c7a72">拟合 1D 高斯</text>
+          </g>
+          <text x="90" y="160" text-anchor="middle" font-family="Outfit" font-size="12" font-weight="600" fill="#2f6f5e">残差 → 损失</text>
+        </g>
+
+        <!-- Arrow -->
+        <line x1="725" y1="170" x2="785" y2="170" stroke="#7c7a72" stroke-width="1.5" marker-end="url(#arr)"/>
+
+        <!-- Step 4: 标量损失 -->
+        <g transform="translate(790, 80)">
+          <rect x="0" y="0" width="100" height="180" rx="10" fill="#2f6f5e" opacity="0.1" stroke="#2f6f5e" stroke-width="1.5"/>
+          <text x="50" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#2f6f5e">SIGReg 损失</text>
+          <text x="50" y="60" text-anchor="middle" font-family="DM Serif Display" font-size="22" fill="#2f6f5e" font-weight="400">scalar</text>
+          <text x="50" y="100" text-anchor="middle" font-family="Outfit" font-size="11" fill="#3a4256">线性时间</text>
+          <text x="50" y="120" text-anchor="middle" font-family="Outfit" font-size="11" fill="#3a4256">梯度有界</text>
+          <text x="50" y="140" text-anchor="middle" font-family="Outfit" font-size="11" fill="#3a4256">可微</text>
+          <text x="50" y="160" text-anchor="middle" font-family="Outfit" font-size="11" fill="#3a4256">多 GPU 友好</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>SIGReg 的三步走</h3>
+    <div class="pipe">
+      <div class="pipe-step">
+        <div class="step-num">1</div>
+        <div class="step-name">生成 1024 个随机方向</div>
+        <div class="step-detail">每个方向是一个高维空间里的单位向量,从标准正态分布里采</div>
+      </div>
+      <div class="pipe-arrow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+      <div class="pipe-step">
+        <div class="step-num">2</div>
+        <div class="step-name">投影到 1024 条 1D</div>
+        <div class="step-detail">把 batch 里所有样本点分别压扁到 1024 个方向上,得到 1024 组一维数据</div>
+      </div>
+      <div class="pipe-arrow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+      <div class="pipe-step">
+        <div class="step-num">3</div>
+        <div class="step-name">Epps-Pulley 检验</div>
+        <div class="step-detail">用基于特征函数的稳定检验,衡量每条 1D 投影"有多像"一维高斯。残差即损失</div>
+      </div>
+    </div>
+
+    <h3>为什么用 Epps-Pulley 而不是 Kolmogorov-Smirnov?</h3>
+    <p>
+      KS 检验是经典的"看 CDF 像不像"的方法。但 LeJEPA 论文里明确指出:
+    </p>
+    <ul class="check">
+      <li>KS 检验<em>梯度不连续</em>,训练早期就会卡住</li>
+      <li>KS 在大样本下统计功效过强,小扰动就报"显著差异",导致训练不稳定</li>
+      <li>Epps-Pulley 用<em>经验特征函数</em>(密度的傅里叶变换),梯度和曲率都有界,完美适配深度学习</li>
+    </ul>
+
+    <div class="insight accent">
+      <div class="label">复杂度优势</div>
+      <p>SIGReg 整个流程的时间复杂度是 <code>O(N · M · K)</code> —— 线性!
+      其中 N = batch 样本数, M = 嵌入维度, K = 切片数(1024)。
+      没有任何二次项、立方项,在 1024 维、batch 数千的规模下完全可控,而且天然支持 <em>多 GPU all-reduce</em>(只需同步特征函数均值)。</p>
+    </div>
+  </section>
+
+  <!-- ========== §4 极简框架 ========== -->
+  <section>
+    <div class="section-num">§ 04</div>
+    <h2>LeJEPA 极简框架:<span class="accent">1 个超参</span> + <span class="accent">0 个启发式</span></h2>
+    <p class="section-intro">
+      把 SIGReg 接到 JEPA 预测损失上,就得到了 LeJEPA。简洁到令人怀疑:这真的能 work?
+    </p>
+
+    <h3>总损失函数</h3>
+    <pre><span class="c"># LeJEPA 完整损失函数</span>
+L_total = (<span class="n">1</span> - λ) · L_pred     <span class="c"># 预测损失(上下文 → 目标块的潜空间预测)</span>
+         + λ    · L_sigreg   <span class="c"># SIGReg 正则化(约束嵌入分布)</span>
+
+<span class="c"># 唯一需要调的:λ ∈ (0, 1),平衡"预测准"和"分布对"</span></pre>
+
+    <h3>对比:过去需要调什么</h3>
+    <div class="two-col">
+      <div class="card" style="border-color: rgba(176,99,103,0.3);">
+        <h4 style="color: var(--warn);">旧 JEPA 的超参清单</h4>
+        <ul class="check">
+          <li>EMA 动量系数(0.99 ~ 0.9999)</li>
+          <li>EMA 预热步数</li>
+          <li>目标编码器初始化策略</li>
+          <li>预测器学习率 vs 编码器学习率</li>
+          <li>预测器深度和宽度</li>
+          <li>掩码比例、目标块大小、上下文块大小</li>
+          <li>数据增强策略(crop / color jitter / blur)</li>
+          <li>batch 大小约束(对比学习需要大 batch)</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color: rgba(47,111,94,0.3); background: linear-gradient(180deg, rgba(47,111,94,0.03), white);">
+        <h4 style="color: var(--primary);">LeJEPA 的超参清单</h4>
+        <ul class="check good">
+          <li>λ —— 一个数</li>
+          <li>就这一个</li>
+          <li>真的就这一个</li>
+          <li>你也可以不改(论文给了强默认值)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>不再需要的东西</h3>
+    <ul class="check">
+      <li><strong>Stop-Gradient</strong> —— 不需要,SIGReg 自然阻止坍缩</li>
+      <li><strong>Teacher-Student 网络</strong> —— 不需要,没有第二个网络</li>
+      <li><strong>EMA 更新</strong> —— 不需要,没有任何"缓慢跟随"机制</li>
+      <li><strong>数据增强</strong> —— 不需要,预测来自"上下文/目标"分区,不是来自增强视图</li>
+      <li><strong>负样本</strong> —— 不需要,跟 SimCLR 完全不同</li>
+      <li><strong>白化层(whitening)</strong> —— 不需要,SIGReg 已经约束了协方差</li>
+      <li><strong>超参数调度器</strong> —— 不需要,全程用固定学习率即可</li>
+    </ul>
+
+    <div class="insight">
+      <div class="label">50 行核心代码</div>
+      <p>论文给了 PyTorch 参考实现,<em>核心逻辑只有 ~50 行</em>。
+      配合 timm 的现成模型,一个文件就能跑通 ImageNet 预训练。
+      GitHub: <code>github.com/rbalestr-lab/lejepa</code> (MIT 协议)</p>
+    </div>
+  </section>
+
+  <!-- ========== §5 性能 ========== -->
+  <section>
+    <div class="section-num">§ 05</div>
+    <h2>性能:简洁 ≠ 妥协</h2>
+    <p class="section-intro">
+      把所有启发式砍掉之后,LeJEPA 的性能反而跟 SOTA 持平甚至略超,而且扩展性更好。
+    </p>
+
+    <h3>ImageNet 线性探测</h3>
+    <div class="chart-wrap">
+      <div class="chart-title">ImageNet-1K 线性评估 Top-1 准确率(%)</div>
+      <div class="chart-sub">冻结骨干 + 线性探针 · 数值越高越好</div>
+      <div class="chart-canvas"><canvas id="imagenetChart"></canvas></div>
+    </div>
+
+    <h3>60+ 架构 × 10+ 数据集的稳定表现</h3>
+    <p>LeJEPA 的核心卖点之一是"开箱即用":</p>
+    <div class="bench-list">
+      <div class="bench-row">
+        <span class="label">ViT-H/14 (ImageNet)</span>
+        <div class="bar-bg"><div class="bar-fill" style="width:79%;">79.0%</div></div>
+        <span class="val" style="color: var(--primary);">SOTA</span>
+      </div>
+      <div class="bench-row highlight">
+        <span class="label">Galaxy10 (天文图像)</span>
+        <div class="bar-bg"><div class="bar-fill" style="width:90%;">击败 DINOv2/v3</div></div>
+        <span class="val">+12%</span>
+      </div>
+      <div class="bench-row">
+        <span class="label">ResNet / ViT / ConvNeXt (ImageNet-10)</span>
+        <div class="bar-bg"><div class="bar-fill" style="width:93%;">91.5-95%</div></div>
+        <span class="val">50 架构</span>
+      </div>
+      <div class="bench-row">
+        <span class="label">最大扩展规模</span>
+        <div class="bar-bg"><div class="bar-fill" style="width:90%;">1.8 B 参数</div></div>
+        <span class="val">稳定</span>
+      </div>
+    </div>
+
+    <div class="insight accent">
+      <div class="label">一个反直觉的发现</div>
+      <p>在 <em>Galaxy10(天文图像)</em> 上,用 LeJEPA 在领域数据上从零预训练的小模型,
+      <strong>打败了</strong>用 DINOv2/v3 这类在海量自然图像上预训练的大模型做迁移。
+      这意味着 —— <em>领域内自监督预训练,比"通用大模型 + 迁移"更靠谱</em>,
+      只要框架足够简单易用。</p>
+    </div>
+  </section>
+
+  <!-- ========== §6 训练-下游 99% 相关 ========== -->
+  <section>
+    <div class="section-num">§ 06</div>
+    <h2>训练损失 ≈ 下游性能?<span class="accent">99% 相关</span></h2>
+    <p class="section-intro">
+      这是 LeJEPA 论文里最让我意外的一个发现。
+      它解决了自监督学习里一个长期痛点:怎么在没标签的情况下判断"模型训得怎么样"?
+    </p>
+
+    <div class="card-grid card-grid-2">
+      <div>
+        <h3>过去的问题</h3>
+        <p>
+          自监督训练时,你有训练损失,但这玩意儿跟下游任务性能的相关性很差。
+          一个损失低 0.001 的模型,在线性探测上可能掉 5 个点。
+          所以从业者只能"训一会儿 → 跑下游验证 → 调参 → 重训"循环,又慢又贵。
+        </p>
+      </div>
+      <div>
+        <h3>LeJEPA 的发现</h3>
+        <p>
+          LeJEPA 的训练损失(经过简单缩放后)与下游任务准确率的 <em>Spearman 相关系数达到 99%</em>。
+          损失越低,模型越好。几乎是一条直线。
+          这意味着你可以<strong>用训练损失做无监督模型选择</strong> —— 这是论文里最"工程友好"的副产品。
+        </p>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">训练损失 vs 下游准确率(示意)</div>
+      <div class="chart-sub">LeJEPA 在不同超参下的训练损失和对应下游准确率,显示极强单调关系</div>
+      <div class="chart-canvas"><canvas id="corrChart"></canvas></div>
+    </div>
+
+    <div class="insight">
+      <div class="label">为什么能达到 99%?</div>
+      <p>
+        论文里没明说,但可以推测:既然 LeJEPA 显式把嵌入约束到各向同性高斯,
+        那么"是否达到这个分布"就成了一个非常强的正则。
+        当预测损失和 SIGReg 都被优化到低值时,嵌入就既"预测得对"又"分布对",自然下游好。
+        过去的 EMA+stop-gradient 这套机制里,"训练损失"其实并不直接反映"分布形态",
+        所以相关性弱。
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== §7 涌现能力 ========== -->
+  <section>
+    <div class="section-num">§ 07</div>
+    <h2>涌现能力:无监督的 <span class="accent">分割与跟踪</span></h2>
+    <p class="section-intro">
+      论文里最"震撼"的图表之一 —— LeJEPA 在完全无监督的情况下,自然涌现出物体分割和跟踪能力。
+    </p>
+
+    <div class="diagram">
+      <div class="diagram-title">LeJEPA 涌现的语义分割示意(论文图 14)</div>
+      <div class="diagram-sub">无任何像素级监督 · 仅在最后一层取阈值 · 暖色=前景,冷色=背景</div>
+      <svg viewBox="0 0 920 240" xmlns="http://www.w3.org/2000/svg">
+        <!-- 鸟 -->
+        <g transform="translate(40, 50)">
+          <rect x="0" y="0" width="180" height="160" rx="10" fill="#f4f1e8" stroke="#e9e3d6"/>
+          <text x="90" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#7c7a72">输入图像</text>
+          <!-- 简化的鹦鹉 -->
+          <ellipse cx="100" cy="90" rx="60" ry="40" fill="#c97b3f" opacity="0.6"/>
+          <ellipse cx="120" cy="75" rx="20" ry="15" fill="#e8a55c"/>
+          <circle cx="130" cy="72" r="3" fill="#14171e"/>
+          <ellipse cx="80" cy="120" rx="5" ry="15" fill="#a3c585"/>
+          <line x1="40" y1="140" x2="160" y2="140" stroke="#7c7a72" stroke-width="1"/>
+        </g>
+
+        <line x1="225" y1="130" x2="285" y2="130" stroke="#7c7a72" stroke-width="1.5"/>
+        <polygon points="285,130 277,124 277,136" fill="#7c7a72"/>
+        <text x="255" y="118" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#7c7a72">LeJEPA</text>
+
+        <!-- 分割热力图 -->
+        <g transform="translate(290, 50)">
+          <rect x="0" y="0" width="180" height="160" rx="10" fill="#f4f1e8" stroke="#e9e3d6"/>
+          <text x="90" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#7c7a72">涌现分割(暖色=前景)</text>
+          <!-- 前景遮罩 -->
+          <ellipse cx="100" cy="90" rx="60" ry="40" fill="#c97b3f" opacity="0.85"/>
+          <ellipse cx="120" cy="75" rx="20" ry="15" fill="#d4638b"/>
+          <ellipse cx="80" cy="120" rx="5" ry="15" fill="#b06367"/>
+          <ellipse cx="40" cy="90" rx="15" ry="8" fill="#a8d8a3" opacity="0.6"/>
+          <ellipse cx="155" cy="100" rx="10" ry="6" fill="#a8d8a3" opacity="0.6"/>
+        </g>
+
+        <line x1="475" y1="130" x2="535" y2="130" stroke="#7c7a72" stroke-width="1.5"/>
+        <polygon points="535,130 527,124 527,136" fill="#7c7a72"/>
+        <text x="505" y="118" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#7c7a72">无监督</text>
+
+        <!-- 跟踪能力 -->
+        <g transform="translate(540, 50)">
+          <rect x="0" y="0" width="340" height="160" rx="10" fill="#f4f1e8" stroke="#e9e3d6"/>
+          <text x="170" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#7c7a72">视频中的物体跟踪(连续 4 帧)</text>
+          <!-- 4 帧 -->
+          <g transform="translate(15, 35)">
+            <rect x="0" y="0" width="70" height="100" rx="6" fill="white" stroke="#e9e3d6"/>
+            <ellipse cx="35" cy="55" rx="22" ry="18" fill="#c97b3f"/>
+            <circle cx="42" cy="48" r="2" fill="#14171e"/>
+            <text x="35" y="115" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#7c7a72">t=1</text>
+          </g>
+          <g transform="translate(95, 35)">
+            <rect x="0" y="0" width="70" height="100" rx="6" fill="white" stroke="#e9e3d6"/>
+            <ellipse cx="40" cy="50" rx="22" ry="18" fill="#c97b3f"/>
+            <circle cx="47" cy="43" r="2" fill="#14171e"/>
+            <text x="35" y="115" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#7c7a72">t=2</text>
+          </g>
+          <g transform="translate(175, 35)">
+            <rect x="0" y="0" width="70" height="100" rx="6" fill="white" stroke="#e9e3d6"/>
+            <ellipse cx="30" cy="55" rx="22" ry="18" fill="#c97b3f"/>
+            <circle cx="37" cy="48" r="2" fill="#14171e"/>
+            <text x="35" y="115" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#7c7a72">t=3</text>
+          </g>
+          <g transform="translate(255, 35)">
+            <rect x="0" y="0" width="70" height="100" rx="6" fill="white" stroke="#e9e3d6"/>
+            <ellipse cx="45" cy="60" rx="22" ry="18" fill="#c97b3f"/>
+            <circle cx="52" cy="53" r="2" fill="#14171e"/>
+            <text x="35" y="115" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#7c7a72">t=4</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <h3>这意味着什么?</h3>
+    <p>LeJEPA 学到的特征在<em>没有任何像素级监督</em>的情况下,自动把"前景物体"和"背景"分开了。
+    具体表现:</p>
+    <ul class="check good">
+      <li><strong>前景/背景分组</strong>:暖色(红/品红)集中于物体,冷色(青/绿)集中于背景</li>
+      <li><strong>物体部分连续性</strong>:鹦鹉的头、身体、翅膀在嵌入空间里是连续的</li>
+      <li><strong>跨帧跟踪</strong>:同一物体在不同帧里,嵌入位置一致(这是做"零样本跟踪"的雏形)</li>
+    </ul>
+
+    <div class="insight">
+      <div class="label">为什么是"涌现"而不是"设计"?</div>
+      <p>论文里没有给任何"请学会分割"的信号 —— 没有分割 mask,没有边界框,没有像素标签。
+      这个能力是 SIGReg 强制嵌入符合各向同性高斯分布的<em>副产品</em>。
+      解释:当嵌入均匀分布在高维空间时,语义相似的像素会自然聚在一起。
+      这是 LeJEPA 最反直觉、也最让我"哇"出来的结果。</p>
+    </div>
+  </section>
+
+  <!-- ========== §8 LeCun 的最后一篇 ========== -->
+  <section>
+    <div class="section-num">§ 08</div>
+    <h2>LeCun 在 Meta 的<span class="warn">最后一篇论文</span></h2>
+    <p class="section-intro">
+      故事层面,LeJEPA 还有一个更现实的注脚 —— 它很可能成为 LeCun 在 Meta 的绝唱。
+    </p>
+
+    <div class="timeline">
+      <div class="step">
+        <div class="step-marker">13</div>
+        <div class="step-date">2013</div>
+        <div class="step-title">LeCun 加入 FAIR,任创始核心成员</div>
+        <div class="step-desc">作为 CNN 之父,加入 Meta 创立 FAIR 实验室。FAIR 后来成为 Mask R-CNN、Detectron2、SAM、ImageBind 等突破性工作的发源地。</div>
+      </div>
+
+      <div class="step">
+        <div class="step-marker">22</div>
+        <div class="step-date">2022.6</div>
+        <div class="step-title">提出 JEPA 元架构</div>
+        <div class="step-desc">在《A Path Towards Autonomous Machine Intelligence》白皮书中提出 JEPA,作为通向"世界模型"的路径。LeCun 多次公开批评 LLM 是"统计模式匹配",坚持世界模型路线。</div>
+      </div>
+
+      <div class="step bad">
+        <div class="step-marker">25·7</div>
+        <div class="step-date">2025 年 7 月</div>
+        <div class="step-title">28 岁的 Alexandr Wang 出任 Meta 首席 AI 官 · 职位高于 LeCun</div>
+        <div class="step-desc">Scale AI 创始人空降 Meta,直接领导整个 AI 战略。LeCun 作为 FAIR 创始人的影响力开始被稀释。</div>
+      </div>
+
+      <div class="step bad">
+        <div class="step-marker">25·8</div>
+        <div class="step-date">2025 年 8 月</div>
+        <div class="step-title">前谷歌大脑赵晟佳出任"超级智能实验室"首席科学家</div>
+        <div class="step-desc">Meta 内部 LLM 派系进一步强化,LeCun 的世界模型路线边缘化信号明显。</div>
+      </div>
+
+      <div class="step bad">
+        <div class="step-marker">25·10</div>
+        <div class="step-date">2025 年 10 月</div>
+        <div class="step-title">FAIR 裁员 600 余人 · 核心研究员田渊栋离职</div>
+        <div class="step-desc">前 Meta 员工透露:"当扎克伯格把赌注都压在 LLM 上时,LeCun 的世界模型研究就失去了内部支持。FAIR 正在被边缘化,这已经不是什么秘密了。"</div>
+      </div>
+
+      <div class="step major">
+        <div class="step-marker">25·11</div>
+        <div class="step-date">2025 年 11 月 11 日</div>
+        <div class="step-title">LeJEPA 论文登上 arXiv</div>
+        <div class="step-desc">就在 Meta 内部动荡的同时,LeCun 与 Balestriero 合作的 LeJEPA 出现在 arXiv 上(arXiv:2511.08544)。"Le"意为 Lean —— 精简到极致,可能是 LeCun 给自监督学习留下的最后一个礼物。</div>
+      </div>
+    </div>
+
+    <div class="insight warn">
+      <div class="label">一个意味深长的对比</div>
+      <p>Meta 全力押注 LLM(超级智能实验室),而 LeCun 留下的最后工作却是一篇<em>彻底不需要大规模数据和复杂优化</em>的论文。
+      50 行代码、1 个超参 —— 这和 Meta 当下 700B+ 参数、需要 RLHF 调优的 Llama 系列,几乎是哲学层面的对立。
+      LeCun 似乎在用 LeJEPA 表达:<em>智能不一定来自暴力扩展,也可能来自"对的理论 + 极简设计"</em>。</p>
+    </div>
+  </section>
+
+  <!-- ========== §9 总结 ========== -->
+  <section>
+    <div class="section-num">§ 09</div>
+    <h2>总结:为什么这篇论文值得读</h2>
+    <p class="section-intro">
+      LeJEPA 不是又一个 SOTA 自监督方法。它是<em>自监督学习第一性原理的一次重整</em>。
+    </p>
+
+    <div class="card-grid card-grid-3">
+      <div class="card">
+        <h3 style="color: var(--primary);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          理论
+        </h3>
+        <p>第一次为 JEPA 给出"嵌入应服从各向同性高斯"的严格证明,把"炼丹"变成"理论驱动设计"。</p>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--accent);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          工程
+        </h3>
+        <p>50 行代码、1 个超参、线性复杂度,无需 EMA/teacher-student/数据增强,分布式训练友好。</p>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--warn);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          实用性
+        </h3>
+        <p>99% 训练-下游相关性,无需无监督模型选择 trick;在专业领域(天文)击败 DINOv2/v3 迁移。</p>
+      </div>
+    </div>
+
+    <h3>对从业者的三个直接建议</h3>
+    <div class="kv">
+      <div class="k">1. 试一试</div>
+      <div class="v">如果你正在做自监督预训练,LeJEPA 几乎一定是更简单的 baseline。50 行代码、timm 一键跑通。</div>
+      <div class="k">2. 关注 SIGReg</div>
+      <div class="v">这个正则在其他地方也可能有价值 —— 比如 RL 的表征稳定性(已有后续论文 arXiv:2602.19373 验证)。</div>
+      <div class="k">3. 关注后续工作</div>
+      <div class="v">Rectified LpJEPA(稀疏化)、KerJEPA(核方法扩展)、Stable Deep RL via Isotropic Gaussian 都在跟进 LeJEPA 思路。</div>
+    </div>
+
+    <div class="insight">
+      <div class="label">论文信息</div>
+      <p>
+        <strong>LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics</strong><br>
+        Randall Balestriero &amp; Yann LeCun · arXiv:2511.08544 · 2025 年 11 月<br>
+        代码: <code>github.com/rbalestr-lab/lejepa</code>(MIT 协议)
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <p>整理自 arXiv:2511.08544 及多份社区解读 · 数据截止 2026 年 6 月</p>
+    <p style="margin-top: 6px;">技术细节以原论文为准,本文侧重"为什么这样做"而非数学严格推导。</p>
+  </footer>
+
+</div>
+
+<script>
+  Chart.defaults.font.family = "'Outfit', -apple-system, sans-serif";
+  Chart.defaults.color = '#7c7a72';
+  Chart.defaults.borderColor = 'rgba(0,0,0,0.06)';
+  Chart.defaults.borderRadius = 6;
+
+  const PRIMARY = '#2f6f5e';
+  const PRIMARY_2 = '#4a8e7c';
+  const ACCENT = '#c97b3f';
+  const WARN = '#b06367';
+  const GRAY = '#9ca3af';
+
+  // ===== ImageNet Linear Probing =====
+  new Chart(document.getElementById('imagenetChart'), {
+    type: 'bar',
+    data: {
+      labels: ['MoCo v3', 'DINOv2', 'I-JEPA\n(H/14)', 'DINOv3', 'LeJEPA\n(H/14)'],
+      datasets: [{
+        label: 'Top-1 (%)',
+        data: [76.7, 78.2, 77.3, 78.4, 79.0],
+        backgroundColor: [GRAY, GRAY, '#9ca3af', PRIMARY_2, PRIMARY],
+        borderRadius: 6,
+        borderWidth: 0,
+        barThickness: 56
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1f2127', padding: 12, cornerRadius: 8,
+          callbacks: { label: (ctx) => ` ${ctx.parsed.y}%` }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false, min: 75, max: 80,
+          grid: { color: 'rgba(0,0,0,0.04)' },
+          ticks: { font: { size: 11 }, callback: (v) => v + '%' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11, weight: '500' }, color: '#14171e' }
+        }
+      }
+    }
+  });
+
+  // ===== Training loss vs Downstream accuracy =====
+  new Chart(document.getElementById('corrChart'), {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: '不同超参下的 (loss, acc)',
+        data: [
+          {x: 2.85, y: 70.2}, {x: 2.40, y: 73.1}, {x: 2.10, y: 75.0},
+          {x: 1.85, y: 76.4}, {x: 1.62, y: 77.3}, {x: 1.45, y: 78.0},
+          {x: 1.32, y: 78.5}, {x: 1.21, y: 78.8}, {x: 1.12, y: 79.0},
+          {x: 1.05, y: 79.1}
+        ],
+        backgroundColor: PRIMARY,
+        pointRadius: 7,
+        pointHoverRadius: 9,
+        borderColor: PRIMARY,
+        borderWidth: 1
+      }, {
+        label: '趋势线',
+        data: [
+          {x: 1.05, y: 79.1}, {x: 2.85, y: 70.2}
+        ],
+        type: 'line',
+        borderColor: ACCENT,
+        borderWidth: 2,
+        borderDash: [5, 5],
+        pointRadius: 0,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12, padding: 12 } },
+        tooltip: {
+          backgroundColor: '#1f2127', padding: 12, cornerRadius: 8,
+          callbacks: { label: (ctx) => ` loss=${ctx.parsed.x.toFixed(2)} · acc=${ctx.parsed.y.toFixed(1)}%` }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: '训练损失 (归一化)· 越低越好', font: { size: 11, weight: '600' }, color: '#7c7a72' },
+          grid: { color: 'rgba(0,0,0,0.04)' },
+          ticks: { font: { size: 11 } }
+        },
+        y: {
+          title: { display: true, text: '下游准确率 (%)', font: { size: 11, weight: '600' }, color: '#7c7a72' },
+          grid: { color: 'rgba(0,0,0,0.04)' },
+          ticks: { font: { size: 11 }, callback: (v) => v + '%' }
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
