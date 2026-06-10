@@ -1269,6 +1269,97 @@ body {
   background: var(--accent-soft);
 }
 
+/* Workflow diagrams built from .flow / .node / .arrow markup. */
+.article-page .flow {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: stretch !important;
+  gap: 10px 8px !important;
+  width: 100%;
+  margin: 20px 0 24px !important;
+  padding: 16px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius) !important;
+  background: var(--bg-elevated-2) !important;
+}
+
+.article-page .flow-col {
+  display: grid;
+  flex: 1 1 190px;
+  gap: 10px;
+  min-width: 0;
+}
+
+.article-page .flow .node {
+  display: flex;
+  flex: 1 1 108px;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 106px;
+  min-height: 72px;
+  padding: 12px 14px !important;
+  border: 1px solid var(--line-strong) !important;
+  border-left: 3px solid var(--accent) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--bg-elevated) !important;
+  color: var(--ink) !important;
+  font-weight: 650;
+  line-height: 1.45;
+  box-shadow: 0 1px 0 rgba(26, 26, 26, 0.03);
+}
+
+.article-page .flow .node.alt {
+  border-left-color: var(--accent-2) !important;
+  background: var(--accent-2-soft) !important;
+  color: #064e4b !important;
+}
+
+.article-page .flow .node small,
+.article-page .flow .node span:not(.icon) {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.article-page .flow .node .icon {
+  margin-right: 6px;
+}
+
+.article-page .flow .arrow {
+  display: inline-flex !important;
+  flex: 0 0 24px;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
+  color: var(--accent) !important;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.article-page .flow-branch-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: -4px 0 8px;
+  color: var(--warn);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.article-page .flow-branch-note::before,
+.article-page .flow-branch-note::after {
+  content: "";
+  height: 1px;
+  flex: 1 1 80px;
+  max-width: 180px;
+  background: var(--line);
+}
+
 @media (min-width: 1021px) {
   .article-page .article-layout > .toc {
     position: fixed !important;
@@ -1316,6 +1407,16 @@ body {
     border-top: 1px solid var(--line) !important;
     border-bottom: 1px solid var(--line) !important;
     background: var(--bg-elevated) !important;
+  }
+
+  .article-page .flow {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .article-page .flow .arrow {
+    min-height: 16px;
+    transform: rotate(90deg);
   }
 }
 
