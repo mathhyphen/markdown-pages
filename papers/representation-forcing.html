@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>论文详解 · Representation Forcing for Bottleneck-Free Unified Multimodal Models</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --bg-soft: #161922;
+    --bg-card: #1c2030;
+    --bg-card-hover: #232838;
+    --border: #2a2f42;
+    --text: #e6e8ef;
+    --text-soft: #a4a9bd;
+    --text-dim: #6e7489;
+    --accent: #7aa2ff;
+    --accent-2: #b08bff;
+    --accent-3: #5cd2a4;
+    --accent-4: #ffb86b;
+    --warn: #ff7a8a;
+    --code: #0c0e14;
+    --code-text: #d6deeb;
+    --shadow: 0 6px 24px rgba(0,0,0,.35);
+    --radius: 14px;
+  }
+  [data-theme="light"] {
+    --bg: #f7f8fc;
+    --bg-soft: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f4f5fb;
+    --border: #e3e6f0;
+    --text: #1c2030;
+    --text-soft: #4d536b;
+    --text-dim: #8a90a4;
+    --accent: #3a5dff;
+    --accent-2: #7c4dff;
+    --accent-3: #16a07a;
+    --accent-4: #d97706;
+    --warn: #d63a4d;
+    --code: #1c2030;
+    --code-text: #f0f3fa;
+    --shadow: 0 6px 20px rgba(60,80,160,.10);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    line-height: 1.72;
+    transition: background .25s ease, color .25s ease;
+    scroll-behavior: smooth;
+  }
+  body {
+    background:
+      radial-gradient(1200px 600px at 90% -10%, rgba(122,162,255,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 30%, rgba(176,139,255,.08), transparent 60%),
+      var(--bg);
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Top bar */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: saturate(140%) blur(10px);
+    background: color-mix(in oklab, var(--bg) 70%, transparent);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand {
+    font-weight: 700; letter-spacing: .3px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .brand-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .top-actions { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; cursor: pointer;
+    transition: all .2s ease;
+  }
+  .btn:hover { background: var(--bg-card-hover); border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-color: transparent; color: white;
+  }
+  .btn-primary:hover { color: white; opacity: .92; transform: translateY(-1px); }
+
+  /* Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    max-width: 1400px; margin: 0 auto;
+    gap: 0;
+  }
+  nav.sidebar {
+    border-right: 1px solid var(--border);
+    padding: 30px 18px;
+    height: calc(100vh - 60px);
+    position: sticky; top: 60px;
+    overflow-y: auto;
+  }
+  nav.sidebar h4 {
+    margin: 18px 0 6px;
+    color: var(--text-dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  nav.sidebar a {
+    display: block;
+    padding: 7px 10px;
+    border-radius: 8px;
+    color: var(--text-soft);
+    font-size: 14px;
+    transition: all .15s ease;
+  }
+  nav.sidebar a:hover {
+    background: var(--bg-card);
+    color: var(--accent);
+    text-decoration: none;
+    transform: translateX(2px);
+  }
+  nav.sidebar a.active {
+    background: color-mix(in oklab, var(--accent) 18%, transparent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  main.content {
+    padding: 40px 56px 100px;
+    max-width: 1000px;
+  }
+
+  /* Hero */
+  .hero {
+    margin-bottom: 36px;
+    padding: 40px;
+    background: linear-gradient(135deg,
+      color-mix(in oklab, var(--accent) 15%, var(--bg-card)),
+      color-mix(in oklab, var(--accent-2) 15%, var(--bg-card)));
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 80% 20%, rgba(122,162,255,.20), transparent 50%),
+      radial-gradient(circle at 20% 80%, rgba(176,139,255,.20), transparent 50%);
+    pointer-events: none;
+  }
+  .hero > * { position: relative; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .tag {
+    font-size: 11px;
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    background: var(--bg-soft);
+    letter-spacing: .3px;
+  }
+  .tag.accent { background: color-mix(in oklab, var(--accent) 18%, transparent); border-color: var(--accent); color: var(--accent); }
+  .tag.green { background: color-mix(in oklab, var(--accent-3) 18%, transparent); border-color: var(--accent-3); color: var(--accent-3); }
+  .tag.purple { background: color-mix(in oklab, var(--accent-2) 18%, transparent); border-color: var(--accent-2); color: var(--accent-2); }
+  .tag.orange { background: color-mix(in oklab, var(--accent-4) 18%, transparent); border-color: var(--accent-4); color: var(--accent-4); }
+  h1.title {
+    font-size: 34px; line-height: 1.25;
+    margin: 0 0 14px;
+    background: linear-gradient(135deg, var(--text), var(--accent));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { color: var(--text-soft); font-size: 16px; margin-bottom: 20px; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 18px;
+    color: var(--text-dim); font-size: 13px;
+  }
+  .meta-row b { color: var(--text); font-weight: 600; }
+
+  /* Sections */
+  section { margin-bottom: 50px; scroll-margin-top: 80px; }
+  h2 {
+    font-size: 26px; margin: 0 0 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  h2 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; font-size: 16px; font-weight: 700;
+  }
+  h3 { font-size: 19px; margin: 28px 0 12px; color: var(--text); }
+  h4 { font-size: 16px; margin: 18px 0 8px; color: var(--text-soft); }
+  p { margin: 10px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin: 18px 0;
+    box-shadow: var(--shadow);
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .card:hover { border-color: color-mix(in oklab, var(--accent) 50%, var(--border)); }
+  .card .card-title {
+    font-weight: 700; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.sidebar { position: relative; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    main.content { padding: 30px 22px 80px; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    h1.title { font-size: 26px; }
+  }
+
+  /* Comparison panel */
+  .compare {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;
+    margin: 18px 0;
+  }
+  .panel {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    position: relative;
+    transition: all .2s ease;
+  }
+  .panel:hover { transform: translateY(-3px); }
+  .panel.bad { border-color: color-mix(in oklab, var(--warn) 50%, var(--border)); }
+  .panel.warn { border-color: color-mix(in oklab, var(--accent-4) 50%, var(--border)); }
+  .panel.good { border-color: color-mix(in oklab, var(--accent-3) 60%, var(--border)); background: linear-gradient(135deg, var(--bg-card), color-mix(in oklab, var(--accent-3) 6%, var(--bg-card)); }
+  .panel .label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-dim); margin-bottom: 8px;
+  }
+  .panel h4 { margin: 0 0 12px; font-size: 16px; }
+  .panel.bad h4 { color: var(--warn); }
+  .panel.warn h4 { color: var(--accent-4); }
+  .panel.good h4 { color: var(--accent-3); }
+  .panel .icon { font-size: 24px; margin-bottom: 10px; }
+
+  /* Step flow */
+  .flow {
+    display: flex; align-items: stretch;
+    gap: 10px; margin: 22px 0; flex-wrap: wrap;
+  }
+  .step {
+    flex: 1; min-width: 180px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    position: relative;
+  }
+  .step .step-num {
+    position: absolute; top: -12px; left: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; font-weight: 700;
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+  }
+  .step h4 { margin: 4px 0 8px; color: var(--accent); }
+  .step p { font-size: 13.5px; color: var(--text-soft); margin: 0; }
+  .arrow {
+    align-self: center;
+    color: var(--text-dim);
+    font-size: 22px;
+  }
+
+  /* Code */
+  pre.code {
+    background: var(--code);
+    color: var(--code-text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  code.inline {
+    background: color-mix(in oklab, var(--accent) 14%, var(--bg-card));
+    color: var(--accent);
+    padding: 2px 7px; border-radius: 5px;
+    font-size: 13px;
+    font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+  }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin: 18px 0; border-radius: var(--radius); border: 1px solid var(--border); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    font-size: 14px;
+  }
+  th, td { padding: 10px 14px; text-align: center; border-bottom: 1px solid var(--border); }
+  th {
+    background: var(--bg-soft);
+    color: var(--text-soft);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11.5px; letter-spacing: .6px;
+  }
+  tbody tr:hover { background: var(--bg-card-hover); }
+  tr.section-row td { background: var(--bg-soft); font-weight: 700; text-align: left; color: var(--accent); }
+  tr.our-row td {
+    background: color-mix(in oklab, var(--accent-3) 14%, var(--bg-card));
+    color: var(--accent-3); font-weight: 700;
+  }
+  tr.our-row td:first-child::before { content: '✨ '; }
+
+  /* Big number callouts */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 22px 0; }
+  .stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    text-align: center;
+  }
+  .stat .v {
+    font-size: 30px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat .l { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+  /* Quote */
+  .quote {
+    border-left: 3px solid var(--accent);
+    padding: 10px 16px;
+    margin: 14px 0;
+    background: color-mix(in oklab, var(--accent) 6%, var(--bg-card));
+    border-radius: 0 8px 8px 0;
+    color: var(--text-soft);
+    font-style: italic;
+  }
+
+  /* Architecture diagram (CSS art) */
+  .arch {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin: 18px 0;
+  }
+  .arch-row { display: flex; gap: 8px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+  .block {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    text-align: center;
+  }
+  .block.t { background: color-mix(in oklab, var(--accent) 18%, var(--bg-soft)); border-color: var(--accent); color: var(--accent); }
+  .block.r { background: color-mix(in oklab, var(--accent-2) 18%, var(--bg-soft)); border-color: var(--accent-2); color: var(--accent-2); }
+  .block.p { background: color-mix(in oklab, var(--accent-3) 18%, var(--bg-soft)); border-color: var(--accent-3); color: var(--accent-3); }
+  .block.b { background: var(--code); border-color: var(--border); color: var(--text-soft); }
+  .arch-arrow {
+    color: var(--text-dim);
+    font-size: 16px;
+  }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 6px; margin-bottom: 0; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 10px 18px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 14px;
+    transition: all .2s ease;
+  }
+  .tab:hover { color: var(--text-soft); }
+  .tab.active {
+    background: var(--bg-card);
+    border-color: var(--border);
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: -1px;
+  }
+  .tab-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0 var(--radius) var(--radius) var(--radius);
+    padding: 24px;
+    display: none;
+  }
+  .tab-content.active { display: block; }
+
+  /* Footer */
+  footer {
+    text-align: center; color: var(--text-dim);
+    padding: 30px 20px; font-size: 13px;
+    border-top: 1px solid var(--border); margin-top: 50px;
+  }
+  footer a { color: var(--text-soft); }
+
+  /* Hint */
+  .hint {
+    font-size: 12px; color: var(--text-dim);
+    border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 14px;
+  }
+
+  /* Visual list of items in pixel space */
+  .bullet-item { display: flex; gap: 10px; margin: 8px 0; align-items: flex-start; }
+  .bullet-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-top: 10px; flex-shrink: 0; }
+
+.back-home{position:fixed;top:20px;left:20px;z-index:9999;padding:8px 16px;background:rgba(20,23,31,.92);border:1px solid #262b3b;border-radius:8px;color:#e6e9f2;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;font-weight:500;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .2s ease}
+.back-home:hover{background:rgba(124,158,255,.18);border-color:#7c9eff;color:#7c9eff;transform:translateX(-2px)}
+
+</style>
+</head>
+<body data-theme="dark">
+<a class="back-home" href="../index.html#papers" aria-label="返回 Neural Reading Room">← 返回 Neural Reading Room</a>
+
+
+<div class="topbar">
+  <div class="brand">
+    <span class="brand-dot"></span>
+    <span>Representation Forcing · 论文详解</span>
+  </div>
+  <div class="top-actions">
+    <a class="btn" href="https://arxiv.org/abs/2605.31604" target="_blank" rel="noopener">arXiv 原文 ↗</a>
+    <a class="btn" href="https://yuqingwang1029.github.io/RepresentationForcing" target="_blank" rel="noopener">项目页 ↗</a>
+    <button class="btn" id="themeToggle" title="切换主题">🌗 主题</button>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <h4>概览</h4>
+    <a href="#hero">论文速览</a>
+    <a href="#background">研究背景</a>
+    <a href="#problem">核心问题</a>
+
+    <h4>核心方法</h4>
+    <a href="#idea">核心思想</a>
+    <a href="#method">方法详解</a>
+    <a href="#arch">架构图</a>
+    <a href="#loss">训练目标</a>
+    <a href="#inference">推理流程</a>
+
+    <h4>实验结果</h4>
+    <a href="#exp-gen">图像生成</a>
+    <a href="#exp-und">图像理解</a>
+    <a href="#ablation">消融实验</a>
+
+    <h4>总结</h4>
+    <a href="#discussion">讨论与局限</a>
+    <a href="#takeaway">核心收获</a>
+    <a href="#cite">引用信息</a>
+  </nav>
+
+  <main class="content">
+
+    <!-- ============ HERO ============ -->
+    <section id="hero" class="hero">
+      <div class="tag-row">
+        <span class="tag accent">arXiv:2605.31604</span>
+        <span class="tag">cs.CV</span>
+        <span class="tag green">v3 · 2026-06-12</span>
+        <span class="tag purple">港中文 · 字节Seed · 南大 · 清华</span>
+      </div>
+      <h1 class="title">Representation Forcing: 摆脱 VAE 瓶颈的真正端到端统一多模态模型</h1>
+      <p class="subtitle">
+        <b>Representation Forcing for Bottleneck-Free Unified Multimodal Models</b><br>
+        Yuqing Wang, Zhijie Lin, Ceyuan Yang, Yang Zhao, Fei Xiao, Hao He, Qi Zhao, Zihan Ding, Fuyun Wang, Shuai Wang, Youliang Zhang, Haoqi Fan, Xihui Liu<br>
+        <span style="font-size: 13px; color: var(--text-dim);">University of Hong Kong · ByteDance Seed · CUHK · Nanjing University · Tsinghua University</span>
+      </p>
+      <div class="meta-row">
+        <span>📅 <b>提交:</b> 2026-05-29</span>
+        <span>🔄 <b>更新:</b> 2026-06-12</span>
+        <span>📄 <b>页数:</b> 8 页主文 + 附录</span>
+        <span>🔓 <b>License:</b> CC BY 4.0</span>
+      </div>
+    </section>
+
+    <!-- ============ 背景 ============ -->
+    <section id="background">
+      <h2><span class="num">1</span>研究背景:统一多模态模型走到哪了</h2>
+
+      <p>过去两年,统一多模态模型 (Unified Multimodal Models, <b>UMMs</b>) 是行业押注的最大方向之一——把"看图说话"和"看字画图"塞进<b>同一个 transformer</b>,用 next-token prediction 处理文本、用 diffusion 处理图像。从 <b>Chameleon</b> 到 <b>Transfusion</b>、<b>Janus-Pro</b>、<b>BAGEL</b>,一路下来大家已经把架构和训练套路打磨得很熟练。</p>
+
+      <p>但作者团队发现,这些主流 UMM 有一个<b>共同的结构性问题</b>:图像生成通路里,都必须塞一个<b>外部预训练且冻结的 VAE</b>(或 VQ-VAE),把图片先压到 latent 空间再去做扩散,再用 VAE decoder 把 latent 还原成像素。</p>
+
+      <div class="card">
+        <div class="card-title">🧩 VAE 在 UMM 里到底干了什么?</div>
+        <p style="margin: 0;">VAE 充当一个<b>"中间翻译官"</b>:图像 → latent(连续向量)→ 像素。它的训练目标只有<b>重建像素</b>,跟多模态任务的目标(语义对齐、指令遵循、世界知识)并不一致。这就像一个只为了"画得像"而优化的画家,被强制要求同时理解物理规律、历史典故和科学公式。</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">📐 结构瓶颈</div>
+          <p style="font-size: 13.5px;">latent 空间是为重建优化的,信息有损;后续再训 UMM 也突破不了这个天花板。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">🔗 多组件割裂</div>
+          <p style="font-size: 13.5px;">VAE 单独训练并冻结,无法与 backbone 联合优化,理解与生成之间存在表征鸿沟。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⚙️ 工程复杂</div>
+          <p style="font-size: 13.5px;">数据准备、显存占用、分辨率上限都得跟着 VAE 走,迭代成本高。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 核心问题 ============ -->
+    <section id="problem">
+      <h2><span class="num">2</span>核心问题:能不能直接丢掉 VAE?</h2>
+
+      <p>这个想法听起来很美好:既然 VAE 是个累赘,直接让模型在<b>像素空间</b>(pixel space)做扩散不就行了吗?最近的 <b>JiT</b>、<b>SiD2</b>、<b>PixelFlow</b> 等工作已经在纯生成模型上证明像素空间扩散是可行的。</p>
+
+      <p>但是,作者团队做了关键实验:把这些像素空间扩散方法<b>直接搬到 UMM 里</b>,质量立刻崩了——在 GenEval 上只能拿到 <b>0.25</b>,而 VAE 版本能拿 <b>0.52</b>,几乎腰斩。</p>
+
+      <h3>为什么 UMM 里像素空间这么难?</h3>
+
+      <div class="quote">
+        "在 UMM 里,图像分布更广、文本条件更丰富——模型必须同时学会图像的<b>高层语义结构</b>(物体是什么、在哪里、怎么组合)和<b>底层细节</b>(纹理、边缘、色彩),而且都得从同一份原始像素信号里挤出来。"
+      </div>
+
+      <p>直观的理解:纯生成模型里,模型只要把文字变成图;UMM 里,模型还要同时理解图像。如果直接把 VAE 拿掉,模型就得在像素空间里同时干两件高度耦合的事,根本顾不过来。</p>
+
+      <div class="compare">
+        <div class="panel bad">
+          <div class="label">路径 A</div>
+          <h4>传统 UMM (带 VAE)</h4>
+          <div class="icon">🧱</div>
+          <p style="font-size: 13.5px;">有结构、有瓶颈。GenEval 0.52,但 VAE 的天花板卡在那里,怎么训都突破不了。</p>
+        </div>
+        <div class="panel warn">
+          <div class="label">路径 B</div>
+          <h4>朴素像素空间 UMM</h4>
+          <div class="icon">⚠️</div>
+          <p style="font-size: 13.5px;">丢掉 VAE,但模型要在像素里同时建模高层和底层,质量坍塌到 0.25。</p>
+        </div>
+        <div class="panel good">
+          <div class="label">路径 C</div>
+          <h4>本文:Representation Forcing</h4>
+          <div class="icon">✨</div>
+          <p style="font-size: 13.5px;">在像素之前先让解码器预测视觉表示 tokens 作为"脚手架",GenEval 跳到 <b>0.76</b>,比 VAE 还高。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 核心思想 ============ -->
+    <section id="idea">
+      <h2><span class="num">3</span>核心思想:让"理解"指导"生成"</h2>
+
+      <p>RF 的关键洞察藏在三句话里——</p>
+
+      <div class="quote">
+        "UMM 的<b>理解通路</b>(理解 encoder)本来就在学视觉的高层结构——物体、布局、场景。<br>
+        那<b>生成通路</b>能不能反过来,先<b>自己预测</b>出这些高层表示,再拿着它们去画像素?<br>
+        这样表征预测和像素渲染各司其职,既不需要外部 VAE,又能保证结构性。"
+      </div>
+
+      <p>用一个比喻:以前 UMM 是个<b>"蒙眼画家"</b>(VAE 是扶着他手画);现在让他先"睁眼"在脑子里<b>想象出</b>画面构图(预测高层表示),再闭着眼照着脑子里的图<b>画细节</b>(像素扩散)。两件事各跑各的通道,效果反而更好。</p>
+
+      <h3>RF 的一行定义</h3>
+      <div class="card">
+        <div class="card-title">📌 Representation Forcing (RF)</div>
+        <p style="margin: 0;">强制解码器在生成像素<b>之前</b>,先以<b>自回归</b>方式预测一组视觉表示 tokens (Rep tokens),这些 tokens 与文本 token 共享同一套 next-token prediction 目标,留在序列里作为 pixel-space diffusion 的<b>in-context 条件</b>。</p>
+      </div>
+
+      <h3>为什么用"自回归 + 离散"而不是"扩散 + 连续"?</h3>
+      <p>作者做了对比实验,结果很扎心:</p>
+      <ul>
+        <li><b>连续回归</b>(在每个位置预测连续向量):GenEval <b>0.26</b>,几乎等于没加。</li>
+        <li><b>离散预测</b>(在线向量量化 + 交叉熵):GenEval <b>0.76</b>,直接起飞。</li>
+      </ul>
+      <p>原因有二:① 离散预测把每个位置变成<b>分类</b>,避免连续向量自回归预测的<b>误差累积</b>;② 离散化天然鼓励表示"留住高层结构、丢掉细节",正是 RF 想要的<b>分工</b>。</p>
+    </section>
+
+    <!-- ============ 方法详解 ============ -->
+    <section id="method">
+      <h2><span class="num">4</span>方法详解</h2>
+
+      <p>整篇方法围绕 <b>3.1 节:表示从理解来</b>、<b>3.2 节:解码器用表示生成像素</b>、<b>3.3 节:训练与推理</b> 三步展开。</p>
+
+      <h3>4.1 表示从理解来 (Representations from Understanding)</h3>
+      <p>不用任何外部 tokenizer,而是从 UMM 自己的 understanding encoder (本文用 <b>DINOv3 ViT-H+/16</b>)里<b>抽特征</b>,再用一个<b>在线向量量化</b>(Online VQ)模块把特征离散成 token 序列。</p>
+
+      <div class="card">
+        <div class="card-title">⚙️ 在线向量量化的关键设计</div>
+        <ul>
+          <li><b>目标来源:</b>用 <b>EMA 副本</b>的 encoder 抽特征,而不是当前 encoder——encoder 在联合训练中持续变化,EMA 提供"慢动作"目标,保证离散分配稳定。</li>
+          <li><b>Codebook 大小:</b><code class="inline">K = 16,384</code>,通过实验验证 K=32k 几乎无差异,所以沿用通用配置。</li>
+          <li><b>Codebook 更新:</b>VQ-VAE 风格的 EMA 更新,每个 prototype 朝着被分配到它的特征均值移动。</li>
+          <li><b>防坍缩:</b>用 <b>Sinkhorn-Knopp</b> 归一化(参考 SwAV),均衡 prototype 的使用频率。</li>
+          <li><b>粒度:</b>在每个 patch 上生成一个 rep token,空间上排成与图像一致的栅格,可按光栅顺序自回归预测。</li>
+        </ul>
+      </div>
+
+      <p>下面这段伪代码完整描述了在线 VQ 算法(摘自论文附录 7):</p>
+      <pre class="code"># 输入:图像 X,EMA encoder f_m,codebook C (K×D),动量 m,温度 t
+Z = f_m(X).view(B * L, D)                  # EMA 编码器抽 patch 特征
+Z = normalize(Z, dim=1)                    # L2 归一化
+score = matmul(Z, C.T) / t                 # 余弦相似度
+score = softmax(score, dim=1)              # 行归一化
+score = softmax(score, dim=0)              # Sinkhorn-Knopp,1 次迭代
+A = argmax(score, dim=1)                   # 离散分配,得到 token ID
+N_k, C_new = zeros(K), zeros(K, D)
+C_new = scatter_add(C_new, dim=0, index=A, src=Z)  # 按 ID 累加特征
+N_k = scatter_add(N_k, dim=0, index=A, src=ones(B * L))
+C_new = normalize(C_new / N_k, dim=1)      # 新原型 = 该原型负责的特征均值
+C = m * C + (1 - m) * C_new                # EMA 更新 codebook
+C = normalize(C, dim=1)</pre>
+
+      <h3>4.2 预测表示,然后画像素</h3>
+      <p>有了 rep tokens,生成过程就分两段:</p>
+
+      <div class="flow">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h4>预测 Rep Tokens</h4>
+          <p>从纯文本 prompt 出发,解码器在序列里逐位预测 rep tokens(交叉熵损失 ℒ<sub>Rep</sub>),跟文本 token 用同一套 next-token 机制。</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h4>条件扩散生成像素</h4>
+          <p>把预测出的 rep tokens 留在序列里,作为后续像素 patch 的 in-context 条件,通过共享 self-attention 流入 pixel-space flow matching。</p>
+        </div>
+      </div>
+
+      <p>这里的关键是 <b>注意力掩码</b>的设计:文本和 rep tokens 之间是 <b>causal(因果)</b> 注意力,像素 patches 之间是 <b>bidirectional(双向)</b>,但像素 patches 会 causal 地看所有前面的文本和 rep tokens。这样 rep tokens 既是"自回归预测的目标",又是"像素生成的条件",<b>一个机制两个作用</b>。</p>
+
+      <h3>4.3 训练目标</h3>
+      <p>三部分损失加在一起:</p>
+      <pre class="code">ℒ = ℒ_LM        # 文本 next-token 预测交叉熵
+    + ℒ_FM      # 像素流匹配 loss(velocity loss,x-prediction)
+    + ℒ_Rep     # Rep tokens 的 next-token 预测交叉熵</pre>
+
+      <p>为支持 <b>Classifier-Free Guidance (CFG)</b>,训练时分别以 0.1 概率随机<b>丢弃文本条件</b>和<b>整个 rep token 序列</b>。</p>
+
+      <h3>4.4 推理流程</h3>
+      <div class="card">
+        <div class="card-title">🚀 两阶段推理</div>
+        <ol>
+          <li><b>Rep 阶段:</b>解码器从文本 prompt 开始,逐位 top-k 采样生成完整 rep token 序列。</li>
+          <li><b>Pixel 阶段:</b>在文本 + rep tokens 双重条件下,使用 25 步 flow matching 从高斯噪声去噪到像素 patches;采用动态 timestep shifting + 双条件 CFG(w<sub>rep</sub>=2.0、w<sub>pix</sub>=3.0)。</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ 架构图 ============ -->
+    <section id="arch">
+      <h2><span class="num">5</span>架构一图看懂</h2>
+
+      <p>下图用纯 CSS 复现了论文 Figure 3 的训练流水线,左边是主干序列,右边是 EMA encoder 离线生成 rep tokens 的过程(仅训练时需要,推理时直接绕过)。</p>
+
+      <div class="arch">
+        <div class="arch-row" style="justify-content: center;">
+          <div class="block t">文本 T</div>
+          <span class="arch-arrow">→</span>
+          <div class="block r">Rep Tokens R</div>
+          <span class="arch-arrow">→</span>
+          <div class="block p">像素 Patches P</div>
+        </div>
+        <div style="text-align: center; color: var(--text-dim); font-size: 12px; margin: 4px 0 14px;">
+          ↑ 这一整段序列在一个共享 Transformer 里处理
+        </div>
+
+        <div class="arch-row" style="justify-content: center;">
+          <div class="block b">Causal Self-Attention</div>
+          <span class="arch-arrow">+</span>
+          <div class="block b">Causal Self-Attention</div>
+          <span class="arch-arrow">+</span>
+          <div class="block b">Bidirectional Self-Attention</div>
+        </div>
+        <div style="text-align: center; color: var(--text-dim); font-size: 12px; margin: 4px 0 14px;">
+          ↑ 三种 token 三种 attention mask,但共享同一套 QKV
+        </div>
+
+        <div class="arch-row" style="justify-content: center;">
+          <div class="block t">FFN Expert (理解)</div>
+          <span class="arch-arrow">|</span>
+          <div class="block r">FFN Expert (Rep 预测)</div>
+          <span class="arch-arrow">|</span>
+          <div class="block p">FFN Expert (像素生成)</div>
+        </div>
+        <div style="text-align: center; color: var(--text-dim); font-size: 12px; margin: 4px 0 14px;">
+          ↑ Mixture-of-Transformers:三个模态专家 FFN,共享 Self-Attention
+        </div>
+
+        <div class="arch-row" style="justify-content: center; border-top: 1px dashed var(--border); padding-top: 14px;">
+          <div class="block b">真实图像</div>
+          <span class="arch-arrow">→</span>
+          <div class="block b">DINOv3 EMA</div>
+          <span class="arch-arrow">→</span>
+          <div class="block r">在线 VQ → Rep Tokens</div>
+          <span class="arch-arrow">→</span>
+          <div class="block t">Teacher Force 进序列 R 位置</div>
+        </div>
+        <div style="text-align: center; color: var(--text-dim); font-size: 12px; margin: 4px 0 4px;">
+          ↑ 训练时:右边生成 rep tokens 作为监督信号;推理时:整个右边被绕过,解码器自己预测
+        </div>
+      </div>
+
+      <h3>MoT (Mixture-of-Transformers) 架构细节</h3>
+      <p>本文采用 BAGEL 的 MoT 设计:所有 token 共享 <b>multi-head self-attention 层</b>,但根据 token 类型路由到 <b>三个独立的 FFN 专家组</b>。</p>
+      <ul>
+        <li>每个 rep token 的嵌入 = <code class="inline">2D 空间位置编码</code> + <code class="inline">codebook 离散 ID 嵌入</code>(共 K 项)。</li>
+        <li>初始化采用 <b>Qwen3-A3B</b>(每 token 激活 3B 参数),属轻量 MoE LLM。</li>
+        <li>视觉编码器为 <b>DINOv3 ViT-H+/16</b>(NaViT 风格可变分辨率),与模型联合训练。</li>
+        <li>像素 patch 大小 <code class="inline">16×16</code>,rep tokens 与 2×2 patch pool 对应,所以每 4 个 patch 对应 1 个 rep token。</li>
+      </ul>
+    </section>
+
+    <!-- ============ 损失函数细节 ============ -->
+    <section id="loss">
+      <h2><span class="num">6</span>训练目标细节</h2>
+
+      <p>Flow matching 部分采用 <b>x-prediction</b> 形式(参考 JiT):</p>
+      <pre class="code"># noisy patches
+z_t = t · x + (1 - t) · ε,    其中 ε ~ N(0, I), t ∈ [0, 1]
+
+# 模型预测 x_θ
+v_θ = (x_θ - z_t) / (1 - t)
+v   = x - ε                    # ground truth velocity
+
+ℒ_FM = E [ ||v_θ - v||² ]</pre>
+
+      <p>三个 loss 简单加权求和(等权),联合优化 <b>理解 - 表示 - 生成</b> 三个能力。</p>
+
+      <h3>训练流程(3 阶段)</h3>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">Stage 1 · 对齐 (10K iter)</div>
+          <p style="font-size: 13.5px;">冻结 backbone 和 encoder,只训 MLP connector。让视觉特征先映射到文本空间。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Stage 2 · 联合预训练 (50K iter)</div>
+          <p style="font-size: 13.5px;">解冻全部组件,分辨率 ≤ 256,混合文本 + 图文对数据。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Stage 3 · 高分辨率 (20K iter)</div>
+          <p style="font-size: 13.5px;">分辨率提到 1024,继续训练,学习率降到 2.5×10⁻⁵ 保证稳定。</p>
+        </div>
+      </div>
+
+      <p style="margin-top: 14px;">优化器 <b>AdamW</b>(β₁=0.9, β₂=0.95, weight decay=0.1, grad clip=1.0),新初始化参数用 <b>4× 学习率</b> 加速收敛,LLM 主干用基准学习率 5×10⁻⁵。每 GPU 处理 32,768 tokens 序列,NaViT 风格可变分辨率打包。</p>
+    </section>
+
+    <!-- ============ 实验结果 - 生成 ============ -->
+    <section id="exp-gen">
+      <h2><span class="num">7</span>实验结果:图像生成</h2>
+
+      <p>在两个标准 text-to-image 基准(<b>GenEval</b> 组合生成、<b>DPG-Bench</b> 密集 prompt)上对比。RF-Pixel 是本文纯像素空间模型。</p>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="v">0.84</div>
+          <div class="l">GenEval (RF-Pixel)</div>
+        </div>
+        <div class="stat">
+          <div class="v">0.88</div>
+          <div class="l">GenEval (+LLM Rewriter)</div>
+        </div>
+        <div class="stat">
+          <div class="v">84.15</div>
+          <div class="l">DPG-Bench</div>
+        </div>
+        <div class="stat">
+          <div class="v">0.52→0.76</div>
+          <div class="l">像素空间提升 +0.24</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>方法</th>
+              <th>通路</th>
+              <th>GenEval ↑</th>
+              <th>DPG-Bench ↑</th>
+              <th>是否依赖外部 VAE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="section-row"><td colspan="5">纯生成模型</td></tr>
+            <tr><td>SDXL</td><td>Latent</td><td>0.55</td><td>74.65</td><td>是</td></tr>
+            <tr><td>SD3-Medium</td><td>Latent</td><td>0.74</td><td>84.08</td><td>是</td></tr>
+            <tr><td>FLUX.1-dev †</td><td>Latent</td><td>0.82</td><td>84.00</td><td>是</td></tr>
+            <tr><td>Qwen-Image</td><td>Latent</td><td>0.87</td><td>88.32</td><td>是</td></tr>
+            <tr class="section-row"><td colspan="5">统一多模态模型</td></tr>
+            <tr><td>Emu3 †</td><td>VQ-VAE</td><td>0.66</td><td>81.60</td><td>是</td></tr>
+            <tr><td>Show-o2</td><td>VAE</td><td>0.76</td><td>86.14</td><td>是</td></tr>
+            <tr><td>Janus-Pro-7B</td><td>VAE</td><td>0.80</td><td>84.19</td><td>是</td></tr>
+            <tr><td>BLIP3-o</td><td>外部 DiT</td><td>0.84</td><td>81.60</td><td>是</td></tr>
+            <tr><td>OmniGen2 †</td><td>VAE</td><td>0.86</td><td>83.57</td><td>是</td></tr>
+            <tr><td>BAGEL</td><td>VAE</td><td>0.82</td><td>85.07</td><td>是</td></tr>
+            <tr><td>BAGEL †</td><td>VAE</td><td>0.88</td><td>—</td><td>是</td></tr>
+            <tr class="our-row"><td>RF-Pixel (本文)</td><td>Pixel</td><td>0.84</td><td>84.15</td><td>❌ 无</td></tr>
+            <tr class="our-row"><td>RF-Pixel †</td><td>Pixel</td><td>0.88</td><td>—</td><td>❌ 无</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>† = 使用 LLM rewriter。可以看到,<b>纯像素空间的 RF-Pixel 已经追平带 VAE 的 SOTA 统一模型</b>,而且不依赖任何外部预训练生成模块。</p>
+
+      <div class="quote">
+        "关键点:这不是个 toy demo,RF-Pixel 的 0.84 已经超过 BAGEL 的 0.82,加 LLM rewriter 后 0.88 直接对标 BAGEL † 的 0.88——而 RF-Pixel 完全在像素空间跑,没有任何 VAE。"
+      </div>
+    </section>
+
+    <!-- ============ 实验结果 - 理解 ============ -->
+    <section id="exp-und">
+      <h2><span class="num">8</span>实验结果:图像理解</h2>
+
+      <p>一个反直觉的发现:<b>纯像素空间 + RF 不仅生成强,理解能力还比 VAE 版本更好</b>。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>变体</th>
+              <th>MMMU</th>
+              <th>HalluBench</th>
+              <th>MME*</th>
+              <th>BLINK</th>
+              <th>RealWorldQA</th>
+              <th>AI2D</th>
+              <th>DocVQA</th>
+              <th>ChartQA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>VLM-only (参考)</td><td>56.2</td><td>65.0</td><td>79.7</td><td>56.2</td><td>65.8</td><td>90.3</td><td>89.3</td><td>86.0</td></tr>
+            <tr><td>VAE</td><td>51.0</td><td>55.7</td><td>71.3</td><td>52.2</td><td>65.2</td><td>90.7</td><td>90.0</td><td>78.8</td></tr>
+            <tr><td>VAE + RF</td><td>49.6</td><td><b>61.3</b></td><td><b>79.3</b></td><td>52.9</td><td><b>66.6</b></td><td>87.8</td><td>88.3</td><td>80.5</td></tr>
+            <tr><td>Pixel</td><td>49.9</td><td>63.7</td><td>76.6</td><td>49.4</td><td>63.1</td><td>85.8</td><td>90.0</td><td>81.7</td></tr>
+            <tr class="our-row"><td>Pixel + RF</td><td><b>54.2</b></td><td>64.8</td><td>80.2</td><td><b>53.0</b></td><td>65.8</td><td><b>90.3</b></td><td>88.0</td><td>81.3</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>关键观察</h3>
+      <ul>
+        <li><b>RF 普遍提升理解</b>:Pixel + RF 在 8 个 benchmark 上提升 6 个,VAE + RF 提升 5 个;提升主要集中在 <b>MMMU (+4.3)、MME (+3.6)、BLINK (+3.6)、AI2D (+4.5)</b> 这些考验高层视觉理解的题目上。</li>
+        <li><b>Pixel + RF > VAE + RF</b>:在 6/8 benchmark 上胜出——这跟"统一表征空间"的初衷一致:丢掉外部 VAE 后,理解和生成在同一个表征空间里训练,信号传递更顺畅。</li>
+        <li><b>轻微下降</b>:DocVQA (-2.0) 和 ChartQA (-0.4) 略有损失,这两个任务依赖<b>精细文字识别和版面解析</b>,而 rep tokens 故意丢弃了低层细节——这是一个合理的 trade-off。</li>
+      </ul>
+    </section>
+
+    <!-- ============ 消融实验 ============ -->
+    <section id="ablation">
+      <h2><span class="num">9</span>消融实验:为什么 RF 这么强</h2>
+
+      <h3>9.1 RF 是像素空间生成的"必要条件"</h3>
+      <p>对比有无 RF 在两种通路上的效果:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>通路</th>
+              <th>无 RF</th>
+              <th>有 RF</th>
+              <th>提升</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Pixel-Space</td><td>0.25</td><td><b>0.76</b></td><td style="color: var(--accent-3); font-weight: 700;">+0.51</td></tr>
+            <tr><td>VAE-based</td><td>0.52</td><td>0.77</td><td>+0.25</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>没有 RF 时像素空间只有 0.25,加上 RF 直接到 0.76,反超 VAE 的 0.52。<b>RF 是像素空间能从"崩"到"能用"的开关</b>。</p>
+
+      <h3>9.2 Decoder 预测 vs. REPA 辅助对齐</h3>
+      <p>REPA 是把 DINOv 特征当作辅助 loss 让扩散中间特征去对齐(参考 Representation Alignment for Generation)。对比结果:</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title" style="color: var(--text-dim);">无引导</div>
+          <p style="font-size: 28px; text-align: center; font-weight: 700; color: var(--text-soft); margin: 8px 0;">0.25</p>
+          <p style="font-size: 12px; text-align: center; color: var(--text-dim);">baseline</p>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color: var(--accent-4);">REPA</div>
+          <p style="font-size: 28px; text-align: center; font-weight: 700; color: var(--accent-4); margin: 8px 0;">0.43</p>
+          <p style="font-size: 12px; text-align: center; color: var(--text-dim);">辅助对齐</p>
+        </div>
+        <div class="card" style="border-color: var(--accent-3);">
+          <div class="card-title" style="color: var(--accent-3);">RF (本文)</div>
+          <p style="font-size: 28px; text-align: center; font-weight: 700; color: var(--accent-3); margin: 8px 0;">0.76</p>
+          <p style="font-size: 12px; text-align: center; color: var(--text-dim);">in-context 条件</p>
+        </div>
+      </div>
+
+      <p>REPA 只是让扩散特征"长得像" DINOv 表示,但推理时这个对齐不直接进入生成路径。RF 把预测出的 rep tokens 留在序列里、像素 patches 通过共享 self-attention 去看它们——<b>直接条件化</b>在高维像素空间里比"软对齐"有效得多。</p>
+
+      <h3>9.3 离散 vs. 连续 Rep Tokens</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rep Token 形式</th>
+              <th>GenEval</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>无 RF (baseline)</td><td>0.25</td></tr>
+            <tr><td>连续回归</td><td>0.26</td></tr>
+            <tr class="our-row"><td>离散 (VQ)</td><td><b>0.76</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>连续预测几乎没用,因为:① 高维连续向量在自回归预测里误差累积严重;② 连续特征保留了太多低层细节,反而模糊了"高层结构 vs. 像素细节"的分工。离散一举解决这两个问题。</p>
+
+      <h3>9.4 Codebook 大小</h3>
+      <p>K=16,384 和 K=32,768 几乎无差异 (0.76 vs. 0.77),说明在这个区间内 RF 对 codebook 大小不敏感,沿用 16k 通用配置。</p>
+
+      <h3>9.5 视觉编码器选型:DINOv3 vs SigLIP2</h3>
+      <p>DINOv3 在 5 个理解 benchmark 上 4 个超过 SigLIP2。原因:DINOv3 是<b>自监督</b>训练,特征保留了更丰富的<b>空间结构</b>信息;SigLIP2 是对比语言对齐,偏向语义对齐。RF 要的就是<b>空间结构</b>,所以 DINOv3 更合适。</p>
+    </section>
+
+    <!-- ============ 讨论 ============ -->
+    <section id="discussion">
+      <h2><span class="num">10</span>讨论与局限</h2>
+
+      <div class="card">
+        <div class="card-title">⚠️ 作者坦诚的局限</div>
+        <ul>
+          <li><b>从预训练 LLM 初始化:</b>算力限制下没有从头预训练多模态,完全端到端的 from-scratch 多模态预训练是未来方向。</li>
+          <li><b>仅静态图像:</b>未把 RF 扩展到视频或其他时序模态。</li>
+          <li><b>文档/图表任务轻微下降:</b>DocVQA、ChartQA 依赖精细文字识别,需要额外的低层细节通路。</li>
+          <li><b>伦理风险:</b>跟所有 T2I 系统一样,可能被滥用生成虚假/有害内容,需要水印、安全过滤等常规防护。</li>
+        </ul>
+      </div>
+
+      <h3>同时期相关工作</h3>
+      <p>作者明确指出本文与几篇同时期工作有共同目标,但走的是不同路径:</p>
+      <ul>
+        <li><b>SenseNova-U1</b>、<b>Tuna-2</b>:也建像素空间 UMM,但它们<b>丢掉了 visual encoder</b>,直接从原始 patch 生成。</li>
+        <li><b>RAE</b>:用冻结的 DINOv2/SigLIP 当 VAE,提供更丰富语义空间;但 encoder 仍是<b>冻结</b>的。</li>
+        <li><b>Latent Forcing</b>:在像素和冻结 DINOv2 latent 上联合扩散,使用不同噪声调度;但表征空间也冻结。</li>
+        <li><b>REPA</b>:用辅助 loss 对齐中间特征;表征不进入推理路径。</li>
+      </ul>
+      <p>RF 的差异化:<b>encoder 联合训练 + 特征离散化 + 自回归预测 + 留在序列作为条件</b>——把表征空间从"外部冻结"变成"内部原生",这是真正的<b>端到端</b>。</p>
+    </section>
+
+    <!-- ============ 核心收获 ============ -->
+    <section id="takeaway">
+      <h2><span class="num">11</span>核心收获:这篇论文的真正贡献</h2>
+
+      <div class="grid-2">
+        <div class="card" style="border-color: var(--accent);">
+          <div class="card-title">🎯 技术贡献</div>
+          <ol style="margin: 0; padding-left: 20px;">
+            <li>提出 <b>Representation Forcing</b>:把理解通路的高层表示变成生成通路的"自回归脚手架"。</li>
+            <li>设计 <b>在线 VQ</b> + 自回归预测,避免连续表示的误差累积。</li>
+            <li>验证 <b>in-context 条件化</b>(放在序列里)远比辅助对齐(REPA 风格)有效。</li>
+          </ol>
+        </div>
+        <div class="card" style="border-color: var(--accent-3);">
+          <div class="card-title">🌊 范式贡献</div>
+          <ol style="margin: 0; padding-left: 20px;">
+            <li>首次让纯像素空间 UMM <b>匹配并超越</b> VAE-based SOTA。</li>
+            <li>统一表征空间——感知与生成共享同一套表征,信息流双向畅通。</li>
+            <li>为 <b>真正端到端</b> UMM 提供了具体可行的路径。</li>
+          </ol>
+        </div>
+      </div>
+
+      <h3>一句话总结</h3>
+      <div class="quote" style="border-left-color: var(--accent-3); background: color-mix(in oklab, var(--accent-3) 6%, var(--bg-card));">
+        "别再用外部冻结的 VAE 当拐杖了——让模型自己预测出高层视觉表示,就能在像素空间里画得比带 VAE 的版本还好看,而且理解能力也跟着涨。"
+      </div>
+
+      <h3>对工程师的启示</h3>
+      <ul>
+        <li>如果你在做 UMM,把 VAE 完全去掉换成 RF 是值得尝试的方向;</li>
+        <li>自回归 + 离散表示的组合在多模态任务里可能比想象中通用;</li>
+        <li>DINOv 系的特征可能比 SigLIP 更适合做"生成的中间表征";</li>
+        <li>把表征放在序列里(in-context conditioning)比额外的 cross-attention 注入更简洁、更有效。</li>
+      </ul>
+    </section>
+
+    <!-- ============ 引用 ============ -->
+    <section id="cite">
+      <h2><span class="num">12</span>引用信息 & 资源</h2>
+
+      <pre class="code">@article{wang2026representationforcing,
+  title  = {Representation Forcing for Bottleneck-Free
+            Unified Multimodal Models},
+  author = {Wang, Yuqing and Lin, Zhijie and Yang, Ceyuan and
+            Zhao, Yang and Xiao, Fei and He, Hao and Zhao, Qi and
+            Ding, Zihan and Wang, Fuyun and Wang, Shuai and
+            Zhang, Youliang and Fan, Haoqi and Liu, Xihui},
+  journal= {arXiv preprint arXiv:2605.31604},
+  year   = {2026}
+}</pre>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">📚 原始链接</div>
+          <ul style="list-style: none; padding-left: 0; margin: 0;">
+            <li>📄 <a href="https://arxiv.org/abs/2605.31604" target="_blank" rel="noopener">arXiv 摘要页</a></li>
+            <li>📕 <a href="https://arxiv.org/pdf/2605.31604v3" target="_blank" rel="noopener">PDF (v3)</a></li>
+            <li>🌐 <a href="https://arxiv.org/html/2605.31604v3" target="_blank" rel="noopener">HTML 版</a></li>
+            <li>🛠️ <a href="https://yuqingwang1029.github.io/RepresentationForcing" target="_blank" rel="noopener">项目主页</a></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">🔗 关键参考文献</div>
+          <ul style="list-style: none; padding-left: 0; margin: 0; font-size: 13px;">
+            <li>📌 BAGEL (MoT 架构): <a href="https://arxiv.org/abs/2505.14683" target="_blank" rel="noopener">2505.14683</a></li>
+            <li>📌 JiT (像素空间 x-prediction): <a href="https://arxiv.org/abs/2511.13720" target="_blank" rel="noopener">2511.13720</a></li>
+            <li>📌 REPA (对齐式表征引导): <a href="https://arxiv.org/abs/2504.10660" target="_blank" rel="noopener">ICLR 2025</a></li>
+            <li>📌 DINOv3 (视觉编码器): <a href="https://arxiv.org/abs/2508.10104" target="_blank" rel="noopener">2508.10104</a></li>
+            <li>📌 Latent Forcing (并行工作): <a href="https://arxiv.org/abs/2602.11401" target="_blank" rel="noopener">2602.11401</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="hint">
+        💡 这份 HTML 详解基于 arXiv v3 (2026-06-12) 论文正文 + 附录自动整理。如有理解偏差,以原文为准。
+      </div>
+    </section>
+
+    <footer>
+      <p>📐 这篇讲解由 Mavis · <a href="https://arxiv.org/abs/2605.31604">arXiv:2605.31604</a> 整理</p>
+      <p>觉得有用的话,记得引用原作者工作 ✨</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // Theme toggle
+  const root = document.documentElement;
+  const body = document.body;
+  const themeBtn = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('mavis-theme');
+  if (saved) body.setAttribute('data-theme', saved);
+  themeBtn.addEventListener('click', () => {
+    const cur = body.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    body.setAttribute('data-theme', next);
+    localStorage.setItem('mavis-theme', next);
+  });
+
+  // Sidebar active link
+  const links = document.querySelectorAll('nav.sidebar a[href^="#"]');
+  const sections = [...document.querySelectorAll('main section[id]')];
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`nav.sidebar a[href="#${e.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+  sections.forEach(s => obs.observe(s));
+
+  // Smooth scroll for nav
+  links.forEach(l => {
+    l.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = l.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) {
+        window.scrollTo({ top: el.offsetTop - 70, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

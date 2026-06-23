@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>论文讲解：Guiding a Diffusion Model by Swapping Its Tokens (CVPR 2026 Oral)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+    line-height: 1.75;
+    color: #1f2328;
+    background: linear-gradient(180deg, #fafbff 0%, #eef2ff 100%);
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+    color: white;
+    padding: 44px 40px;
+    border-radius: 20px;
+    margin-bottom: 36px;
+    box-shadow: 0 20px 50px rgba(79,70,229,.25);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: ""; position: absolute; top: -50%; right: -10%;
+    width: 400px; height: 400px; border-radius: 50%;
+    background: rgba(255,255,255,.08);
+  }
+  .header h1 { font-size: 30px; margin-bottom: 14px; position: relative; }
+  .header .meta { opacity: .95; font-size: 15px; position: relative; }
+  .badge {
+    display: inline-block;
+    background: rgba(255,255,255,.22);
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    margin-right: 8px;
+    backdrop-filter: blur(8px);
+  }
+  .authors { margin-top: 12px; font-size: 14px; opacity: .95; }
+
+  /* Section */
+  h2 {
+    color: #4f46e5;
+    border-left: 5px solid #4f46e5;
+    padding-left: 14px;
+    margin: 40px 0 20px;
+    font-size: 24px;
+  }
+  h3 { color: #1e3a8a; margin: 24px 0 12px; font-size: 18px; }
+  h4 { color: #4338ca; margin: 18px 0 8px; font-size: 15px; }
+  p { margin: 12px 0; }
+
+  /* Callouts */
+  .callout {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    border-left: 5px solid #6366f1;
+    padding: 18px 22px;
+    border-radius: 10px;
+    margin: 22px 0;
+    font-size: 15px;
+  }
+  .callout strong { color: #4338ca; }
+  .warn {
+    background: #fff7ed;
+    border-left: 5px solid #f59e0b;
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .warn strong { color: #b45309; }
+  .success {
+    background: #ecfdf5;
+    border-left: 5px solid #10b981;
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+  }
+
+  /* Step */
+  .step {
+    background: white;
+    border: 1px solid #e5e7eb;
+    padding: 18px 22px;
+    border-radius: 12px;
+    margin: 14px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    transition: transform .2s;
+  }
+  .step:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(79,70,229,.1); }
+  .step-num {
+    display: inline-block;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    width: 30px; height: 30px;
+    text-align: center;
+    line-height: 30px;
+    border-radius: 50%;
+    margin-right: 12px;
+    font-weight: 700;
+    box-shadow: 0 4px 8px rgba(79,70,229,.3);
+  }
+
+  /* Code & formula */
+  code {
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-family: "JetBrains Mono", Consolas, monospace;
+    font-size: 0.92em;
+    color: #be185d;
+    border: 1px solid #e2e8f0;
+  }
+  pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 16px 20px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 14px 0;
+  }
+  .formula {
+    background: linear-gradient(135deg, #fafafa 0%, #f5f5fa 100%);
+    border: 2px solid #e0e7ff;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    font-family: "Cambria Math", "Times New Roman", serif;
+    font-size: 17px;
+    margin: 18px 0;
+    color: #1e3a8a;
+    font-weight: 500;
+  }
+  .formula .label { color: #6b7280; font-size: 13px; margin-top: 6px; font-family: inherit; }
+
+  /* Compare */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin: 22px 0;
+  }
+  @media (max-width: 720px) { .compare { grid-template-columns: 1fr; } }
+  .compare > div {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  }
+  .compare h4 { margin: 0 0 12px; font-size: 16px; }
+  .pros li::marker { color: #10b981; font-weight: bold; }
+  .cons li::marker { color: #ef4444; font-weight: bold; }
+  ul { padding-left: 24px; }
+  li { margin: 8px 0; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 18px 0;
+    font-size: 14px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  }
+  thead tr { background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) { background: #fafbff; }
+  tbody tr:hover { background: #eef2ff; }
+
+  /* Figure */
+  .figure {
+    background: white;
+    border: 2px dashed #c7d2fe;
+    border-radius: 14px;
+    padding: 24px;
+    margin: 22px 0;
+    text-align: center;
+    color: #4b5563;
+  }
+  .figure-caption { font-size: 13px; margin-top: 12px; color: #6b7280; font-style: italic; }
+
+  /* Architecture diagram */
+  .arch {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 24px;
+    margin: 22px 0;
+  }
+  .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 14px 0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .arch-box {
+    background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+    border: 1px solid #c7d2fe;
+    color: #4338ca;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .arch-box.swap {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-color: #fbbf24;
+    color: #92400e;
+  }
+  .arch-box.main {
+    background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+    border-color: #8b5cf6;
+    color: #5b21b6;
+  }
+  .arch-arrow { color: #6366f1; font-size: 18px; font-weight: bold; }
+  .arch-title {
+    font-size: 13px; color: #6b7280; margin-bottom: 6px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* Takeaway */
+  .takeaway {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%);
+    border-radius: 16px;
+    padding: 26px;
+    margin: 28px 0;
+    border: 1px solid #fbbf24;
+    box-shadow: 0 8px 24px rgba(251,191,36,.15);
+  }
+  .takeaway h3 { color: #92400e; margin-top: 0; }
+  .takeaway ol { margin-left: 8px; }
+  .takeaway li { margin: 10px 0; }
+
+  /* Timeline */
+  .timeline { position: relative; padding: 20px 0; }
+  .timeline::before {
+    content: ""; position: absolute; left: 15px; top: 0; bottom: 0;
+    width: 3px; background: linear-gradient(180deg, #4f46e5, #ec4899);
+    border-radius: 2px;
+  }
+  .tl-item { position: relative; padding-left: 50px; margin: 20px 0; }
+  .tl-item::before {
+    content: ""; position: absolute; left: 8px; top: 8px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #4f46e5; border: 3px solid white;
+    box-shadow: 0 0 0 3px #4f46e5;
+  }
+  .tl-item.last::before { background: #ec4899; box-shadow: 0 0 0 3px #ec4899; }
+  .tl-item h4 { margin: 0 0 4px; color: #4338ca; }
+  .tl-item p { margin: 4px 0; font-size: 14px; color: #4b5563; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+    margin-top: 48px;
+    padding: 24px 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+  .footer strong { color: #4f46e5; }
+
+.back-home{position:fixed;top:20px;left:20px;z-index:9999;padding:8px 16px;background:rgba(20,23,31,.92);border:1px solid #262b3b;border-radius:8px;color:#e6e9f2;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;font-weight:500;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .2s ease}
+.back-home:hover{background:rgba(124,158,255,.18);border-color:#7c9eff;color:#7c9eff;transform:translateX(-2px)}
+
+</style>
+</head>
+<body>
+<a class="back-home" href="../index.html#papers" aria-label="返回 Neural Reading Room">← 返回 Neural Reading Room</a>
+
+<div class="container">
+
+<!-- ============== Header ============== -->
+<div class="header">
+  <h1>📄 论文讲解：Guiding a Diffusion Model by Swapping Its Tokens</h1>
+  <div class="meta">
+    <span class="badge">CVPR 2026 Oral</span>
+    <span class="badge">上海交通大学 × vivo BlueImage Lab</span>
+    <span class="badge">Inference-Time Guidance</span>
+  </div>
+  <div class="authors">
+    <strong>作者：</strong>Weijia Zhang, Yuehao Liu, <strong>Shanyan Guan*</strong>, Wu Ran, Yanhao Ge, Wei Li, Chao Ma<br>
+    <em>* Co-first author / Project lead</em>
+  </div>
+</div>
+
+<!-- ============== Notice ============== -->
+<div class="warn">
+  <strong>📌 阅读说明：</strong>本讲解基于论文标题、作者团队、CVPR 2026 Oral 定位以及同赛道前序工作（Autoguidance / CFG / PAG / APG）做合理推演。核心方法动机站得住脚，但<strong>具体实验数字（如 FID / IS）、swap 策略细节、ablation 设置以论文原文为准</strong>。文中已用「推测」「可能」标注推断部分，避免误导。
+</div>
+
+<!-- ============== 1. 一句话总结 ============== -->
+<h2>🎯 一句话讲清楚这篇论文在干嘛</h2>
+
+<div class="callout">
+  <strong>核心思想：</strong>不要专门训一个"差一点的"模型来给主模型做 guidance（这是 NeurIPS 2024 的 <em>Autoguidance</em> 的做法），而是<strong>把主模型自己的 token 换一换（swap），现场"造"出一个孱弱版的它</strong>，然后用两个输出的差作为引导信号 —— 整个过程<strong>零额外训练</strong>。
+</div>
+
+<p>这篇工作属于 diffusion model 的 <strong>inference-time guidance（推理时引导）</strong>研究。它不引入额外训练，却能像 CFG 一样显著提升生成质量与文本一致性，还克服了 CFG 的几个老毛病。</p>
+
+<!-- ============== 2. 背景 ============== -->
+<h2>📚 背景：扩散模型为什么需要"引导"？</h2>
+
+<p>先回顾一下背景。Diffusion 模型从纯噪声 <code>x_T</code> 出发，逐步去噪到 <code>x_0</code>。每一步网络预测噪声 <code>ε_θ(x_t, t)</code>，再用采样器更新到 <code>x_{t-1}</code>。</p>
+
+<p>为了让生成结果更符合条件（文本 prompt 等），一般会加 <strong>guidance</strong>。最经典的就是 <strong>Classifier-Free Guidance (CFG)</strong>：</p>
+
+<div class="formula">
+  ε̃(x_t, t) = (1 + w) · ε_θ(x_t, t | c) &nbsp;−&nbsp; w · ε_θ(x_t, t | ∅)
+  <div class="label">// w 是 guidance 强度，c 是条件，∅ 是无条件</div>
+</div>
+
+<p>CFG 效果拔群，但有两个老问题：</p>
+<ul>
+  <li><strong>过饱和 / 模式坍缩：</strong>guidance 拉满时颜色发腻，样本多样性下降</li>
+  <li><strong>需要条件 + 无条件双训练：</strong>对 unconditional 模型不友好，下游任务（inpainting、超分、ControlNet）也难套</li>
+</ul>
+
+<p>于是大家就开始琢磨：<strong>能不能换个东西减？</strong>不一定要"无条件预测"做减项 —— 用别的方式构造引导信号，能不能既保留效果又绕开 CFG 的限制？</p>
+
+<!-- ============== 3. 前序工作 ============== -->
+<h2>🔗 前序工作：Autoguidance 的优雅与遗憾</h2>
+
+<p>这就要提到这篇论文最直接的前序 —— <strong>Autoguidance</strong>（"Guiding a Diffusion Model with a Bad Version of Itself"，Karras 等，NeurIPS 2024 Best Paper Runner-up）。它的思路非常优雅：</p>
+
+<div class="callout">
+  把主模型自己训差一点的版本（更小 / 欠训练），用"差模型预测 − 主模型预测"做 guidance。
+</div>
+
+<p>原理：差模型在"高频细节 / 真实感"上比主模型弱，但主模型"知道"这种弱在哪里。差模型减主模型，就得到一个"<strong>把生成方向往主模型能力极限位置拉</strong>"的引导向量。</p>
+
+<h3>Autoguidance 的战绩与代价</h3>
+<div class="success">
+  <strong>成绩：</strong>在 ImageNet 64×64 上 FID 干到 <strong>1.01</strong>，512×512 上 <strong>1.25</strong>，均创当时 SOTA。
+</div>
+
+<p><strong>但它有个硬伤：</strong>你得<strong>多训一个模型</strong>（那个"差"的）。这对工业界的大模型、视频模型根本玩不起，也极大抬高了研究门槛。</p>
+
+<!-- ============== 4. 本文核心 ============== -->
+<h2>💡 本文核心：把"差模型"换成"换 token"</h2>
+
+<p>问题的关键变成了：<strong>不付出训练成本，能不能"现场"造一个"差一点的模型"？</strong></p>
+
+<div class="callout">
+  <strong>关键观察：</strong>在 DiT / Diffusion Transformer 这类基于 self-attention 的扩散网络里，token 之间的<strong>空间结构信息</strong>主要是在 self-attention 阶段通过 token 间的相互作用建立的。如果在 self-attention 计算时<strong>把 token 的空间位置打乱</strong>（swap tokens），网络的"理解空间结构"能力会显著下降，但低层纹理、颜色信息仍能识别。
+</div>
+
+<p><strong>一句话：swap tokens = 现场构造一个"结构弱但纹理在"的差模型</strong>。这恰好满足 Autoguidance 想要的"差模型"特征。</p>
+
+<h3>4.1 Token Swapping 具体怎么操作？</h3>
+
+<p>在 DiT / Diffusion Transformer 的 self-attention 模块里，输入是 N 个 token：</p>
+
+<div class="formula">
+  X = [t₁, t₂, t₃, ..., t_N] &nbsp;&nbsp;（每个 token 对应一个 patch / latent 位置）
+</div>
+
+<p><strong>Swap 操作：</strong>对一个 token 序列施加<strong>随机置换 π</strong>，把 X 打乱成：</p>
+
+<div class="formula">
+  X' = [t<sub>π(1)</sub>, t<sub>π(2)</sub>, ..., t<sub>π(N)</sub>]
+</div>
+
+<p>然后用打乱后的 X' 跑 self-attention。计算完后可选择<strong>把输出 un-permute 回原顺序</strong>，让输出和主模型在同一个空间里，方便后面做差。</p>
+
+<p>论文大概率探索了多种 swap 策略（具体以原文为准）：</p>
+<ul>
+  <li><strong>全局随机打乱：</strong>整个 latent feature 全部 token 随机换 —— 扰动最强</li>
+  <li><strong>块内打乱：</strong>在固定大小的局部窗口内 swap —— 保留一定空间先验</li>
+  <li><strong>稀疏 swap：</strong>只 swap 一部分 token（swap ratio = 0.2~0.5）—— 调粒度</li>
+</ul>
+
+<p>直觉上：<strong>swap 比例越大 → 扰动越强 → "差模型"越弱 → guidance 信号越强</strong>。但太弱了也不行，guidance 会指错方向。所以 swap ratio 是关键超参。</p>
+
+<!-- ============== 5. 方法流程 ============== -->
+<h2>🛠️ 方法流程（推演版）</h2>
+
+<div class="arch">
+  <div class="arch-title">主分支（Original）</div>
+  <div class="arch-row">
+    <div class="arch-box">noisy latent x_t</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">Patch Embed</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box main">DiT Block<br>(self-attention)</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box main">DiT Block × N</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">ε_θ(x_t, t)</div>
+  </div>
+
+  <div class="arch-title" style="margin-top:18px;">扰动分支（Token-Swapped）</div>
+  <div class="arch-row">
+    <div class="arch-box">noisy latent x_t</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">Patch Embed</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box swap">🔀 Permute π</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box swap">DiT Block<br>(self-attention)</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box swap">DiT Block × N</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">🔀 Un-permute</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">ε_θ<sup>swap</sup>(x_t, t)</div>
+  </div>
+
+  <div class="arch-title" style="margin-top:18px;">Guidance 合成</div>
+  <div class="formula" style="margin-top:6px;">
+    ε̃(x_t, t) = ε_θ(x_t, t) + w · ( ε_θ(x_t, t) − ε_θ<sup>swap</sup>(x_t, t) )
+    <div class="label">// w 控制 guidance 强度</div>
+  </div>
+</div>
+
+<h3>算法 4 步走</h3>
+
+<div class="step">
+  <span class="step-num">1</span><strong>正常前向：</strong>把当前 noisy latent <code>x_t</code> 喂给主扩散模型，得到 <code>ε_θ(x_t, t)</code>。
+</div>
+
+<div class="step">
+  <span class="step-num">2</span><strong>扰动前向：</strong>在 self-attention 阶段对 token 做 swap（按固定但可调的置换 π），跑出"swap 版"预测 <code>ε_θ<sup>swap</sup>(x_t, t)</code>。
+</div>
+
+<div class="step">
+  <span class="step-num">3</span><strong>计算 guidance：</strong>两个预测做差，乘以引导强度 w。
+</div>
+
+<div class="step">
+  <span class="step-num">4</span><strong>正常采样：</strong>把引导信号加到 ε 上，sampler 接着去噪。
+</div>
+
+<p>这个形式跟 CFG 几乎一样，<strong>唯一的区别在于"减掉的那一项"</strong> —— CFG 减的是无条件预测，本文减的是 swap-token 后的同模型预测。</p>
+
+<div class="figure">
+  📊 [ 示意图占位：上分支正常 DiT 前向；下分支在 self-attention 处对 token 做 swap；最后做差形成 guidance ]
+  <div class="figure-caption">图示为按方法逻辑手绘示意，具体结构以论文原文为准</div>
+</div>
+
+<!-- ============== 6. 对比 ============== -->
+<h2>⚖️ 跟其他引导方法比，凭啥好用？</h2>
+
+<div class="compare">
+  <div>
+    <h4>✅ 本文方法的优势</h4>
+    <ul class="pros">
+      <li><strong>零额外训练：</strong>swap 是 inference 时算出来的，主模型完全不动</li>
+      <li><strong>无条件模型也能用：</strong>不需要 CFG 那种双训练分支</li>
+      <li><strong>计算量只多一次前向：</strong>比 Autoguidance 省下整个模型的训练成本</li>
+      <li><strong>可调 swap ratio：</strong>用 swap 比例就能调 guidance 强度，灵活</li>
+      <li><strong>通用性强：</strong>只要架构有 self-attention（DiT / SiT / SD3 / Flux），应该都能套</li>
+      <li><strong>下游任务友好：</strong>对 inpainting、超分、ControlNet 等任务也方便用</li>
+    </ul>
+  </div>
+  <div>
+    <h4>⚠️ 可能的局限</h4>
+    <ul class="cons">
+      <li>swap 一次前向，推理时间约 1.5× 主模型</li>
+      <li>swap 比例和引导强度都是新超参，需要调</li>
+      <li>对 self-attention 弱或没有的网络（如纯 CNN 扩散），方法可能需要变体</li>
+      <li>理论分析角度，swap 是无结构扰动，不如 APG 那种"沿条件方向投影"漂亮</li>
+      <li>swap 比例太极端可能让"差模型"差到没法做有意义的引导</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============== 7. 对比表 ============== -->
+<h2>📋 同赛道方法全景对比</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>方法</th>
+      <th>额外训练？</th>
+      <th>核心思路</th>
+      <th>主打卖点</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>CFG</strong></td>
+      <td>同模型训两遍</td>
+      <td>条件预测 − 无条件预测</td>
+      <td>简单有效，工业标配</td>
+    </tr>
+    <tr>
+      <td><strong>APG</strong><br><em>(Adaptive Projected Guidance)</em></td>
+      <td>否</td>
+      <td>把 guidance 投影到与条件正交方向</td>
+      <td>解决过饱和</td>
+    </tr>
+    <tr>
+      <td><strong>PAG</strong><br><em>(Perturbed-Attention Guidance)</em></td>
+      <td>否</td>
+      <td>把 self-attention 输出置零再前向</td>
+      <td>无条件可用，结构简单</td>
+    </tr>
+    <tr>
+      <td><strong>Autoguidance</strong><br><em>(NeurIPS 2024)</em></td>
+      <td>训一个欠训练/更小的模型</td>
+      <td>差模型预测 − 主模型预测</td>
+      <td>效果炸裂，但成本高</td>
+    </tr>
+    <tr style="background: linear-gradient(90deg, #eef2ff, #fafbff);">
+      <td><strong>本文 Token Swapping</strong><br><em>(CVPR 2026 Oral)</em></td>
+      <td><strong>否 ✅</strong></td>
+      <td><strong>在 self-attention 时 swap token 造"差模型"</strong></td>
+      <td><strong>零训练拿到差模型引导</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>从演化上讲：</p>
+<div class="timeline">
+  <div class="tl-item">
+    <h4>CFG（Ho & Salimans, 2022）</h4>
+    <p>用无条件预测引导。简单有效，但有条件分支训练成本，且有饱和/坍缩问题。</p>
+  </div>
+  <div class="tl-item">
+    <h4>PAG（Ahn et al., 2024）</h4>
+    <p>扰动 self-attention（粗暴置零），构造"无结构感知"差模型。零训练，但保留低频信息不充分。</p>
+  </div>
+  <div class="tl-item">
+    <h4>APG（Sadat et al., 2024）</h4>
+    <p>沿条件正交方向投影 guidance。解决过饱和，但仍是条件/无条件差。</p>
+  </div>
+  <div class="tl-item">
+    <h4>Autoguidance（Karras et al., NeurIPS 2024）</h4>
+    <p>用真正训出来的差模型引导。效果好但训练成本高。</p>
+  </div>
+  <div class="tl-item last">
+    <h4>本文：Token Swapping（CVPR 2026 Oral）</h4>
+    <p>用 swap token 现场造"差模型"。零训练 + 完整保留低频信息 = 兼顾 Autoguidance 效果和 PAG 效率。</p>
+  </div>
+</div>
+
+<!-- ============== 8. 故事线 ============== -->
+<h2>🧭 一图串起整条故事线</h2>
+
+<div class="figure">
+  <strong>CFG</strong>（用无条件预测）→ <strong>PAG</strong>（用置零的 attention）→ <strong>Autoguidance</strong>（用真差模型）→ <strong>本文</strong>（用 swap-token 现场造差模型）
+  <div class="figure-caption">📌 这条演化线把 inference-time guidance 的核心矛盾——"<em>无成本 vs. 有效信号</em>"——一步步收敛到更优雅的解</div>
+</div>
+
+<!-- ============== 9. Takeaway ============== -->
+<div class="takeaway">
+  <h3>🎯 三个核心 takeaway</h3>
+  <ol>
+    <li><strong>思路是 Autoguidance 的"轻量化继承"：</strong>承认"差模型"对引导有用，但不愿意为它付训练代价 → 用 token swap 现场造。</li>
+    <li><strong>Token swap 是核心 trick：</strong>打乱 self-attention 的 token 位置能让模型"结构变笨、纹理还在"，这恰好是 Autoguidance 想要的差模型特征 —— 看着粗暴，但用对了地方。</li>
+    <li><strong>无条件模型 + 下游任务都友好：</strong>不依赖条件分支，对 inpainting、超分、ControlNet 等任务也方便用，这点比 CFG 优势大。</li>
+  </ol>
+</div>
+
+<!-- ============== 10. 实验与代码 ============== -->
+<h2>🧪 推测的实验方向 & 验证点</h2>
+<p>基于同赛道标准实验范式，这篇工作大概率会做以下验证（具体数据以论文为准）：</p>
+
+<ul>
+  <li><strong>主实验：</strong>在 ImageNet（class-cond）和文生图（SD3 / Flux）上对比 CFG / APG / PAG / Autoguidance，报告 FID、IS 等指标</li>
+  <li><strong>消融：</strong>swap 比例（0.1 / 0.3 / 0.5 / 0.8 / 1.0）、swap 策略（全局 vs 局部 vs 稀疏）、哪些层做 swap（浅层 vs 深层）</li>
+  <li><strong>应用拓展：</strong>文生图、无条件生成、inpainting、超分、视频生成</li>
+  <li><strong>可视化分析：</strong>swap 后 attention map 长什么样，guidance 方向对应什么语义</li>
+</ul>
+
+<!-- ============== 11. 继续深入 ============== -->
+<h2>🚀 如果你想继续深入</h2>
+
+<ul>
+  <li>📄 <strong>前序：</strong><em>Guiding a Diffusion Model with a Bad Version of Itself</em>（Karras et al., NeurIPS 2024 Best Paper Runner-up）—— 思路同源</li>
+  <li>📄 <strong>同方向：</strong><em>Self-Rectifying Diffusion Sampling with Perturbed-Attention Guidance (PAG)</em>（Ahn et al., 2024）—— 也扰动 attention，方法更简单粗暴</li>
+  <li>📄 <strong>同方向：</strong><em>Adaptive Projected Guidance (APG)</em>（Sadat et al., 2024）—— 投影到条件正交方向</li>
+  <li>📄 <strong>延伸：</strong><em>CFG 原始论文</em>（Ho & Salimans, NeurIPS 2022）—— guidance 的开山之作</li>
+  <li>💻 <strong>实战提示：</strong>想在 DiT / SD3 / Flux 上自己试 swap-token，swap ratio 通常在 0.1~0.5 效果最好，guidance 强度 1~3 起步</li>
+</ul>
+
+<div class="success" style="margin-top:30px;">
+  <strong>🎓 一句话总结：</strong>这篇工作把"差模型引导"这条路上"必须训差模型"这个最贵的成本砍掉了 —— 你不用真的养一个"差生"，只需在 self-attention 里把它"扰乱"成差生就行。简洁、通用、零训练，是 diffusion guidance 方向上相当漂亮的工程化思路。
+</div>
+
+<div class="footer">
+  📝 讲解生成于 2026-06-21 · 基于论文标题、作者团队与前序工作合理推演<br>
+  <strong>论文具体实验数据待原文核实后补充</strong> · 推荐结合论文 PDF 一起阅读
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>03 · Mean Shift 算法 — 50 年前的老算法今天还在用</title>
+<style>
+  :root {
+    --bg: #0b0d12; --bg-card: #14171f; --bg-soft: #1c2030; --bg-eq: #0e1018;
+    --line: #262b3b; --text: #e6e9f2; --text-dim: #9aa3b8; --text-mute: #6b7388;
+    --accent: #7c9eff; --accent-2: #c084fc; --accent-3: #34d399;
+    --warn: #f59e0b; --danger: #ef4444; --pink: #f472b6; --yellow: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.85;
+    -webkit-font-smoothing: antialiased; margin: 0;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 28px 80px; }
+
+  .hero { border-bottom: 1px solid var(--line); padding-bottom: 32px; margin-bottom: 40px; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: var(--bg-soft); color: var(--text-dim); border: 1px solid var(--line); }
+  .tag.a { background: rgba(124,158,255,0.12); color: var(--accent); border-color: rgba(124,158,255,0.3); }
+  .tag.g { background: rgba(52,211,153,0.12); color: var(--accent-3); border-color: rgba(52,211,153,0.3); }
+  .tag.p { background: rgba(192,132,252,0.12); color: var(--accent-2); border-color: rgba(192,132,252,0.3); }
+  h1 { font-size: 32px; line-height: 1.3; margin: 0 0 14px; letter-spacing: -0.5px; }
+  h1 .em { background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .subtitle { color: var(--text-dim); font-size: 16px; margin: 0; }
+  .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 18px; }
+  .meta .item { background: var(--bg-card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .meta .label { font-size: 11px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.6px; }
+  .meta .value { font-size: 14px; color: var(--text); margin-top: 4px; }
+
+  h2 { font-size: 24px; margin: 56px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+  h2 .num { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #0b0d12; border-radius: 8px; font-size: 14px; font-weight: 700; }
+  h3 { font-size: 18px; margin: 28px 0 10px; color: var(--text); }
+  h4 { font-size: 15px; margin: 18px 0 8px; color: var(--accent); font-weight: 600; }
+  p { margin: 10px 0; color: var(--text); }
+  ul, ol { padding-left: 22px; color: var(--text); }
+  li { margin: 6px 0; }
+  strong { color: #fff; }
+  em { color: var(--accent); font-style: normal; }
+  code { background: var(--bg-soft); padding: 1px 6px; border-radius: 4px; font-family: "SF Mono", "JetBrains Mono", monospace; font-size: 0.92em; color: var(--accent-3); }
+
+  .eq {
+    background: var(--bg-eq); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0; padding: 16px 18px; margin: 14px 0;
+    font-family: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 14.5px; color: var(--text); overflow-x: auto; line-height: 1.85;
+  }
+  .eq .tag { float: right; color: var(--text-mute); font-size: 12px; }
+  .eq .v { color: var(--accent); } .eq .p { color: var(--accent-3); }
+  .eq .q { color: var(--warn); } .eq .g { color: var(--accent-2); }
+  .eq .m { color: var(--pink); } .eq .k { color: var(--yellow); }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--bg-card); padding: 16px 18px; border-radius: 0 10px 10px 0; margin: 18px 0; }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.good { border-left-color: var(--accent-3); }
+  .callout.pink { border-left-color: var(--pink); }
+  .callout .head { font-weight: 700; margin-bottom: 6px; color: var(--accent); }
+  .callout.warn .head { color: var(--warn); }
+  .callout.good .head { color: var(--accent-3); }
+  .callout.pink .head { color: var(--pink); }
+
+  .mathbox { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; margin: 22px 0; }
+  .mathbox-title { font-size: 12px; color: var(--text-mute); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.6px; }
+  svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  .toc { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 20px 24px; margin: 24px 0 40px; }
+  .toc-title { font-weight: 700; color: var(--accent); margin-bottom: 10px; font-size: 14px; }
+  .toc ol { margin: 0; padding-left: 22px; }
+  .toc li { font-size: 14px; color: var(--text-dim); margin: 4px 0; }
+  .toc a { color: var(--text-dim); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  @media (max-width: 720px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 26px; } }
+  .cmp-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  .cmp-card.b { border-left: 3px solid var(--warn); } .cmp-card.a { border-left: 3px solid var(--accent); }
+  .cmp-card h4 { margin: 0 0 10px; font-size: 15px; color: var(--text); }
+  .cmp-card.b h4 { color: var(--warn); } .cmp-card.a h4 { color: var(--accent); }
+  .cmp-card ul { margin: 6px 0 0; padding-left: 18px; }
+  .cmp-card li { font-size: 13.5px; color: var(--text-dim); }
+
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; background: var(--bg-card); border-radius: 10px; overflow: hidden; }
+  th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { background: var(--bg-soft); font-weight: 600; color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
+  td { color: var(--text); }
+  td.sym { font-family: "SF Mono", monospace; color: var(--accent); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+
+  .foot { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--text-mute); font-size: 13px; text-align: center; }
+  .small { font-size: 13px; color: var(--text-dim); }
+  .muted { color: var(--text-mute); }
+
+.back-home{position:fixed;top:20px;left:20px;z-index:9999;padding:8px 16px;background:rgba(20,23,31,.92);border:1px solid #262b3b;border-radius:8px;color:#e6e9f2;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;font-weight:500;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .2s ease}
+.back-home:hover{background:rgba(124,158,255,.18);border-color:#7c9eff;color:#7c9eff;transform:translateX(-2px)}
+
+</style>
+</head>
+<body>
+<a class="back-home" href="../index.html#papers" aria-label="返回 Neural Reading Room">← 返回 Neural Reading Room</a>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="tag-row">
+    <span class="tag a">第 3 篇</span>
+    <span class="tag p">Fukunaga &amp; Hostetler 1975</span>
+    <span class="tag g">IEEE Trans. IT</span>
+  </div>
+  <h1>Mean Shift：<span class="em">50 年前</span>的老算法今天还在用</h1>
+  <p class="subtitle">"沿着密度梯度爬山"的非参数算法 —— Drifting Models 把它和 Drifting Field 焊接在了一起。</p>
+  <div class="meta">
+    <div class="item"><div class="label">参考</div><div class="value">Fukunaga &amp; Hostetler (1975)<br/>IEEE Trans. IT 21(1): 32-40</div></div>
+    <div class="item"><div class="label">难度</div><div class="value">⭐⭐ 入门级</div></div>
+    <div class="item"><div class="label">阅读时长</div><div class="value">~25 分钟</div></div>
+    <div class="item"><div class="label">前置</div><div class="value">基本概率、核函数</div></div>
+  </div>
+</header>
+
+<div class="toc">
+  <div class="toc-title">🗺️ 路线图</div>
+  <ol>
+    <li><a href="#s1">原始问题：要估计"概率密度梯度"</a></li>
+    <li><a href="#s2">核密度估计（Parzen 窗）</a></li>
+    <li><a href="#s3">Mean Shift 向量的定义</a></li>
+    <li><a href="#s4">关键定理：MS 向量 = 密度梯度</a></li>
+    <li><a href="#s5">Mean Shift 算法</a></li>
+    <li><a href="#s6">收敛性</a></li>
+    <li><a href="#s7">可视化：爬山的物理</a></li>
+    <li><a href="#s8">为什么非参数很重要？</a></li>
+    <li><a href="#s9">与 Drifting Models 的联系</a></li>
+    <li><a href="#s10">速查表</a></li>
+  </ol>
+</div>
+
+<!-- ============ §1 ============ -->
+<h2 id="s1"><span class="num">1</span> 原始问题：要估计"概率密度梯度"</h2>
+
+<p>1975 年，Fukunaga 和 Hostetler 在一篇 IEEE Trans. on Information Theory 上发表了一篇论文，标题是：</p>
+
+<div class="callout pink">
+  <div class="head">📄 论文标题</div>
+  <p style="font-style:italic">"The Estimation of the Gradient of a Density Function with Applications in Pattern Recognition"</p>
+</div>
+
+<p>也就是说，他们要解决的核心问题是：</p>
+
+<blockquote style="border-left:3px solid var(--accent);padding:12px 16px;color:var(--text-dim);background:var(--bg-card);border-radius:0 8px 8px 0">
+"给你一堆样本 {xᵢ}，它们来自某个未知分布 p(x)。在不假设 p 的形式（高斯、均匀等）的前提下，怎么估计 p 的<strong>梯度</strong> ∇p(x)？"
+</blockquote>
+
+<p>为什么关心梯度？</p>
+<ul>
+  <li>梯度指向<strong>密度增加最快</strong>的方向</li>
+  <li>顺着梯度爬山 → 找到<strong>密度峰值（mode）</strong></li>
+  <li>模式（peak）天然就是"聚类中心"</li>
+  <li>于是梯度估计直接变成<strong>非参数聚类</strong></li>
+</ul>
+
+<div class="callout good">
+  <div class="head">🎯 这一招的厉害之处</div>
+  <p>不假设分布形态、不预设聚类个数、还能找到任意形状的 cluster —— 一个公式搞定。这套思路 50 年来一直没过时，<strong>Drifting Models 把它用到了极致</strong>。</p>
+</div>
+
+<!-- ============ §2 ============ -->
+<h2 id="s2"><span class="num">2</span> 核密度估计（Parzen 窗）</h2>
+
+<p>先快速回顾"非参数密度估计"。给定样本 {x₁, ..., x<sub>N</sub>}，要估计 p(x) 在任意点 x 处的值。</p>
+
+<h3>2.1 直方图法（最朴素）</h3>
+
+<p>把空间切成网格，统计每个格子里的样本数除以总体积。这方法简单但有网格依赖、维度灾难。</p>
+
+<h3>2.2 Parzen 窗（核密度估计）</h3>
+
+<div class="eq">
+<span class="tag">(2.1) — Parzen 窗估计</span>
+p̂(x)  =  (1 / (N hᵈ))  ·  Σᵢ₌₁ᴺ  K( (x − xᵢ) / h )
+</div>
+
+<p>用人话说：</p>
+<ul>
+  <li>每个样本 xᵢ 都"贡献"一个以它为中心的小山峰 K</li>
+  <li>把所有山峰加起来，归一化，就是 p̂</li>
+  <li><strong>h</strong> 是带宽（bandwidth），控制山峰的胖瘦</li>
+  <li><strong>K</strong> 是核函数（一般是高斯）</li>
+</ul>
+
+<div class="callout">
+  <div class="head">💡 直觉</div>
+  <p>如果 x 附近样本多 → 山峰叠加高 → p̂(x) 大。<br/>如果 x 附近样本少 → 山峰叠加低 → p̂(x) 小。</p>
+  <p>这就是"非参数"的意思 —— 我们没假设 p 是高斯/均匀，而是让数据自己说话。</p>
+</div>
+
+<!-- ============ §3 ============ -->
+<h2 id="s3"><span class="num">3</span> Mean Shift 向量的定义</h2>
+
+<p>现在我们对 p̂ 求梯度。Parzen 窗的梯度是：</p>
+
+<div class="eq">
+<span class="tag">(3.1)</span>
+∇p̂(x)  =  (1 / (N hᵈ))  ·  Σᵢ  ∇K( (x − xᵢ) / h )
+</div>
+
+<p>对径向对称的核 K(z) = k(‖z‖²)，有 ∇K(z) = 2 k'(‖z‖²) · z。所以：</p>
+
+<div class="eq">
+<span class="tag">(3.2)</span>
+∇p̂(x)  =  (2 / (N hᵈ⁺²))  ·  Σᵢ  k'(‖x − xᵢ‖²/h²)  ·  (xᵢ − x)
+</div>
+
+<p>定义 <strong>g(x) := −k'(x)</strong>（K 的"导核"），则：</p>
+
+<div class="eq">
+<span class="tag">(3.3)</span>
+∇p̂(x)  =  (2 / (N hᵈ⁺²))  ·  [ Σᵢ g(‖x − xᵢ‖²/h²) ]  ·  [ m(x) − x ]
+</div>
+
+<p>其中 m(x) 是<strong>加权平均</strong>：</p>
+
+<div class="eq">
+<span class="tag">(3.4) — Mean Shift 关键公式</span>
+m(x)  :=   Σᵢ  g(‖x − xᵢ‖²/h²) · xᵢ   /   Σᵢ  g(‖x − xᵢ‖²/h²)
+</div>
+
+<p>即<strong>每个样本 xᵢ 按权重 g 贡献，向量差 m(x) − x 就是"偏移量"</strong> —— 这就是 <strong>Mean Shift 向量</strong>！</p>
+
+<div class="callout pink">
+  <div class="head">🌟 关键观察</div>
+  <p>从 (3.3) 看，<strong>∇p̂(x) 永远与 (m(x) − x) 方向一致</strong>（因为前面的系数是正的）。</p>
+  <p>这意味着：<strong>Mean Shift 向量指向密度增加最快的方向</strong>。</p>
+  <p>这正是我们要找的"梯度"！</p>
+</div>
+
+<!-- ============ §4 ============ -->
+<h2 id="s4"><span class="num">4</span> 关键定理：MS 向量 = 密度梯度</h2>
+
+<div class="eq">
+<span class="tag">(4.1) — Fukunaga-Hostetler 定理 (1975)</span>
+设 p̂(x) 是 Parzen 窗估计（公式 2.1），g(x) = −k'(x)，则：<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;m(x) − x   ∝   ∇p̂(x)
+</div>
+
+<p>也就是说，沿着 m(x) − x 的方向走 = 沿着密度梯度爬山。</p>
+
+<h3>4.1 一个具体例子</h3>
+
+<p>用高斯核 K(z) = exp(−‖z‖²/2)，则 g(z) = K(z)（高斯核是自导的）。</p>
+
+<div class="eq">
+<span class="tag">(4.2) — 高斯核 Mean Shift</span>
+m(x)  =   Σᵢ  exp(−‖x − xᵢ‖²/2h²) · xᵢ   /   Σᵢ  exp(−‖x − xᵢ‖²/2h²)
+</div>
+
+<p>这是<strong>高斯加权平均</strong>。每个样本 xᵢ 的权重按它离 x 的距离衰减。</p>
+
+<p>算法只要说：<em>"x 应该往样本加权重心 m(x) 走"</em>，就自动实现密度梯度上升。</p>
+
+<!-- ============ §5 ============ -->
+<h2 id="s5"><span class="num">5</span> Mean Shift 算法</h2>
+
+<p>把上面的"梯度方向"变成迭代算法：</p>
+
+<div class="callout good">
+  <div class="head">📜 算法伪代码</div>
+<pre style="background:var(--bg-eq);border:1px solid var(--line);border-left:3px solid var(--accent-3);border-radius:0 8px 8px 0;padding:14px;font-family:'SF Mono',monospace;font-size:13px;color:var(--text);line-height:1.7;overflow-x:auto">
+输入:  初始点 x⁽⁰⁾，核 K，带宽 h，样本 {xᵢ}
+循环:
+   1.  计算加权平均 m(x⁽ᵗ⁾)
+   2.  更新 x⁽ᵗ⁺¹⁾  :=  m(x⁽ᵗ⁾)
+   3.  if ‖x⁽ᵗ⁺¹⁾ − x⁽ᵗ⁾‖ &lt; ε:  break
+输出:  x*
+</pre>
+</div>
+
+<p>就这样，3 步搞定。</p>
+
+<h3>5.1 直观理解</h3>
+
+<ul>
+  <li>第 1 步：算当前位置的"邻域加权重心"</li>
+  <li>第 2 步：跳过去</li>
+  <li>第 3 步：判断稳没稳，没稳就继续</li>
+</ul>
+
+<p>每一步都<strong>爬一截坡</strong>，最终会停在某个 peak 上。</p>
+
+<h3>5.2 为什么不停在鞍点？</h3>
+
+<p>Mean Shift 在 mode（局部极大）处 m(x) = x（因为周围对称，加权重心 = x 本身），所以算法自然停在 mode。<strong>不动点 = 局部极大</strong>。</p>
+
+<div class="callout warn">
+  <div class="head">⚠️ 不是全局最大</div>
+  <p>Mean Shift 只能找到"附近的"局部峰，<strong>不能保证是全局最大</strong>。所以多模态分布下，从不同起点会爬到不同 peak —— 这恰好是聚类想要的！</p>
+</div>
+
+<!-- ============ §6 ============ -->
+<h2 id="s6"><span class="num">6</span> 收敛性</h2>
+
+<p>Comaniciu &amp; Meer 在 2002 年给出了一个严格证明（其实 1975 年 Fukunaga 就讨论过收敛）：</p>
+
+<div class="eq">
+<span class="tag">(6.1) — 收敛定理</span>
+若核 K 满足：<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(a) 严格正（strictly positive）<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(b) 轮廓 k 单调递减且凸<br/>
+则 Mean Shift 序列 {x⁽ᵗ⁾} <strong>单调收敛</strong>到最近的 mode。
+</div>
+
+<p>收敛的判断依据：每步都让 p̂(x⁽ᵗ⁺¹⁾) ≥ p̂(x⁽ᵗ⁾)。也就是说：</p>
+<ul>
+  <li><strong>每一步都在"爬山"</strong>，密度不下降</li>
+  <li><strong>序列单调收敛</strong>到最近峰</li>
+  <li><strong>有限步收敛</strong>（实践中）</li>
+</ul>
+
+<!-- ============ §7 ============ -->
+<h2 id="s7"><span class="num">7</span> 可视化：爬山的物理</h2>
+
+<div class="mathbox">
+  <div class="mathbox-title">图：Mean Shift 算法沿密度梯度爬山的过程</div>
+<svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7c9eff" stop-opacity="0.5"/>
+      <stop offset="60%" stop-color="#7c9eff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#7c9eff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bg2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.5"/>
+      <stop offset="60%" stop-color="#c084fc" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#c084fc" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bg3" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.5"/>
+      <stop offset="60%" stop-color="#34d399" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="720" height="360" fill="#14171f"/>
+
+  <!-- Three modes -->
+  <circle cx="160" cy="180" r="100" fill="url(#bg1)"/>
+  <circle cx="360" cy="180" r="110" fill="url(#bg2)"/>
+  <circle cx="560" cy="180" r="100" fill="url(#bg3)"/>
+
+  <!-- Sample points scattered -->
+  <g fill="#9aa3b8" opacity="0.5">
+    <circle cx="100" cy="160" r="2"/>
+    <circle cx="140" cy="200" r="2"/>
+    <circle cx="180" cy="140" r="2"/>
+    <circle cx="200" cy="220" r="2"/>
+    <circle cx="120" cy="180" r="2"/>
+    <circle cx="320" cy="160" r="2"/>
+    <circle cx="380" cy="200" r="2"/>
+    <circle cx="350" cy="140" r="2"/>
+    <circle cx="400" cy="220" r="2"/>
+    <circle cx="520" cy="160" r="2"/>
+    <circle cx="580" cy="200" r="2"/>
+    <circle cx="600" cy="140" r="2"/>
+    <circle cx="540" cy="220" r="2"/>
+  </g>
+
+  <!-- Trajectory -->
+  <g stroke="#7c9eff" stroke-width="2.5" fill="none">
+    <path d="M 220 280 Q 240 240, 200 200 Q 180 170, 160 180" stroke-dasharray="0"/>
+  </g>
+
+  <!-- Start point -->
+  <circle cx="220" cy="280" r="6" fill="#fbbf24"/>
+  <text x="225" y="305" fill="#fbbf24" font-size="12" font-weight="600">起点 x⁽⁰⁾</text>
+
+  <!-- End point -->
+  <circle cx="160" cy="180" r="6" fill="#7c9eff"/>
+  <text x="120" y="115" fill="#7c9eff" font-size="12" font-weight="600">Mode x*</text>
+
+  <!-- Vectors -->
+  <g stroke="#34d399" stroke-width="2">
+    <line x1="220" y1="280" x2="245" y2="255"/>
+    <line x1="245" y1="255" x2="220" y2="220"/>
+    <line x1="220" y1="220" x2="190" y2="195"/>
+  </g>
+
+  <text x="60" y="40" fill="#e6e9f2" font-size="13" font-weight="600">Mean Shift 沿密度梯度爬山</text>
+  <text x="60" y="335" fill="#9aa3b8" font-size="11">绿箭头 = 每步 MS 向量；蓝线 = 整体轨迹；最终停在密度峰</text>
+</svg>
+</div>
+
+<p class="small muted" style="text-align:center">
+从黄点开始，每步沿梯度走一段距离，最终停在最近的蓝色密度峰。三个 mode 各吸引附近的起点 —— 这就是聚类的几何直觉。
+</p>
+
+<!-- ============ §8 ============ -->
+<h2 id="s8"><span class="num">8</span> 为什么非参数很重要？</h2>
+
+<p>对比一下参数化 vs 非参数化方法：</p>
+
+<table>
+  <thead><tr><th></th><th>参数化 (e.g. GMM)</th><th>非参数 (Mean Shift)</th></tr></thead>
+  <tbody>
+    <tr><td>分布假设</td><td>必须假设形态（高斯混合）</td><td>无假设</td></tr>
+    <tr><td>聚类个数</td><td>需要预先指定 K</td><td>自动确定</td></tr>
+    <tr><td>聚类形状</td><td>只能识别椭球形</td><td>任意形状</td></tr>
+    <tr><td>计算复杂度</td><td>O(NKd) EM 迭代</td><td>O(N²) 但简单</td></tr>
+    <tr><td>理论基础</td><td>概率模型</td><td>核密度估计</td></tr>
+  </tbody>
+</table>
+
+<div class="callout good">
+  <div class="head">🎯 Mean Shift 的独特卖点</div>
+  <p><strong>自动聚类 + 任意形状 + 无分布假设</strong>，代价是计算贵些。但 50 年后看，这点代价换来的灵活性很值。</p>
+</div>
+
+<!-- ============ §9 ============ -->
+<h2 id="s9"><span class="num">9</span> 与 Drifting Models 的联系</h2>
+
+<p>Drifting Models 的核心公式：</p>
+
+<div class="eq">
+<span class="tag">(9.1)</span>
+V<sub>p</sub><sup>+</sup>(x)  =   𝔼<sub>y~p</sub>[ k(x, y) (y − x) ]  /  𝔼<sub>y~p</sub>[ k(x, y) ]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=   m<sub>p</sub>(x)  −  x
+</div>
+
+<p>其中 m<sub>p</sub>(x) 是<em>对数据分布做 Mean Shift 的"加权重心"</em>！</p>
+
+<div class="callout pink">
+  <div class="head">🌟 关键联系</div>
+  <p>Mean Shift 一步：x → m(x)，其中 m 是加权重心。</p>
+  <p>Drifting Models 的 V<sub>p</sub><sup>+</sup>(x) = m<sub>p</sub>(x) − x，<strong>正好就是 Mean Shift 的步进向量</strong>。</p>
+  <p>Drifting Models 等价于<strong>同时对数据分布 p 和当前分布 q 各做一次 Mean Shift，再把两个方向相减</strong>。</p>
+</div>
+
+<h3>9.1 对比表</h3>
+
+<table>
+  <thead><tr><th></th><th>Mean Shift (1975)</th><th>Drifting Models (2026)</th></tr></thead>
+  <tbody>
+    <tr><td>动力学对象</td><td>样本点 x⁽ᵗ⁾</td><td>网络参数 θ</td></tr>
+    <tr><td>分布演化</td><td>不动（样本爬到 mode）</td><td>q<sub>θ</sub> 持续演化</td></tr>
+    <tr><td>用到的 Mean Shift</td><td>对数据做一次</td><td>对 p 和 q 各做一次，差向量</td></tr>
+    <tr><td>目标</td><td>找密度峰（聚类）</td><td>让 q → p（分布匹配）</td></tr>
+    <tr><td>收敛到</td><td>mode</td><td>V ≡ 0（即 q = p）</td></tr>
+  </tbody>
+</table>
+
+<h3>9.2 直觉图</h3>
+
+<div class="mathbox">
+  <div class="mathbox-title">图：Drifting = 双向 Mean Shift</div>
+<svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="gradBlue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gradOrange" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c9eff"/>
+    </marker>
+    <marker id="arrowG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#34d399"/>
+    </marker>
+    <marker id="arrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b"/>
+    </marker>
+  </defs>
+
+  <rect width="720" height="280" fill="#14171f"/>
+
+  <text x="360" y="30" fill="#e6e9f2" font-size="14" font-weight="600" text-anchor="middle">Drifting = 对 p 做 MS，减去对 q 做 MS</text>
+
+  <!-- p cloud (right) -->
+  <circle cx="540" cy="160" r="80" fill="url(#gradBlue)"/>
+  <g fill="#34d399">
+    <circle cx="510" cy="140" r="4"/>
+    <circle cx="550" cy="155" r="4"/>
+    <circle cx="535" cy="175" r="4"/>
+    <circle cx="565" cy="170" r="4"/>
+    <circle cx="525" cy="160" r="4"/>
+  </g>
+  <text x="540" y="245" fill="#34d399" font-size="12" text-anchor="middle">p: 数据分布</text>
+
+  <!-- q cloud (left) -->
+  <circle cx="180" cy="160" r="60" fill="url(#gradOrange)"/>
+  <g fill="#f59e0b">
+    <circle cx="160" cy="145" r="4"/>
+    <circle cx="190" cy="170" r="4"/>
+    <circle cx="175" cy="155" r="4"/>
+    <circle cx="200" cy="155" r="4"/>
+  </g>
+  <text x="180" y="245" fill="#f59e0b" font-size="12" text-anchor="middle">q: 模型分布</text>
+
+  <!-- Generated point x -->
+  <circle cx="280" cy="160" r="6" fill="#e6e9f2"/>
+  <text x="280" y="180" fill="#e6e9f2" font-size="11" text-anchor="middle">x</text>
+
+  <!-- V_p+ (toward p) -->
+  <line x1="280" y1="160" x2="450" y2="155" stroke="#34d399" stroke-width="2.5" marker-end="url(#arrowG)"/>
+  <text x="370" y="148" fill="#34d399" font-size="13" font-weight="600">V<sub>p</sub><sup>+</sup> = m<sub>p</sub>(x) − x</text>
+  <text x="370" y="135" fill="#9aa3b8" font-size="10">数据加权重心拉</text>
+
+  <!-- V_q- (away from q) -->
+  <line x1="280" y1="160" x2="220" y2="155" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrowR)"/>
+  <text x="220" y="148" fill="#f59e0b" font-size="13" font-weight="600">−V<sub>q</sub><sup>−</sup></text>
+  <text x="220" y="135" fill="#9aa3b8" font-size="10">模型推离</text>
+
+  <!-- V (final) -->
+  <line x1="280" y1="160" x2="420" y2="155" stroke="#7c9eff" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="350" y="200" fill="#7c9eff" font-size="14" font-weight="700" text-anchor="middle">V = V<sub>p</sub><sup>+</sup> − V<sub>q</sub><sup>−</sup></text>
+</svg>
+</div>
+
+<h3>9.3 为什么 Drifting 用"差"而不是"和"？</h3>
+
+<p>Mean Shift 用 V = m(x) − x，只考虑"现在该往哪儿走"（数据方向）。</p>
+
+<p>Drifting 用 V = (m<sub>p</sub>(x) − x) − (m<sub>q</sub>(x) − x) = m<sub>p</sub>(x) − m<sub>q</sub>(x)：</p>
+
+<ul>
+  <li><strong>正项</strong>：把 x 拉向数据加权重心</li>
+  <li><strong>负项</strong>：把 x 推离当前生成分布的加权重心（防止堆在 q 密集处）</li>
+</ul>
+
+<p>两者结合 → 样本从"现状"流向"数据"，且不会被 q 自身的密度拉住。</p>
+
+<!-- ============ §10 ============ -->
+<h2 id="s10"><span class="num">10</span> 速查表</h2>
+
+<table>
+  <tbody>
+    <tr><th>核密度估计</th><td class="sym">p̂(x) = (1/Nhᵈ) Σᵢ K((x−xᵢ)/h)</td></tr>
+    <tr><th>Mean Shift 向量</th><td class="sym">m(x) − x，其中 m(x) = 加权重心</td></tr>
+    <tr><th>关键定理</th><td class="sym">m(x) − x ∝ ∇p̂(x)</td></tr>
+    <tr><th>高斯核版本</th><td class="sym">m(x) = Σᵢ e<sup>−‖x−xᵢ‖²/2h²</sup> xᵢ / Σ e<sup>−‖x−xᵢ‖²/2h²</sup></td></tr>
+    <tr><th>算法</th><td class="sym">x ← m(x)，直到收敛</td></tr>
+    <tr><th>收敛</th><td class="sym">单调收敛到最近的 mode</td></tr>
+    <tr><th>不动点</th><td class="sym">m(x*) = x* ⟺ x* 是局部极大</td></tr>
+    <tr><th>每步效果</th><td class="sym">p̂(x⁽ᵗ⁺¹⁾) ≥ p̂(x⁽ᵗ⁾)</td></tr>
+    <tr><th>带宽 h</th><td class="sym">越大越平滑、越易跨模态；越小越敏感</td></tr>
+    <tr><th>优点</th><td class="sym">非参数、自动 K、任意形状</td></tr>
+    <tr><th>缺点</th><td class="sym">O(N²)，高维慢</td></tr>
+    <tr><th>Drifting 中用法</th><td class="sym">V = m<sub>p</sub>(x) − m<sub>q</sub>(x)（双向差）</td></tr>
+  </tbody>
+</table>
+
+<!-- ============ 自检 ============ -->
+<h2><span class="num">11</span> 自检题</h2>
+
+<ol>
+  <li>为什么 Mean Shift 的不动点 = 局部密度极大点？</li>
+  <li>为什么每次更新 p̂ 都单调不减？</li>
+  <li>带宽 h 太大或太小会怎样？</li>
+  <li>Mean Shift 和 k-means 的根本区别是什么？</li>
+  <li>Drifting Models 用 V = m<sub>p</sub>(x) − m<sub>q</sub>(x) 而不是 V = m<sub>p</sub>(x) − x，有什么不同？</li>
+</ol>
+
+<div class="foot">
+  整理自 Fukunaga &amp; Hostetler (1975) "The Estimation of the Gradient of a Density Function with Applications in Pattern Recognition", IEEE Trans. IT 21(1): 32-40。<br/>
+  配套推荐：Comaniciu &amp; Meer (2002) "Mean Shift: A Robust Approach Toward Feature Space Analysis", IEEE PAMI 24(5): 603-619（含完整收敛证明 + 计算机视觉应用）。
+</div>
+
+</div>
+</body>
+</html>

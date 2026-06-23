@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Generative Modeling via Drifting — 论文精讲</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg-card: #14171f;
+    --bg-soft: #1c2030;
+    --line: #262b3b;
+    --text: #e6e9f2;
+    --text-dim: #9aa3b8;
+    --text-mute: #6b7388;
+    --accent: #7c9eff;
+    --accent-2: #c084fc;
+    --accent-3: #34d399;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --code-bg: #0e1018;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 48px 28px 80px; }
+
+  /* ===== Top bar / hero ===== */
+  .hero {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 32px;
+    margin-bottom: 40px;
+  }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: var(--bg-soft);
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+  }
+  .tag.accent { background: rgba(124,158,255,0.12); color: var(--accent); border-color: rgba(124,158,255,0.3); }
+  .tag.accent2 { background: rgba(192,132,252,0.12); color: var(--accent-2); border-color: rgba(192,132,252,0.3); }
+  .tag.accent3 { background: rgba(52,211,153,0.12); color: var(--accent-3); border-color: rgba(52,211,153,0.3); }
+  h1 {
+    font-size: 36px;
+    line-height: 1.25;
+    margin: 0 0 14px;
+    letter-spacing: -0.5px;
+  }
+  h1 .em {
+    background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 16px;
+    margin: 0 0 22px;
+  }
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .meta .item {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .meta .label {
+    font-size: 11px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .meta .value { font-size: 14px; color: var(--text); margin-top: 4px; }
+
+  /* ===== Sections ===== */
+  h2 {
+    font-size: 24px;
+    margin: 56px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .num {
+    display: inline-flex;
+    width: 30px; height: 30px;
+    align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #0b0d12;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 18px;
+    margin: 28px 0 10px;
+    color: var(--text);
+  }
+  p { margin: 10px 0; color: var(--text); }
+  ul, ol { padding-left: 22px; color: var(--text); }
+  li { margin: 6px 0; }
+  strong { color: #fff; }
+  em { color: var(--accent); font-style: normal; }
+
+  /* ===== TL;DR box ===== */
+  .tldr {
+    background: linear-gradient(135deg, rgba(124,158,255,0.08), rgba(192,132,252,0.08));
+    border: 1px solid rgba(124,158,255,0.25);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin: 24px 0;
+  }
+  .tldr-title {
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tldr p { color: var(--text); }
+
+  /* ===== Comparison cards ===== */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  @media (max-width: 720px) {
+    .compare { grid-template-columns: 1fr; }
+    h1 { font-size: 28px; }
+  }
+  .cmp-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .cmp-card.diff { border-left: 3px solid var(--warn); }
+  .cmp-card.drift { border-left: 3px solid var(--accent); }
+  .cmp-card h4 {
+    margin: 0 0 10px;
+    font-size: 15px;
+    color: var(--text);
+  }
+  .cmp-card.diff h4 { color: var(--warn); }
+  .cmp-card.drift h4 { color: var(--accent); }
+  .cmp-card ul { margin: 6px 0 0; padding-left: 18px; }
+  .cmp-card li { font-size: 14px; color: var(--text-dim); }
+
+  /* ===== Equation box ===== */
+  .eq {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin: 14px 0;
+    font-family: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 14px;
+    color: var(--text);
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+  .eq .label {
+    display: inline-block;
+    color: var(--text-mute);
+    margin-right: 10px;
+    font-size: 12px;
+    min-width: 40px;
+  }
+  .eq .v { color: var(--accent); }
+  .eq .p { color: var(--accent-3); }
+  .eq .q { color: var(--warn); }
+  .eq .r { color: var(--danger); }
+
+  /* ===== Drift diagram ===== */
+  .diagram {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+    margin: 22px 0;
+  }
+  .diagram-title {
+    font-size: 13px;
+    color: var(--text-mute);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .svg-wrap { width: 100%; overflow-x: auto; }
+  svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  /* ===== Results table ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 14px;
+    background: var(--bg-card);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    background: var(--bg-soft);
+    font-weight: 600;
+    color: var(--text-dim);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  td { color: var(--text); }
+  td .num { font-family: "SF Mono", "JetBrains Mono", monospace; }
+  tr:last-child td { border-bottom: none; }
+  tr.highlight { background: rgba(124,158,255,0.06); }
+  tr.highlight td:first-child { color: var(--accent); font-weight: 600; }
+
+  /* ===== Insight callout ===== */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--bg-card);
+    padding: 16px 18px;
+    border-radius: 0 10px 10px 0;
+    margin: 18px 0;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.good { border-left-color: var(--accent-3); }
+  .callout .head {
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--accent);
+  }
+  .callout.warn .head { color: var(--warn); }
+  .callout.good .head { color: var(--accent-3); }
+
+  /* ===== Flow ===== */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    margin: 22px 0;
+    flex-wrap: wrap;
+  }
+  .flow .step {
+    flex: 1;
+    min-width: 140px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    position: relative;
+  }
+  .flow .step .icon { font-size: 22px; margin-bottom: 6px; }
+  .flow .step .name { font-weight: 600; color: var(--text); font-size: 14px; }
+  .flow .step .desc { font-size: 12px; color: var(--text-mute); margin-top: 4px; }
+  .flow .arrow {
+    align-self: center;
+    color: var(--accent);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  /* ===== Footer ===== */
+  .foot {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--text-mute);
+    font-size: 13px;
+    text-align: center;
+  }
+  .foot a { color: var(--accent); text-decoration: none; }
+
+  .small { font-size: 13px; color: var(--text-dim); }
+  .muted { color: var(--text-mute); }
+
+.back-home{position:fixed;top:20px;left:20px;z-index:9999;padding:8px 16px;background:rgba(20,23,31,.92);border:1px solid #262b3b;border-radius:8px;color:#e6e9f2;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;font-weight:500;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .2s ease}
+.back-home:hover{background:rgba(124,158,255,.18);border-color:#7c9eff;color:#7c9eff;transform:translateX(-2px)}
+
+</style>
+</head>
+<body>
+<a class="back-home" href="../index.html#papers" aria-label="返回 Neural Reading Room">← 返回 Neural Reading Room</a>
+
+<div class="wrap">
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="tag-row">
+    <span class="tag accent">arXiv 2602.04770</span>
+    <span class="tag accent2">Generative Models</span>
+    <span class="tag accent3">One-Step Inference</span>
+    <span class="tag">2026.02.04</span>
+  </div>
+  <h1>Generative Modeling via <span class="em">Drifting</span></h1>
+  <p class="subtitle">何恺明团队新作：把扩散模型"推理时的迭代"搬到训练里，<strong>1 步生成</strong>就达到 SOTA。</p>
+
+  <div class="meta">
+    <div class="item">
+      <div class="label">一作</div>
+      <div class="value">Mingyang Deng（MIT · 何恺明组）</div>
+    </div>
+    <div class="item">
+      <div class="label">作者</div>
+      <div class="value">Deng, Li, Li, Du, <strong>He</strong></div>
+    </div>
+    <div class="item">
+      <div class="label">核心范式</div>
+      <div class="value">Drifting Models（漂移模型）</div>
+    </div>
+    <div class="item">
+      <div class="label">推理成本</div>
+      <div class="value">1-NFE（单次前向）</div>
+    </div>
+    <div class="item">
+      <div class="label">ImageNet 256×256 FID</div>
+      <div class="value"><strong style="color:var(--accent)">1.54</strong>（潜空间，1-NFE SOTA）</div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ TL;DR ============ -->
+<div class="tldr">
+  <div class="tldr-title">⚡ 一句话总结</div>
+  <p>
+    <strong>扩散/流匹配</strong> 在 <em>推理时</em> 用 ODE/SDE 迭代地把噪声变数据。
+    <strong>Drifting Models</strong> 反过来 —— 让一个<em>单次前向</em>的神经网络在 <em>训练时</em> 通过
+    <strong>drifting field（漂移场）</strong> 持续推动生成分布演化，直到它和数据分布对齐。
+    训练完，推理只需一次前向；FID 还能跟多步扩散掰手腕。
+  </p>
+</div>
+
+<!-- ============ 1. 痛点 ============ -->
+<h2><span class="num">1</span> 为什么要做这件事？</h2>
+
+<p>
+扩散模型（Denoising Diffusion）和流匹配（Flow Matching）统治了高质量生成，但它们有个绕不开的成本——
+<strong>推理时要迭代几十到几百步</strong>。这导致实时生成、端侧部署、机器人控制等场景很吃亏。
+</p>
+
+<p>过去几年大家要么<em>蒸馏</em>多步模型成单步（蒸馏路径），要么从零设计单步生成器。这篇论文属于第二条路，
+而且走了一条完全不同的思路。</p>
+
+<div class="compare">
+  <div class="cmp-card diff">
+    <h4>🔁 传统扩散 / 流匹配</h4>
+    <ul>
+      <li><strong>训练</strong>：学一个向量场 v(x, t)</li>
+      <li><strong>推理</strong>：从噪声出发，ODE 迭代 N 步</li>
+      <li><strong>瓶颈</strong>：N 大，质量好但慢</li>
+    </ul>
+  </div>
+  <div class="cmp-card drift">
+    <h4>🌀 Drifting Models（本文）</h4>
+    <ul>
+      <li><strong>训练</strong>：单次前向网络 f，分布随训练迭代自动演化</li>
+      <li><strong>推理</strong>：一步前向，结束</li>
+      <li><strong>核心</strong>：把"迭代"挪到训练侧</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 2. 形式化 ============ -->
+<h2><span class="num">2</span> 问题形式化</h2>
+
+<p>所有生成模型都可以这么描述：学一个映射 <span style="color:var(--accent)"><strong>f</strong></span>，
+让它的<strong>推前分布（pushforward）</strong>
+<span class="eq-inline" style="color:var(--accent-3)"><strong>f<sub>#</sub>p<sub>prior</sub></strong></span>
+逼近真实数据分布 <span style="color:var(--warn)"><strong>p<sub>data</sub></strong></span>。</p>
+
+<div class="eq">
+<span class="label">目标</span>  <span class="v">f<sub>#</sub></span><span class="p">p<sub>prior</sub></span>  ≈  <span class="q">p<sub>data</sub></span>
+</div>
+
+<p>差异只在 <em>"分布怎么对齐"</em>：</p>
+
+<ul>
+  <li><strong>扩散 / 流匹配</strong>：推理时迭代 <span class="eq-inline" style="font-family:monospace">x<sub>t+1</sub> = x<sub>t</sub> + ε·v(x<sub>t</sub>, t)</span>，让分布沿 ODE 流动</li>
+  <li><strong>Drifting Models</strong>：训练时通过 <em>drifting field</em> 直接推动推前分布演化，<span style="color:var(--accent-3)">不依赖任何 ODE/SDE</span></li>
+</ul>
+
+<div class="callout">
+  <div class="head">💡 关键观察</div>
+  <p>深度学习的训练过程本身<em>就是</em>迭代的（SGD/Adam 一遍遍走 step）。Drifting Models 索性让"分布的演化轨迹"和"网络参数的优化轨迹"自然耦合起来 —— 不再需要人为设计 ODE 求解器。</p>
+</div>
+
+<!-- ============ 3. Drifting Field ============ -->
+<h2><span class="num">3</span> 核心机制：Drifting Field</h2>
+
+<p>怎么让样本"飘"向数据？论文引入一个向量场 <span style="color:var(--accent)"><strong>V(x)</strong></span>，
+作用在每个生成样本上，告诉它"该往哪走"。</p>
+
+<div class="eq">
+<span class="label">场分解</span>  <span class="v">V</span>(x)  =  <span class="p">V<sup>+</sup><sub>p</sub></span>(x)  −  <span class="q">V<sup>−</sup><sub>q</sub></span>(x)
+</div>
+
+<p>含义很直观：</p>
+
+<ul>
+  <li><strong style="color:var(--accent-3)">V<sup>+</sup><sub>p</sub>(x)</strong> — <em>正样本（真实数据）</em>对样本 x 的"吸引力"，把 x 拉向数据密集区</li>
+  <li><strong style="color:var(--warn)">V<sup>−</sup><sub>q</sub>(x)</strong> — <em>负样本（当前模型生成）</em>对 x 的"排斥力"，防止生成样本堆积</li>
+</ul>
+
+<!-- ===== Diagram ===== -->
+<div class="diagram">
+  <div class="diagram-title">图：漂移场的几何直觉</div>
+  <div class="svg-wrap">
+<svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c9eff"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#34d399"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b"/>
+    </marker>
+    <radialGradient id="gradBlue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gradOrange" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- bg -->
+  <rect width="720" height="320" fill="#14171f"/>
+
+  <!-- data mode A -->
+  <circle cx="200" cy="120" r="90" fill="url(#gradBlue)"/>
+  <!-- data mode B -->
+  <circle cx="520" cy="200" r="90" fill="url(#gradBlue)"/>
+
+  <!-- generated cluster (orange) -->
+  <ellipse cx="360" cy="160" rx="55" ry="30" fill="url(#gradOrange)"/>
+
+  <!-- generated samples (black) -->
+  <g fill="#0b0d12" stroke="#e6e9f2" stroke-width="1.5">
+    <circle cx="340" cy="150" r="5"/>
+    <circle cx="365" cy="155" r="5"/>
+    <circle cx="380" cy="170" r="5"/>
+    <circle cx="355" cy="175" r="5"/>
+  </g>
+
+  <!-- data samples (blue) -->
+  <g fill="#34d399">
+    <circle cx="180" cy="110" r="4"/>
+    <circle cx="210" cy="135" r="4"/>
+    <circle cx="195" cy="140" r="4"/>
+    <circle cx="500" cy="195" r="4"/>
+    <circle cx="525" cy="210" r="4"/>
+    <circle cx="540" cy="185" r="4"/>
+  </g>
+
+  <!-- attraction vectors (green) from one gen sample to data -->
+  <line x1="355" y1="155" x2="220" y2="125" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrG)" stroke-dasharray="4 3"/>
+  <line x1="355" y1="155" x2="510" y2="200" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrG)" stroke-dasharray="4 3"/>
+
+  <!-- repulsion vectors (orange) from gen sample to other gen samples -->
+  <line x1="355" y1="155" x2="395" y2="135" stroke="#f59e0b" stroke-width="1.2" marker-end="url(#arrR)" stroke-dasharray="3 3"/>
+  <line x1="355" y1="155" x2="345" y2="190" stroke="#f59e0b" stroke-width="1.2" marker-end="url(#arrR)" stroke-dasharray="3 3"/>
+
+  <!-- final drift vector V (blue) -->
+  <line x1="355" y1="155" x2="290" y2="125" stroke="#7c9eff" stroke-width="3" marker-end="url(#arr)"/>
+
+  <!-- labels -->
+  <text x="200" y="60" fill="#34d399" font-size="13" font-weight="600" text-anchor="middle">数据分布 p (正样本)</text>
+  <text x="360" y="240" fill="#f59e0b" font-size="13" font-weight="600" text-anchor="middle">生成分布 q (负样本)</text>
+  <text x="355" y="148" fill="#e6e9f2" font-size="11" text-anchor="middle">x</text>
+  <text x="250" y="115" fill="#34d399" font-size="11">V<sub>p</sub><sup>+</sup> 吸引</text>
+  <text x="410" y="125" fill="#f59e0b" font-size="11">V<sub>q</sub><sup>−</sup> 排斥</text>
+  <text x="305" y="115" fill="#7c9eff" font-size="13" font-weight="700">V = V<sub>p</sub><sup>+</sup> − V<sub>q</sub><sup>−</sup></text>
+</svg>
+  </div>
+  <p class="small muted" style="text-align:center;margin-top:10px">
+    每个生成样本 x 同时被真实样本吸引、被其他生成样本排斥，最终沿合成向量 V 漂移。当 q = p 时，V = 0，达到平衡。
+  </p>
+</div>
+
+<h3>平衡条件</h3>
+<div class="eq">
+<span class="label">平衡</span>  <span class="v">V</span>(x)  =  <span class="p">V<sup>+</sup><sub>p</sub></span>(x)  −  <span class="q">V<sup>−</sup><sub>q</sub></span>(x)  =  <span style="color:var(--accent-3)">0</span>   ⟺   <span class="p">p</span>  =  <span class="q">q</span>
+</div>
+
+<p>这是 Drifting Models 最漂亮的性质：<strong>只要两个分布匹配，漂移场自动归零，样本不再移动</strong>。
+不需要 ODE 解算器，不需要步长调度，纯靠 SGD 推动。</p>
+
+<!-- ============ 4. 训练 ============ -->
+<h2><span class="num">4</span> 训练目标</h2>
+
+<p>Drifting field 提供了方向，但怎么把它变成损失函数？论文给出一个非常简洁的目标：</p>
+
+<div class="eq">
+<span class="label">目标</span>  min<sub>θ</sub>  𝔼<sub>x ~ q<sub>θ</sub></sub> [ ‖<span class="v">V</span>(x)‖<sup>2</sup> ]
+</div>
+
+<p>直觉：让每个生成样本 x 都尽量"不动"，等价于让 q 沿着 V 演化的趋势停滞 —— 也就是让 q 逼近 p。</p>
+
+<h3>实际怎么估 V？</h3>
+<p>用 mini-batch 采样就够了：</p>
+<ul>
+  <li>从数据采 <strong>n<sub>p</sub></strong> 个正样本</li>
+  <li>从当前模型采 <strong>n<sub>q</sub></strong> 个负样本</li>
+  <li>用核函数（如高斯核）算样本间的相似度，加权聚合出 V</li>
+</ul>
+
+<p>论文还发现一个关键细节：<strong>必须让吸引项和排斥项在数学形式上反对称</strong>，否则训练会灾难性崩溃（消融实验验证过，故意打破对称 → FID 直接爆掉）。</p>
+
+<div class="callout warn">
+  <div class="head">⚠️ 为什么不会模式坍塌？</div>
+  <p>GAN 长期被 mode collapse 折磨。Drifting Models 不怕这件事 —— 如果当前 q 坍缩到某个模态，真实分布 p 里<em>其他</em>模态的样本仍会对生成样本产生吸引力，强行把它拽回来。论文用 2D 双峰 toy 实验验证了从坍缩初始化也能恢复。</p>
+</div>
+
+<!-- ============ 5. 流程图 ============ -->
+<h2><span class="num">5</span> 整体流程</h2>
+
+<div class="flow">
+  <div class="step">
+    <div class="icon">🎲</div>
+    <div class="name">采噪声</div>
+    <div class="desc">z ~ N(0, I)</div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="step">
+    <div class="icon">🧠</div>
+    <div class="name">f<sub>θ</sub> 一次前向</div>
+    <div class="desc">x = f<sub>θ</sub>(z)</div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="step">
+    <div class="icon">📊</div>
+    <div class="name">估 drifting field</div>
+    <div class="desc">基于正/负样本</div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="step">
+    <div class="icon">⬇️</div>
+    <div class="name">梯度下降</div>
+    <div class="desc">更新 θ</div>
+  </div>
+</div>
+
+<p class="small muted">训练循环：采 batch → 推前一次 → 估 V → 反向传播 → θ ← θ − η∇L。循环数千次后，q ≈ p，模型收敛。</p>
+
+<!-- ============ 6. 实验结果 ============ -->
+<h2><span class="num">6</span> 实验结果（重点）</h2>
+
+<p>ImageNet 256×256，1-NFE 推理 —— 这是最有说服力的场景：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>方法</th>
+      <th>类型</th>
+      <th>NFE</th>
+      <th>FID ↓</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>DiT-XL (扩散基线)</td>
+      <td>多步扩散</td>
+      <td class="num">250</td>
+      <td class="num">2.27</td>
+    </tr>
+    <tr>
+      <td>Consistency Models</td>
+      <td>蒸馏</td>
+      <td class="num">1</td>
+      <td class="num">6.20</td>
+    </tr>
+    <tr>
+      <td>GAN (StyleGAN-XL)</td>
+      <td>一步原生</td>
+      <td class="num">1</td>
+      <td class="num">2.30</td>
+    </tr>
+    <tr>
+      <td>Mean Flows (NeurIPS'25)</td>
+      <td>一步原生</td>
+      <td class="num">1</td>
+      <td class="num">2.20</td>
+    </tr>
+    <tr class="highlight">
+      <td>Drifting Model (Base)</td>
+      <td>一步原生</td>
+      <td class="num"><strong>1</strong></td>
+      <td class="num"><strong>1.75</strong></td>
+    </tr>
+    <tr class="highlight">
+      <td>Drifting Model (Large)</td>
+      <td>一步原生</td>
+      <td class="num"><strong>1</strong></td>
+      <td class="num" style="color:var(--accent);font-weight:700"><strong>1.54</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="small muted">注：以上是社区/论文综合的代表性数字，详细消融请看原论文。Drifting Models 同期/后续工作的对比非常强。</p>
+
+<h3>像素空间（不依赖 VAE）</h3>
+<table>
+  <thead>
+    <tr><th>方法</th><th>NFE</th><th>FLOPs</th><th>FID ↓</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>StyleGAN-XL</td>
+      <td class="num">1</td>
+      <td class="num">1574G</td>
+      <td class="num">2.30</td>
+    </tr>
+    <tr class="highlight">
+      <td>Drifting (像素)</td>
+      <td class="num">1</td>
+      <td class="num">87G</td>
+      <td class="num" style="color:var(--accent);font-weight:700">1.61</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>FLOPs 直接差了 <strong>18 倍</strong>，FID 还更好。</p>
+
+<div class="callout good">
+  <div class="head">🏆 单步生成新 SOTA</div>
+  <p>在标准潜空间协议下，<strong>Drifting-L/2 的 1-NFE FID = 1.54</strong> 超过所有已发表的 1-NFE 方法（包括 Consistency Models、SiD、iCT、Mean Flows 等）；与多步扩散模型（DiT-XL/2 250-NFE FID 2.27）比也具备竞争力，但推理成本降为 1/250。</p>
+</div>
+
+<h3>关键消融发现</h3>
+<ul>
+  <li><strong>反对称性</strong>：打破吸引/排斥的对称结构 → FID 灾难性崩溃（说明公式形式很关键，不是巧合）</li>
+  <li><strong>正负样本数</strong>：n<sub>p</sub>、n<sub>q</sub> 越大越好（更准的 V 估计）</li>
+  <li><strong>特征编码器</strong>：自监督预训练的 tokenizer（如 MAE）质量对结果至关重要 —— 表明<em>表征学习</em>直接喂给生成模型红利</li>
+</ul>
+
+<!-- ============ 7. 为什么 work ============ -->
+<h2><span class="num">7</span> 为什么这样 work？</h2>
+
+<div class="compare">
+  <div class="cmp-card drift">
+    <h4>🎯 设计哲学</h4>
+    <ul>
+      <li>不发明新网络结构，用现成的 DiT</li>
+      <li>不发明新采样器，<strong>没有采样器</strong></li>
+      <li>把"分布对齐"问题转化为"<em>优化问题</em>"，交给 SGD</li>
+    </ul>
+  </div>
+  <div class="cmp-card drift">
+    <h4>🔬 物理解释</h4>
+    <ul>
+      <li>drifting field 类似带电粒子在电场中的受力</li>
+      <li>正负样本形成"偶极子"，驱动样本运动</li>
+      <li>平衡 = q 落入 p 的"势阱"</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 8. 影响与后续 ============ -->
+<h2><span class="num">8</span> 影响与后续工作</h2>
+
+<p>这篇论文打开了一个<em>新的研究方向</em>。很快就有跟进：</p>
+
+<ul>
+  <li><strong>DrPO（西湖大学 & CUHK-Shenzhen）</strong>：把 drifting field 用到单步文生图的偏好对齐，3.51× 加速，且支持<em>不可微奖励</em></li>
+  <li><strong>W-Flow（Stanford）</strong>：把 drifting field 升级成 Wasserstein 梯度流，进一步把 ImageNet 1-NFE FID 推到 <strong>1.29</strong></li>
+  <li><strong>Mean Flows（NeurIPS'25 Oral，同组）</strong>：同期从另一角度研究一步生成</li>
+</ul>
+
+<p>这些工作共同说明：<em>训练动力学的设计</em>比"多步 → 蒸馏"这条路更有想象空间。</p>
+
+<div class="callout">
+  <div class="head">🧭 范式意义</div>
+  <p>过去几年生成模型主要在<em>网络结构</em>和<em>采样器</em>上卷。Drifting Models 指出另一条路：
+  <strong>设计分布演化的训练动力学</strong>。这给后续工作（甚至 RL 后训练、视频/3D 生成）留下了大空间。</p>
+</div>
+
+<!-- ============ 9. 速查表 ============ -->
+<h2><span class="num">9</span> 一页速查</h2>
+
+<table>
+  <tbody>
+    <tr>
+      <th style="width:30%">论文</th>
+      <td>Generative Modeling via Drifting<br/>
+          <span class="small muted">arXiv:2602.04770 · 2026.02.04</span></td>
+    </tr>
+    <tr>
+      <th>作者</th>
+      <td>Mingyang Deng, He Li, Tianhong Li, Yilun Du, Kaiming He</td>
+    </tr>
+    <tr>
+      <th>核心概念</th>
+      <td>Drifting Models · Drifting Field · 推前分布演化</td>
+    </tr>
+    <tr>
+      <th>关键公式</th>
+      <td style="font-family:monospace">V(x) = V<sub>p</sub><sup>+</sup>(x) − V<sub>q</sub><sup>−</sup>(x)</td>
+    </tr>
+    <tr>
+      <th>训练目标</th>
+      <td style="font-family:monospace">min E<sub>x~q</sub> [‖V(x)‖²]</td>
+    </tr>
+    <tr>
+      <th>推理代价</th>
+      <td><strong style="color:var(--accent)">1-NFE</strong>（一次前向）</td>
+    </tr>
+    <tr>
+      <th>核心结果</th>
+      <td>ImageNet 256×256：FID 1.54（潜空间）/ 1.61（像素）</td>
+    </tr>
+    <tr>
+      <th>主要优势</th>
+      <td>单步 · 防 mode collapse · 与表征学习协同</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============ 引用 ============ -->
+<h2><span class="num">10</span> 参考</h2>
+<ul class="small">
+  <li>Deng et al. <em>Generative Modeling via Drifting</em>. arXiv:2602.04770, 2026.</li>
+  <li>Ho et al. Denoising Diffusion Probabilistic Models. NeurIPS 2020.</li>
+  <li>Song et al. Consistency Models. ICML 2023.</li>
+  <li>Lipman et al. Flow Matching for Generative Modeling. ICLR 2023.</li>
+  <li>Geng et al. Mean Flows for One-step Generative Modeling. NeurIPS 2025 (Oral) — 同组同期工作。</li>
+</ul>
+
+<div class="foot">
+  整理自 arXiv:2602.04770 · 内容基于论文与公开解读（机器之心、CSDN 等）综合 · 仅供学习
+</div>
+
+</div>
+</body>
+</html>

@@ -12,3 +12,6 @@ tmp/
 ai-news-daily/
 design-demos/
 screenshots/
+
+# Paper publisher state (本地发布状态,跨机器不需要)
+.paper_publisher_state.json

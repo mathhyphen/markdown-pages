@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>02 · 核均值嵌入与 MMD — 把分布变成 Hilbert 空间里的一个点</title>
+<style>
+  :root {
+    --bg: #0b0d12; --bg-card: #14171f; --bg-soft: #1c2030; --bg-eq: #0e1018;
+    --line: #262b3b; --text: #e6e9f2; --text-dim: #9aa3b8; --text-mute: #6b7388;
+    --accent: #7c9eff; --accent-2: #c084fc; --accent-3: #34d399;
+    --warn: #f59e0b; --danger: #ef4444; --pink: #f472b6; --yellow: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.85;
+    -webkit-font-smoothing: antialiased; margin: 0;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 28px 80px; }
+
+  .hero { border-bottom: 1px solid var(--line); padding-bottom: 32px; margin-bottom: 40px; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: var(--bg-soft); color: var(--text-dim); border: 1px solid var(--line); }
+  .tag.a { background: rgba(124,158,255,0.12); color: var(--accent); border-color: rgba(124,158,255,0.3); }
+  .tag.g { background: rgba(52,211,153,0.12); color: var(--accent-3); border-color: rgba(52,211,153,0.3); }
+  .tag.p { background: rgba(192,132,252,0.12); color: var(--accent-2); border-color: rgba(192,132,252,0.3); }
+  h1 { font-size: 32px; line-height: 1.3; margin: 0 0 14px; letter-spacing: -0.5px; }
+  h1 .em { background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .subtitle { color: var(--text-dim); font-size: 16px; margin: 0; }
+  .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 18px; }
+  .meta .item { background: var(--bg-card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .meta .label { font-size: 11px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.6px; }
+  .meta .value { font-size: 14px; color: var(--text); margin-top: 4px; }
+
+  h2 { font-size: 24px; margin: 56px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+  h2 .num { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #0b0d12; border-radius: 8px; font-size: 14px; font-weight: 700; }
+  h3 { font-size: 18px; margin: 28px 0 10px; color: var(--text); }
+  h4 { font-size: 15px; margin: 18px 0 8px; color: var(--accent); font-weight: 600; }
+  p { margin: 10px 0; color: var(--text); }
+  ul, ol { padding-left: 22px; color: var(--text); }
+  li { margin: 6px 0; }
+  strong { color: #fff; }
+  em { color: var(--accent); font-style: normal; }
+  code { background: var(--bg-soft); padding: 1px 6px; border-radius: 4px; font-family: "SF Mono", "JetBrains Mono", monospace; font-size: 0.92em; color: var(--accent-3); }
+
+  .eq {
+    background: var(--bg-eq); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0; padding: 16px 18px; margin: 14px 0;
+    font-family: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 14.5px; color: var(--text); overflow-x: auto; line-height: 1.85;
+  }
+  .eq .tag { float: right; color: var(--text-mute); font-size: 12px; }
+  .eq .v { color: var(--accent); } .eq .p { color: var(--accent-3); }
+  .eq .q { color: var(--warn); } .eq .g { color: var(--accent-2); }
+  .eq .m { color: var(--pink); } .eq .k { color: var(--yellow); }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--bg-card); padding: 16px 18px; border-radius: 0 10px 10px 0; margin: 18px 0; }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.good { border-left-color: var(--accent-3); }
+  .callout.pink { border-left-color: var(--pink); }
+  .callout .head { font-weight: 700; margin-bottom: 6px; color: var(--accent); }
+  .callout.warn .head { color: var(--warn); }
+  .callout.good .head { color: var(--accent-3); }
+  .callout.pink .head { color: var(--pink); }
+
+  .mathbox { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; margin: 22px 0; }
+  .mathbox-title { font-size: 12px; color: var(--text-mute); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.6px; }
+  svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  .toc { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 20px 24px; margin: 24px 0 40px; }
+  .toc-title { font-weight: 700; color: var(--accent); margin-bottom: 10px; font-size: 14px; }
+  .toc ol { margin: 0; padding-left: 22px; }
+  .toc li { font-size: 14px; color: var(--text-dim); margin: 4px 0; }
+  .toc a { color: var(--text-dim); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  @media (max-width: 720px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 26px; } }
+  .cmp-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  .cmp-card.b { border-left: 3px solid var(--warn); } .cmp-card.a { border-left: 3px solid var(--accent); }
+  .cmp-card h4 { margin: 0 0 10px; font-size: 15px; color: var(--text); }
+  .cmp-card.b h4 { color: var(--warn); } .cmp-card.a h4 { color: var(--accent); }
+  .cmp-card ul { margin: 6px 0 0; padding-left: 18px; }
+  .cmp-card li { font-size: 13.5px; color: var(--text-dim); }
+
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; background: var(--bg-card); border-radius: 10px; overflow: hidden; }
+  th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { background: var(--bg-soft); font-weight: 600; color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
+  td { color: var(--text); }
+  td.sym { font-family: "SF Mono", monospace; color: var(--accent); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+
+  .foot { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--text-mute); font-size: 13px; text-align: center; }
+  .small { font-size: 13px; color: var(--text-dim); }
+  .muted { color: var(--text-mute); }
+
+.back-home{position:fixed;top:20px;left:20px;z-index:9999;padding:8px 16px;background:rgba(20,23,31,.92);border:1px solid #262b3b;border-radius:8px;color:#e6e9f2;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;font-weight:500;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .2s ease}
+.back-home:hover{background:rgba(124,158,255,.18);border-color:#7c9eff;color:#7c9eff;transform:translateX(-2px)}
+
+</style>
+</head>
+<body>
+<a class="back-home" href="../index.html#papers" aria-label="返回 Neural Reading Room">← 返回 Neural Reading Room</a>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="tag-row">
+    <span class="tag a">第 2 篇</span>
+    <span class="tag p">Sriperumbudur et al. 2010</span>
+    <span class="tag g">JMLR</span>
+  </div>
+  <h1>把<strong>分布</strong>变成 Hilbert 空间里的<strong>一个点</strong></h1>
+  <p class="subtitle">核均值嵌入（KME）与 MMD —— Drifting Models 整套数学的<strong>地基</strong>。</p>
+  <div class="meta">
+    <div class="item"><div class="label">参考</div><div class="value">Sriperumbudur et al. (2010)<br/>JMLR 11 · pp.1517-1561</div></div>
+    <div class="item"><div class="label">难度</div><div class="value">⭐⭐⭐ 中等</div></div>
+    <div class="item"><div class="label">阅读时长</div><div class="value">~40 分钟</div></div>
+    <div class="item"><div class="label">前置</div><div class="value">RKHS（上一篇）</div></div>
+  </div>
+</header>
+
+<div class="toc">
+  <div class="toc-title">🗺️ 路线图</div>
+  <ol>
+    <li><a href="#s1">问题：怎么"算"两个分布的距离？</a></li>
+    <li><a href="#s2">核均值嵌入：把分布映到 RKHS 里</a></li>
+    <li><a href="#s3">KME 的性质</a></li>
+    <li><a href="#s4">MMD：分布之间的距离</a></li>
+    <li><a href="#s5">MMD 的无偏估计</a></li>
+    <li><a href="#s6">关键定理：characteristic / universal kernel</a></li>
+    <li><a href="#s7">回到 Drifting Models</a></li>
+    <li><a href="#s8">为什么 MMD 能 work？</a></li>
+    <li><a href="#s9">速查表</a></li>
+  </ol>
+</div>
+
+<!-- ============ §1 ============ -->
+<h2 id="s1"><span class="num">1</span> 问题：怎么"算"两个分布的距离？</h2>
+
+<p>假设你有两个概率分布 p 和 q，你想量化它们"有多不一样"。该怎么做？</p>
+
+<h3>常见选项</h3>
+
+<ul>
+  <li><strong>KL 散度</strong> KL(p ‖ q) = ∫ p(x) log(p(x)/q(x)) dx</li>
+  <li><strong>JS 散度</strong> = ½ KL(p‖m) + ½ KL(q‖m)，m = (p+q)/2</li>
+  <li><strong>Wasserstein 距离</strong> W₁(p, q) = min 𝔼‖X−Y‖ over all couplings</li>
+  <li><strong>Total Variation</strong> TV(p, q) = ½ ∫ |p(x) − q(x)| dx</li>
+</ul>
+
+<p>它们各有毛病：</p>
+<ul>
+  <li><strong>KL / JS</strong>：当 p 和 q 的支撑集不重叠时，KL 是 ∞，JS 是常数 log 2（梯度消失 → GAN 训练困难）</li>
+  <li><strong>Wasserstein</strong>：定义清楚，但计算要解一个线性规划，O(N³ log N)，高维很贵</li>
+  <li><strong>TV</strong>：也定义清楚，但同样有"支撑不重叠就饱和"的问题</li>
+</ul>
+
+<div class="callout warn">
+  <div class="head">⚠️ 核心痛点</div>
+  <p>统计和机器学习里经常要做<strong>两样本检验</strong>（test if p = q）。但需要一个：</p>
+  <ul>
+    <li>① 定义简单</li>
+    <li>② 有 closed-form 估计</li>
+    <li>③ 估计收敛快</li>
+    <li>④ 即使 p ≠ q 也有非平凡梯度</li>
+  </ul>
+  <p>大部分传统度量都做不到全部。Sriperumbudur 2010 给出的 <strong>MMD</strong> 是少见的例外。</p>
+</div>
+
+<!-- ============ §2 ============ -->
+<h2 id="s2"><span class="num">2</span> 核均值嵌入：把分布映到 RKHS 里</h2>
+
+<p><strong>核心想法</strong>：把"分布"——一个数学上比较抽象的对象 —— 用 RKHS 里的<strong>一个点</strong>来表示。</p>
+
+<h3>2.1 定义</h3>
+
+<div class="eq">
+<span class="tag">(2.1) — 核均值嵌入 (KME)</span>
+设 H<sub>k</sub> 是核 k 对应的 RKHS。对分布 p 定义：<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;μ<sub>k</sub>(p)  :=  𝔼<sub>x ~ p</sub>[ k(·, x) ]  ∈  H<sub>k</sub>
+</div>
+
+<p>用人话说：</p>
+<ul>
+  <li>对分布 p 采一堆样本 {x₁, x₂, ..., xₙ}</li>
+  <li>每个样本对应 RKHS 里的一个元素 k(·, xᵢ)</li>
+  <li>把这些元素<strong>求平均</strong>，就得到 μ<sub>k</sub>(p) 的<strong>经验估计</strong></li>
+</ul>
+
+<div class="callout good">
+  <div class="head">🎯 这就是"把分布变成一个点"</div>
+  <p>μ<sub>k</sub>: 𝒫 → H<sub>k</sub> 是一个从"分布空间"到"Hilbert 空间"的映射。</p>
+  <p>直观上：μ<sub>k</sub>(p) 是"p 在 RKHS 里的代表"，位置由所有样本的位置共同决定。</p>
+</div>
+
+<h3>2.2 一个直观的可视化</h3>
+
+<div class="mathbox">
+  <div class="mathbox-title">图：核均值嵌入的几何直觉</div>
+<svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="gradBlue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gradOrange" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="720" height="320" fill="#14171f"/>
+
+  <!-- INPUT SPACE (left) -->
+  <text x="180" y="30" fill="#7c9eff" font-size="14" font-weight="600" text-anchor="middle">原始空间 𝒳</text>
+
+  <!-- p cloud -->
+  <circle cx="120" cy="160" r="80" fill="url(#gradBlue)"/>
+  <g fill="#34d399">
+    <circle cx="100" cy="140" r="4"/>
+    <circle cx="130" cy="155" r="4"/>
+    <circle cx="115" cy="175" r="4"/>
+    <circle cx="140" cy="170" r="4"/>
+    <circle cx="105" cy="160" r="4"/>
+  </g>
+  <text x="120" y="270" fill="#34d399" font-size="12" text-anchor="middle">p: 数据分布</text>
+
+  <!-- q cloud -->
+  <circle cx="240" cy="160" r="60" fill="url(#gradOrange)"/>
+  <g fill="#f59e0b">
+    <circle cx="225" cy="145" r="4"/>
+    <circle cx="245" cy="170" r="4"/>
+    <circle cx="260" cy="155" r="4"/>
+    <circle cx="235" cy="180" r="4"/>
+  </g>
+  <text x="240" y="270" fill="#f59e0b" font-size="12" text-anchor="middle">q: 模型分布</text>
+
+  <!-- arrows -->
+  <line x1="320" y1="160" x2="380" y2="160" stroke="#7c9eff" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="4 3"/>
+  <text x="350" y="155" fill="#7c9eff" font-size="11" text-anchor="middle">μ<sub>k</sub></text>
+
+  <!-- RKHS (right) -->
+  <text x="540" y="30" fill="#c084fc" font-size="14" font-weight="600" text-anchor="middle">RKHS H<sub>k</sub></text>
+
+  <!-- mu_p -->
+  <circle cx="480" cy="130" r="8" fill="#34d399"/>
+  <text x="480" y="105" fill="#34d399" font-size="12" text-anchor="middle">μ<sub>k</sub>(p)</text>
+
+  <!-- mu_q -->
+  <circle cx="610" cy="190" r="8" fill="#f59e0b"/>
+  <text x="610" y="220" fill="#f59e0b" font-size="12" text-anchor="middle">μ<sub>k</sub>(q)</text>
+
+  <!-- distance -->
+  <line x1="488" y1="130" x2="602" y2="190" stroke="#7c9eff" stroke-width="2" stroke-dasharray="5 3"/>
+  <text x="545" y="170" fill="#7c9eff" font-size="12" text-anchor="middle" font-weight="600">‖μ<sub>k</sub>(p) − μ<sub>k</sub>(q)‖</text>
+  <text x="545" y="185" fill="#9aa3b8" font-size="10" text-anchor="middle">= MMD</text>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c9eff"/>
+    </marker>
+  </defs>
+</svg>
+  <p class="small muted" style="text-align:center;margin-top:10px">
+    核均值嵌入 μ<sub>k</sub> 把"两个不同的分布"映射到 RKHS 里的"两个点"，点的距离 = MMD = 分布的差异。
+  </p>
+</div>
+
+<h3>2.3 简单例子：高斯核的 KME</h3>
+
+<p>对 1D 高斯分布 p = 𝒩(μ, σ²)，高斯核 k(x, y) = exp(−(x−y)²/2s²) 对应的 KME：</p>
+
+<div class="eq">
+<span class="tag">(2.2)</span>
+μ<sub>k</sub>(p)(x)  =  𝔼<sub>y~p</sub>[ exp(−(x−y)²/2s²) ]
+</div>
+
+<p>这是个以 x 为自变量的函数（因为每个 k(·, x) 是个函数）。它的形状大概是个钟形曲线，中心在 x = μ 处。</p>
+
+<div class="callout pink">
+  <div class="head">💡 为什么 KME 是个函数？</div>
+  <p>回忆 KME = 𝔼<sub>x~p</sub>[k(·, x)]。k(·, x) 是个关于"·"的函数（参数 x 是固定的）。所以 KME 是"很多函数求平均"——还是函数。</p>
+  <p>RKHS 的元素本来就是函数，KME 在 RKHS 里 = 函数。</p>
+</div>
+
+<!-- ============ §3 ============ -->
+<h2 id="s3"><span class="num">3</span> KME 的性质</h2>
+
+<h3>3.1 期望计算：对任意 f ∈ H<sub>k</sub></h3>
+
+<div class="eq">
+<span class="tag">(3.1)</span>
+⟨f, μ<sub>k</sub>(p)⟩<sub>H<sub>k</sub></sub>  =  𝔼<sub>x ~ p</sub>[ ⟨f, k(·, x)⟩ ]  =  𝔼<sub>x ~ p</sub>[ f(x) ]
+</div>
+
+<p>即 KME 的对偶作用就是求期望！这是它最神奇的性质。</p>
+
+<h3>3.2 什么时候 KME 存在？</h3>
+
+<p>KME 是 RKHS 里的元素，所以需要满足 ‖μ<sub>k</sub>(p)‖ < ∞。条件是：</p>
+
+<div class="eq">
+<span class="tag">(3.2) — KME 存在条件</span>
+𝔼<sub>x ~ p</sub>[ √k(x, x) ]  &lt;  ∞
+</div>
+
+<p>对高斯核，k(x, x) = 1，所以这个条件恒成立。</p>
+
+<h3>3.3 经验估计</h3>
+
+<p>给定 N 个样本 {xᵢ}：</p>
+
+<div class="eq">
+<span class="tag">(3.3)</span>
+μ̂<sub>k</sub>(p)  :=  (1/N) Σᵢ k(·, xᵢ)    ∈  H<sub>k</sub>
+</div>
+
+<p>这是无偏估计，且 ‖μ̂<sub>k</sub>(p) − μ<sub>k</sub>(p)‖ = O(1/√N)。</p>
+
+<!-- ============ §4 ============ -->
+<h2 id="s4"><span class="num">4</span> MMD：分布之间的距离</h2>
+
+<p>既然 μ<sub>k</sub> 把分布映到 RKHS 里的点，那 RKHS 的距离就是分布的距离 —— 这就是 MMD。</p>
+
+<h3>4.1 定义</h3>
+
+<div class="eq">
+<span class="tag">(4.1) — MMD</span>
+MMD<sub>k</sub>(p, q)  :=  ‖ μ<sub>k</sub>(p) − μ<sub>k</sub>(q) ‖<sub>H<sub>k</sub></sub>
+</div>
+
+<h3>4.2 展开成平方</h3>
+
+<div class="eq">
+<span class="tag">(4.2)</span>
+MMD²<sub>k</sub>(p, q)  =  ‖μ<sub>k</sub>(p)‖² + ‖μ<sub>k</sub>(q)‖² − 2⟨μ<sub>k</sub>(p), μ<sub>k</sub>(q)⟩
+</div>
+
+<p>每一项用 (3.1) 展开：</p>
+
+<div class="eq">
+<span class="tag">(4.3)</span>
+‖μ<sub>k</sub>(p)‖²  =  𝔼<sub>x, x' ~ p</sub>[ k(x, x') ]
+</div>
+
+<div class="eq">
+<span class="tag">(4.4)</span>
+⟨μ<sub>k</sub>(p), μ<sub>k</sub>(q)⟩  =  𝔼<sub>x ~ p, y ~ q</sub>[ k(x, y) ]
+</div>
+
+<p>所以：</p>
+
+<div class="eq">
+<span class="tag">(4.5) — MMD 显式公式</span>
+MMD²<sub>k</sub>(p, q)  =  𝔼<sub>p, p</sub>[k]  +  𝔼<sub>q, q</sub>[k]  −  2 · 𝔼<sub>p, q</sub>[k]
+</div>
+
+<p>简洁到不可思议 —— <strong>只有三项核期望</strong>。</p>
+
+<div class="callout good">
+  <div class="head">🎯 MMD 的威力</div>
+  <p>把"两个分布的差异"问题，归结为<strong>三次"采样 + 算核函数"的平均</strong>。没有数值积分、没有优化求解、没有变分推断 —— 直接算。</p>
+</div>
+
+<!-- ============ §5 ============ -->
+<h2 id="s5"><span class="num">5</span> MMD 的无偏估计</h2>
+
+<p>给定 p 的 m 个样本 {x₁, ..., xₘ} 和 q 的 n 个样本 {y₁, ..., yₙ}，MMD² 的估计是：</p>
+
+<div class="eq">
+<span class="tag">(5.1) — MMD 经验估计 (V-statistic)</span>
+M̂MD²<sub>V</sub>  =  (1/m²) Σᵢ,ⱼ k(xᵢ, xⱼ)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+  (1/n²) Σᵢ,ⱼ k(yᵢ, yⱼ)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;−  (2/mn) Σᵢ,ⱼ k(xᵢ, yⱼ)
+</div>
+
+<p>这是有偏的（因为对角项 k(xᵢ, xᵢ) 也算了）。无偏版本 (U-statistic)：</p>
+
+<div class="eq">
+<span class="tag">(5.2) — U-statistic</span>
+M̂MD²<sub>U</sub>  =  (1/(m(m−1))) Σᵢ≠ⱼ k(xᵢ, xⱼ)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+  (1/(n(n−1))) Σᵢ≠ⱼ k(yᵢ, yⱼ)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;−  (2/(mn)) Σᵢ,ⱼ k(xᵢ, yⱼ)
+</div>
+
+<div class="callout">
+  <div class="head">🎓 两者的区别</div>
+  <p>V-statistic 方差小但有偏，U-statistic 无偏但方差略大。实践中 V 用得更多，因为偏置很快随样本消失。</p>
+</div>
+
+<h3>渐近性质</h3>
+
+<div class="eq">
+<span class="tag">(5.3)</span>
+M̂MD²  =  MMD²  +  O(1/√m)  +  O(1/√n)
+</div>
+
+<p>和很多传统距离（KL、Wasserstein）相比，MMD 收敛得<em>非常快</em>。这是它的核心优势之一。</p>
+
+<!-- ============ §6 ============ -->
+<h2 id="s6"><span class="num">6</span> 关键定理：characteristic / universal kernel</h2>
+
+<p>MMD 在 RKHS 里看着像是个距离，但它真的是分布的距离吗？换句话说：</p>
+
+<div class="eq">
+<span class="tag">(6.1)</span>
+MMD<sub>k</sub>(p, q) = 0     ⟺     p = q ?
+</div>
+
+<p>这取决于 <strong>k 是不是 characteristic 核</strong>。</p>
+
+<h3>6.1 Characteristic Kernel 定义</h3>
+
+<div class="eq">
+<span class="tag">(6.2)</span>
+若核 k 是 <strong>characteristic</strong>，则对所有 p ≠ q，有 MMD<sub>k</sub>(p, q) &gt; 0。<br/>
+等价地，μ<sub>k</sub>: p ↦ μ<sub>k</sub>(p) 是单射。
+</div>
+
+<h3>6.2 哪些核是 characteristic？</h3>
+
+<table>
+  <thead><tr><th>核</th><th>Characteristic?</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td class="sym">线性核 ⟨x, y⟩</td><td>✗</td><td>不能区分高维里不同分布</td></tr>
+    <tr><td class="sym">多项式核 (⟨x,y⟩ + c)ᵈ</td><td>✗ (有限维)</td><td>同理</td></tr>
+    <tr><td class="sym">高斯核 exp(−‖x−y‖²/2σ²)</td><td>✓</td><td>通用核 / universal</td></tr>
+    <tr><td class="sym">Laplace 核 exp(−‖x−y‖/σ)</td><td>✓</td><td>通用核</td></tr>
+    <tr><td class="sym">有理二次核</td><td>✓</td><td>通用核</td></tr>
+    <tr><td class="sym">sigmoid 核 tanh(a⟨x,y⟩ + b)</td><td>✗</td><td>不一定正定，更不是 characteristic</td></tr>
+  </tbody>
+</table>
+
+<h3>6.3 Universal Kernel 的定义</h3>
+
+<div class="eq">
+<span class="tag">(6.3)</span>
+称 k 是 <strong>universal</strong> 如果 H<sub>k</sub> 在 C(𝒳) 中按 sup-norm 稠密。<br/>
+（即 H<sub>k</sub> 中的函数能任意逼近任何连续函数）
+</div>
+
+<div class="callout pink">
+  <div class="head">🌟 Steinwart 定理</div>
+  <p>若 𝒳 是 𝒳 上的紧集，k 是连续 universal 核，则 k 也是 characteristic。</p>
+  <p>所以 <strong>高斯核既是 universal 又是 characteristic</strong> —— 这是它在 Drifting Models 里被选中的根本原因！</p>
+</div>
+
+<h3>6.4 直观理解 characteristic</h3>
+
+<p>characteristic 核 = "足够灵活，能区分任何不同分布"。</p>
+
+<ul>
+  <li><strong>线性核</strong>：在 ℝⁿ 里只能区分线性可分的分布，对复杂分布无能为力</li>
+  <li><strong>高斯核</strong>：对应无穷维 RKHS，能区分任何"温和的"分布</li>
+</ul>
+
+<p>反过来，characteristic 核保证了 <strong>KME 是单射</strong>，即每个分布有唯一代表。这是 Drifting Models 平衡条件能用的关键。</p>
+
+<!-- ============ §7 ============ -->
+<h2 id="s7"><span class="num">7</span> 回到 Drifting Models</h2>
+
+<p>现在你应该能看穿 Drifting Models 的数学套路了：</p>
+
+<h3>7.1 Drifting field 是核期望</h3>
+
+<div class="eq">
+<span class="tag">(7.1)</span>
+V<sub>p</sub><sup>+</sup>(x)  =  𝔼<sub>y~p</sub>[ k(x,y)(y−x) ] / 𝔼<sub>y~p</sub>[ k(x,y) ]
+</div>
+
+<p>分子 = 𝔼<sub>y~p</sub>[ k(x,y)·y ] − x · 𝔼<sub>y~p</sub>[ k(x,y) ]</p>
+
+<p>第一项 𝔼<sub>y~p</sub>[ k(x,y)·y ] 看起来很奇怪 —— 但在 RKHS 视角下很自然。</p>
+
+<h3>7.2 用 KME 重写</h3>
+
+<div class="eq">
+<span class="tag">(7.2)</span>
+μ<sub>k</sub>(p)(x)  :=  𝔼<sub>y~p</sub>[ k(x, y) ]
+</div>
+
+<p>这是 KME 在 x 点的值 —— 一个标量。对它求梯度：</p>
+
+<div class="eq">
+<span class="tag">(7.3)</span>
+∇<sub>x</sub> μ<sub>k</sub>(p)(x)  =  𝔼<sub>y~p</sub>[ ∇<sub>x</sub> k(x, y) ]
+</div>
+
+<p>对高斯核 k(x, y) = exp(−‖x−y‖²/2σ²)：</p>
+
+<div class="eq">
+<span class="tag">(7.4)</span>
+∇<sub>x</sub> k(x, y)  =  k(x, y) · (y − x) / σ²
+</div>
+
+<p>代入 (7.3) 就能反推出 (7.1)。所以 <strong>drifting field 的 V<sub>p</sub><sup>+</sup> 就是 KME 的归一化梯度</strong>！</p>
+
+<div class="callout good">
+  <div class="head">🌊 一个统一的视角</div>
+  <p>Drifting Models 在做的事情：</p>
+  <ol>
+    <li>把 p 和 q 用 KME 映到 RKHS</li>
+    <li>在这两个"点"之间，找一个向量场 V 把 q 推向 p</li>
+    <li>由于 RKHS 的几何，所有这些都能用内积显式算</li>
+  </ol>
+  <p>没有 KME 这套框架，Drifting Models 的数学根本无法写出来。</p>
+</div>
+
+<h3>7.3 平衡条件的 KME 重写</h3>
+
+<div class="eq">
+<span class="tag">(7.5) — 关键定理</span>
+V(x) ≡ 0   ∀ x     ⟺     μ<sub>k</sub>(p) = μ<sub>k</sub>(q)  ∈  H<sub>k</sub><br/>
+若 k 是 characteristic（高斯核满足），则 μ<sub>k</sub> 单射，所以：<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;μ<sub>k</sub>(p) = μ<sub>k</sub>(q)   ⟺   p = q
+</div>
+
+<p>这就是 Drifting Models 数学证明的核心！</p>
+
+<!-- ============ §8 ============ -->
+<h2 id="s8"><span class="num">8</span> 为什么 MMD 能 work？</h2>
+
+<h3>8.1 与其他距离对比</h3>
+
+<table>
+  <thead><tr><th>距离</th><th>定义</th><th>估计收敛率</th><th>梯度稳定性</th></tr></thead>
+  <tbody>
+    <tr><td class="sym">KL(p‖q)</td><td>∫ p log(p/q)</td><td>O(1/√N)（变分估计）</td><td>支撑不交时 = ∞</td></tr>
+    <tr><td class="sym">JS(p,q)</td><td>(KL(p‖m)+KL(q‖m))/2</td><td>O(1/√N)</td><td>支撑不交时 = log 2</td></tr>
+    <tr><td class="sym">W₁(p,q)</td><td>最优传输</td><td>O(N⁻¹/d)（慢）</td><td>始终稳定</td></tr>
+    <tr><td class="sym">MMD<sub>k</sub></td><td>‖μ<sub>k</sub>(p) − μ<sub>k</sub>(q)‖</td><td>O(1/√N)（快）</td><td>始终稳定（高斯核）</td></tr>
+  </tbody>
+</table>
+
+<h3>8.2 MMD 的三大优势</h3>
+
+<div class="callout">
+  <div class="head">① 计算简洁</div>
+  <p>就三项核函数求和，没有变分推断、没有 SDE 求解、没有神经网络。</p>
+</div>
+
+<div class="callout">
+  <div class="head">② 收敛速度快</div>
+  <p>O(1/√N) 阶，NFE 与 Wasserstein 一样甚至更快。</p>
+</div>
+
+<div class="callout pink">
+  <div class="head">③ 始终有非平凡梯度</div>
+  <p>即使 p 和 q 的支撑集不重叠，MMD 仍然有梯度。这对训练生成模型<strong>至关重要</strong> —— 解决了 GAN 的"梯度消失"问题。</p>
+</div>
+
+<h3>8.3 为什么高斯核这么强？</h3>
+
+<p>高斯核是 universal + characteristic，对应无穷维 RKHS。这个无穷维给我们"无限能力"去区分任何不同的分布。</p>
+
+<p>但代价是什么？<strong>维度诅咒</strong>。在高维空间里，样本变得稀疏，KME 估计的方差变大。所以论文强调 batch size 要大。</p>
+
+<div class="callout warn">
+  <div class="head">⚠️ 高斯核不是免费的</div>
+  <p>高斯核特性越好 → RKHS 越"丰富" → 估计需要的样本越多。这就是 Drifting Models 在 3D 医学图像上 batch=1 难 work 的数学原因（详见上一篇讨论）。</p>
+</div>
+
+<!-- ============ §9 ============ -->
+<h2 id="s9"><span class="num">9</span> 速查表</h2>
+
+<table>
+  <tbody>
+    <tr><th>核均值嵌入 KME</th><td class="sym">μ<sub>k</sub>(p) = 𝔼<sub>x~p</sub>[k(·, x)] ∈ H<sub>k</sub></td></tr>
+    <tr><th>KME 性质</th><td class="sym">⟨f, μ<sub>k</sub>(p)⟩ = 𝔼<sub>x~p</sub>[f(x)]</td></tr>
+    <tr><th>KME 存在</th><td class="sym">𝔼[√k(x,x)] &lt; ∞</td></tr>
+    <tr><th>MMD 定义</th><td class="sym">MMD<sub>k</sub>(p,q) = ‖μ<sub>k</sub>(p) − μ<sub>k</sub>(q)‖</td></tr>
+    <tr><th>MMD² 展开</th><td class="sym">E<sub>pp</sub>[k] + E<sub>qq</sub>[k] − 2 E<sub>pq</sub>[k]</td></tr>
+    <tr><th>经验估计</th><td class="sym">V-statistic: 直接求和<br/>U-statistic: 去掉对角项</td></tr>
+    <tr><th>收敛率</th><td class="sym">O(1/√N)</td></tr>
+    <tr><th>Universal kernel</th><td class="sym">H<sub>k</sub> 在 C(𝒳) 中 sup-norm 稠密</td></tr>
+    <tr><th>Characteristic kernel</th><td class="sym">MMD(p,q)=0 ⟺ p=q</td></tr>
+    <tr><th>高斯核</th><td class="sym">exp(−‖x−y‖²/2σ²)，两者都满足</td></tr>
+    <tr><th>Drifting 中用法</th><td class="sym">V<sub>p</sub><sup>+</sup>(x) = ∇log μ<sub>k</sub>(p)(x)（归一化梯度）</td></tr>
+    <tr><th>平衡条件</th><td class="sym">V=0 ⟺ μ<sub>k</sub>(p)=μ<sub>k</sub>(q) ⟺ p=q</td></tr>
+  </tbody>
+</table>
+
+<!-- ============ 自检 ============ -->
+<h2><span class="num">10</span> 自检题</h2>
+
+<ol>
+  <li>为什么 KME 的"对偶作用"等于"求期望"？从公式推一遍。</li>
+  <li>MMD² 展开为什么只有三项？为什么没有混合项？</li>
+  <li>为什么高斯核是 characteristic 而线性核不是？</li>
+  <li>Drifting Models 的 V<sub>p</sub><sup>+</sup>(x) 和 KME 的梯度有什么关系？</li>
+  <li>为什么 MMD 收敛率是 O(1/√N) 而不是 O(N⁻¹/d)（Wasserstein）？</li>
+</ol>
+
+<div class="foot">
+  整理自 Sriperumbudur, Gretton, Lanckriet, Schölkopf, Borgwardt (2010)<br/>
+  "Hilbert space embeddings and metrics on probability measures", JMLR 11: 1517-1561.<br/>
+  推荐配合 Gretton et al. (2012) "A Kernel Two-Sample Test", JMLR 13: 723-773 一起看（含完整 MMD 教程）。
+</div>
+
+</div>
+</body>
+</html>
